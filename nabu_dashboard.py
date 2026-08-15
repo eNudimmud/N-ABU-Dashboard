@@ -854,6 +854,105 @@ body{
 footer{margin-top:56px;padding-top:18px;border-top:3px solid var(--ink);
   font-size:10.5px;color:var(--ink-soft);line-height:1.7}
 footer b{color:var(--ink)}
+
+/* ---------- NOUS × N*ABU / editorial system ---------- */
+body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:-1;
+  background:linear-gradient(90deg,rgba(15,46,99,.035) 1px,transparent 1px),
+    linear-gradient(rgba(15,46,99,.025) 1px,transparent 1px);background-size:42px 42px}
+.page{max-width:1180px;padding:22px 34px 100px}
+.topline{display:flex;justify-content:space-between;align-items:center;padding:7px 0 9px;
+  border-top:5px solid var(--ink);border-bottom:1px solid var(--hair);font-size:8px;
+  letter-spacing:.24em;text-transform:uppercase;color:var(--ink-soft)}
+.topline strong{color:var(--cobalt)}
+.issue{font-variant-numeric:tabular-nums}
+.mast{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(250px,.55fr);align-items:stretch;
+  gap:0;margin-top:14px;border:1px solid var(--ink)}
+.mast-main{min-height:300px;padding:28px 30px 24px;display:flex;flex-direction:column;
+  justify-content:space-between;position:relative;overflow:hidden;
+  background:var(--prussian);color:var(--paper-3)}
+.mast-main::before{content:"";position:absolute;inset:0;opacity:.20;pointer-events:none;
+  background:repeating-radial-gradient(ellipse at 80% 38%,transparent 0 6px,rgba(242,238,230,.2) 7px 8px)}
+.mast-main::after{content:"03";position:absolute;right:-.05em;bottom:-.25em;
+  font-family:var(--sans);font-weight:900;font-size:260px;line-height:1;color:rgba(242,238,230,.045)}
+.mast-main>*{position:relative;z-index:1}
+.wordmark{color:var(--paper-3);font-size:clamp(66px,12vw,138px);letter-spacing:-.07em;
+  text-shadow:2px 0 0 rgba(215,168,58,.65);transform:scaleX(.88)}
+.wordmark::after{display:none}
+.tagline{color:var(--gold-lite);margin-top:14px}
+.motto{max-width:560px;margin:34px 0 0;font-family:var(--serif);font-size:clamp(18px,2vw,27px);
+  font-style:italic;line-height:1.25;color:var(--paper-3)}
+.mast-side{position:relative;display:flex;flex-direction:column;justify-content:space-between;
+  min-height:300px;padding:24px;background:var(--paper-3);overflow:hidden}
+.agent-mark{align-self:flex-end;width:138px;height:138px;border-radius:50%;border:1px solid var(--cobalt);
+  display:grid;place-items:center;position:relative;color:var(--cobalt);font-family:var(--sans);
+  font-size:58px;font-weight:900;letter-spacing:-.16em;filter:contrast(1.1)}
+.agent-mark::before{content:"";position:absolute;inset:8px;border:1px dashed rgba(31,69,200,.34);border-radius:50%}
+.agent-mark::after{content:"ANALYST / HUNTER";position:absolute;width:210px;text-align:center;
+  bottom:-25px;font:7px var(--mono);letter-spacing:.24em;transform:rotate(-8deg)}
+.mast-right{text-align:left;margin-top:32px}.mast-right .badge{margin-bottom:10px}
+.attest{margin-top:18px;border:1px solid var(--hair);padding:20px;background:rgba(242,238,230,.55)}
+.sec{margin-top:58px}.eyebrow{display:flex;align-items:center;gap:12px}.eyebrow::before{
+  content:"iii";font-family:var(--sans);font-weight:900;letter-spacing:-.12em;color:var(--gold)}
+.plate{padding:34px 30px;box-shadow:10px 10px 0 rgba(15,46,99,.11)}
+.clock,.step,.cell{transition:transform .18s ease,background .18s ease}
+.clock:hover,.cell:hover{transform:translateY(-2px);background:var(--paper-3)}
+.step:hover{transform:translateY(-3px);z-index:2}
+.wedge{border:1px solid var(--hair);background:var(--ink)}
+.track{height:156px;background-color:rgba(31,69,200,.055)}
+.tbl tbody tr{transition:background .15s ease}.tbl tbody tr:hover{background:rgba(31,69,200,.07)}
+.tbl th{color:var(--cobalt);border-bottom:2px solid var(--cobalt)}
+.stamp{box-shadow:3px 3px 0 rgba(124,29,33,.12)}
+footer{display:grid;grid-template-columns:1fr auto;gap:24px;align-items:end}
+footer::after{content:"iii";font-family:var(--sans);font-size:48px;font-weight:900;
+  letter-spacing:-.14em;color:var(--gold)}
+@media(max-width:760px){
+  .page{padding:14px 14px 72px}.topline span:nth-child(2){display:none}
+  .mast{grid-template-columns:1fr}.mast-main{min-height:260px;padding:24px 20px}
+  .mast-side{min-height:170px;padding:18px;display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .agent-mark{width:104px;height:104px;font-size:42px}.mast-right{margin:0;align-self:end}
+  .attest{padding:15px}.sec{margin-top:42px}.plate{padding:26px 18px}
+  .cap-grid{grid-template-columns:1fr}.cap-eq{font-size:clamp(38px,13vw,58px)}
+}
+@media print{.grain,.fibers{display:none}.page{max-width:none;padding:0}.clock:hover,.cell:hover,.step:hover{transform:none}}
+
+/* ---------- portfolio cockpit / progressive disclosure ---------- */
+.overview{margin-top:18px;background:var(--paper-3);border:1px solid var(--ink);padding:22px}
+.overview-head{display:flex;justify-content:space-between;gap:16px;align-items:center;margin-bottom:18px}
+.overview-title{font:800 12px var(--sans);letter-spacing:.16em;text-transform:uppercase}
+.health{display:inline-flex;align-items:center;gap:7px;border:1px solid currentColor;padding:4px 8px;
+  color:var(--cobalt);font-size:9px;letter-spacing:.14em;text-transform:uppercase;font-weight:700}
+.health::before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor}
+.health--watch,.health--unknown{color:var(--gold)}.health--hot{color:var(--oxblood)}
+.overview-grid{display:grid;grid-template-columns:1.55fr repeat(4,1fr);gap:1px;background:var(--hair)}
+.metric{min-width:0;background:var(--paper-3);padding:15px 14px}
+.metric:first-child{background:var(--prussian);color:var(--paper-3)}
+.metric-k{font-size:8.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--ink-soft)}
+.metric:first-child .metric-k{color:rgba(242,238,230,.62)}
+.metric-v{font:800 clamp(20px,3vw,31px)/1.05 var(--sans);margin-top:5px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.metric:first-child .metric-v{font-size:clamp(30px,5vw,52px)}
+.metric-n{margin-top:6px;font-size:9px;color:var(--ink-soft)}
+.metric:first-child .metric-n{color:rgba(242,238,230,.62)}
+.decision{display:flex;gap:10px;align-items:flex-start;margin-top:15px;padding-top:14px;border-top:1px solid var(--hair);
+  font-family:var(--serif);font-style:italic;color:var(--ink-soft)}
+.decision b{font:800 9px var(--mono);font-style:normal;letter-spacing:.16em;text-transform:uppercase;color:var(--cobalt)}
+.risk-strip{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.risk-card{border:1px solid var(--hair);padding:13px;background:rgba(242,238,230,.65)}
+.risk-card-head{display:flex;justify-content:space-between;gap:8px;font-size:9px;text-transform:uppercase;letter-spacing:.08em}
+.risk-card-head b{color:var(--cobalt)}.risk-card--watch .risk-card-head b{color:var(--gold)}
+.risk-card--hot .risk-card-head b,.risk-card--breach .risk-card-head b{color:var(--oxblood)}
+.risk-meter{height:5px;background:rgba(31,69,200,.10);margin:10px 0 7px}.risk-meter span{display:block;height:100%;width:var(--w);background:var(--cobalt)}
+.risk-card--watch .risk-meter span{background:var(--gold)}.risk-card--hot .risk-meter span,.risk-card--breach .risk-meter span{background:var(--oxblood)}
+.risk-value{font-size:10px;color:var(--ink-soft)}
+.drawer{margin-top:22px;border-top:1px solid var(--hair);border-bottom:1px solid var(--hair);padding:0}
+.drawer>summary{cursor:pointer;list-style:none;padding:14px 4px;display:flex;align-items:center;justify-content:space-between;
+  gap:16px;font-size:9px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--cobalt)}
+.drawer>summary::-webkit-details-marker{display:none}.drawer>summary::after{content:"＋";font-size:17px;font-weight:400}
+.drawer[open]>summary::after{content:"−"}.drawer[open]>summary{border-bottom:1px solid var(--hair)}
+.drawer-body{padding:20px 4px 26px}.drawer .sec{margin-top:0}
+.primary-section{margin-top:40px}.primary-section>.eyebrow{font-size:11px}
+@media(max-width:850px){.overview-grid{grid-template-columns:repeat(2,1fr)}.metric:first-child{grid-column:1/-1}.risk-strip{grid-template-columns:1fr 1fr}}
+@media(max-width:520px){.overview{padding:15px}.overview-head{align-items:flex-start;flex-direction:column}.overview-grid{grid-template-columns:1fr 1fr}
+  .metric{padding:12px 10px}.risk-strip{grid-template-columns:1fr}.decision{display:block}.decision b{display:block;margin-bottom:4px}}
 """
 
 
@@ -871,16 +970,20 @@ def render(state: dict) -> str:
     a("<meta name=\"color-scheme\" content=\"light\">")
     a("<style>" + CSS + "</style></head><body>")
     a("<div class=\"grain\"></div><div class=\"fibers\"></div><main class=\"page\">")
+    a("<div class=\"topline\"><span><strong>NOUS / N*ABU</strong> · Agent telemetry</span>"
+      "<span>Sacred technology · Evidence before assertion</span>"
+      "<span class=\"issue\">iii / 2026</span></div>")
 
     # -- masthead
-    a("<header class=\"mast\"><div><div class=\"wordmark\">N*ABU</div>")
-    a("<div class=\"tagline\">Planche de lecture · Trade · Analyse · Execute</div></div>")
-    a("<div class=\"mast-right\">")
+    a("<header class=\"mast\"><div class=\"mast-main\"><div><div class=\"wordmark\">N*ABU</div>")
+    a("<div class=\"tagline\">Trade · Analyse · Execute</div></div>"
+      "<p class=\"motto\">Le signal avant le bruit. La preuve avant le récit.</p></div>")
+    a("<div class=\"mast-side\"><div class=\"agent-mark\" aria-label=\"Symbole iii\">iii</div><div class=\"mast-right\">")
     a(f"<span class=\"badge badge--mode\">{e(str(S['mode']).upper())}</span> ")
     if S.get("demo"):
-        a("<span class=\"badge badge--demo\">Données de démonstration</span> ")
+        a("<span class=\"badge badge--demo\">Données de démonstration</span>")
     a(f"<div style=\"margin-top:8px\">Tirage {e(S['built_iso'])}</div>")
-    a("<div>Lecture seule · aucun ordre</div></div></header>")
+    a("<div>Lecture seule · aucun ordre</div></div></div></header>")
 
     # -- kill
     k = S["kill"]
@@ -890,8 +993,47 @@ def render(state: dict) -> str:
         a(f"<p style=\"margin-top:6px\">Armé depuis {e(k.get('since_iso'))} · "
           "nouvelles prises de risque bloquées · sorties autorisées · JD requis.</p></section>")
 
-    # -- attestation (héros)
-    a("<section class=\"attest\"><div class=\"eyebrow\">Attestation — invariant #2</div>")
+    if fr["status"] == "ok":
+        v = ("Données à jour. Le portefeuille peut être suivi depuis cette page.")
+    elif fr["status"] == "watch":
+        v = ("Le dernier mark vieillit : les positions restent lisibles, mais leur uPnL doit être "
+             "confirmé avant toute décision.")
+    elif fr["status"] == "hot":
+        v = ("Données périmées. Vérifier book-sync et wrap_mtm.py avant de lire le portefeuille.")
+    else:
+        v = ("Fraîcheur indéterminée : une source manque. Aucun chiffre ne doit déclencher d'action.")
+
+    # -- cockpit essentiel
+    positions = S["positions"]
+    upnl = sum(float(p.get("unrealized_pnl_usd") or 0) for p in positions)
+    max_gate = max(S["gates"], key=lambda x: x["util_pct"], default=None)
+    risk_txt = f"{max_gate['util_pct']:.0f}{NB}%" if max_gate else "—"
+    risk_note = max_gate["label"] if max_gate else "limites indisponibles"
+    health_label = {"ok": "À jour", "watch": "À surveiller", "hot": "Périmé",
+                    "unknown": "Inconnu"}.get(fr["status"], fr["status"])
+    p = cap.get("paper") or {}
+    realized = float(p.get("realized_pnl_usd") or 0)
+    a("<section class=\"overview\" aria-label=\"Synthèse du portefeuille\">")
+    a(f"<div class=\"overview-head\"><div class=\"overview-title\">Portefeuille · maintenant</div>"
+      f"<span class=\"health health--{e(fr['status'])}\">{e(health_label)}</span></div>")
+    a("<div class=\"overview-grid\">")
+    metrics = [
+        ("Equity", money(cap["equity_usd"]), f"pic {money(cap['peak_usd'], 0)}", False),
+        ("Aujourd'hui", f"{cap['day_pnl_pct']:+.2f}{NB}%", "performance UTC", cap["day_pnl_pct"] < 0),
+        ("uPnL ouvert", money(upnl), f"{len(positions)} position{'s' if len(positions) != 1 else ''}", upnl < 0),
+        ("PnL réalisé", money(realized), "net des clôtures", realized < 0),
+        ("Risque max", risk_txt, risk_note, bool(max_gate and max_gate["status"] in ("hot", "breach"))),
+    ]
+    for kk, vv, nn, bad in metrics:
+        a(f"<div class=\"metric\"><div class=\"metric-k\">{e(kk)}</div>"
+          f"<div class=\"metric-v{' neg' if bad else ''}\">{e(vv)}</div>"
+          f"<div class=\"metric-n\">{e(nn)}</div></div>")
+    a(f"</div><div class=\"decision\"><b>Lecture</b><span>{e(v)}</span></div></section>")
+
+    # -- attestation technique, disponible sans encombrer la lecture
+    open_attr = " open" if fr["status"] in ("hot", "unknown") else ""
+    a(f"<details class=\"drawer\"{open_attr}><summary>Fraîcheur et attestation des données</summary>"
+      "<div class=\"drawer-body\"><section class=\"attest\"><div class=\"eyebrow\">Attestation — invariant #2</div>")
     a("<div class=\"rule rule--thick\"></div>")
     a(f"<p class=\"attest-line\">{e(S['attestation'])}</p>")
     a("<div class=\"clocks\">")
@@ -904,22 +1046,11 @@ def render(state: dict) -> str:
       f"{e(fr.get('mark_note') or '')}</span></div>")
     a("</div>")
 
-    if fr["status"] == "ok":
-        v = ("Les deux horloges concordent. L'equity affichée est celle du moment, "
-             "pas celle d'une bougie oubliée.")
-    elif fr["status"] == "watch":
-        v = ("Le sync est frais, le mark ne l'est pas. Le uPnL ci-dessous date de la dernière "
-             "bougie close par le MTM horaire — lisible, pas exploitable pour décider d'une sortie.")
-    elif fr["status"] == "hot":
-        v = ("État périmé. Ne rien affirmer à partir de cette page : vérifier que book-sync et "
-             "wrap_mtm.py tournent encore avant de lire un seul chiffre.")
-    else:
-        v = ("Fraîcheur indéterminée — une source manque. Un zéro affiché serait une mesure ; "
-             "ici il n'y en a pas.")
-    a(f"<p class=\"verdict\">{e(v)}</p></section>")
+    a(f"<p class=\"verdict\">{e(v)}</p></section></div></details>")
 
-    # -- capital
-    a("<section class=\"sec\"><div class=\"eyebrow\">Capital</div><div class=\"rule\"></div>")
+    # -- grand livre du capital (secondaire)
+    a("<details class=\"drawer\"><summary>Détail du capital et du compte</summary><div class=\"drawer-body\">"
+      "<section class=\"sec\"><div class=\"eyebrow\">Capital</div><div class=\"rule\"></div>")
     a("<div class=\"plate\"><div class=\"cap-grid\">")
     a(f"<div><div class=\"cap-k\">Equity</div><div class=\"cap-eq\">{e(money(cap['equity_usd']))}</div></div>")
     dd_cls = " neg" if cap["dd_pct"] > 0 else ""
@@ -942,10 +1073,25 @@ def render(state: dict) -> str:
                        ("Capital initial", money(p["start_equity_usd"], 0))]:
             a(f"<span>{e(kk)} <b>{e(vv)}</b></span>")
         a("</div>")
-    a("</div></section>")
+    a("</div></section></div></details>")
 
-    # -- planche des limites
-    a("<section class=\"sec\"><div class=\"eyebrow\">Planche des limites — part de chaque limite déjà consommée</div>")
+    # -- risques essentiels puis planche complète repliable
+    a("<section class=\"sec primary-section\"><div class=\"eyebrow\">Risques à surveiller</div><div class=\"rule\"></div>")
+    if S["gates"]:
+        essentials = sorted(S["gates"], key=lambda x: x["util_pct"], reverse=True)[:4]
+        a("<div class=\"risk-strip\">")
+        for g in essentials:
+            w = min(100.0, g["util_pct"])
+            a(f"<div class=\"risk-card risk-card--{e(g['status'])}\">"
+              f"<div class=\"risk-card-head\"><span>{e(g['label'])}</span><b>{g['util_pct']:.0f}%</b></div>"
+              f"<div class=\"risk-meter\"><span style=\"--w:{w:.1f}%\"></span></div>"
+              f"<div class=\"risk-value\">{e(g['value_txt'])} / {e(g['limit_txt'])}</div></div>")
+        a("</div>")
+    else:
+        a("<p class=\"empty\">Limites indisponibles.</p>")
+    a("</section>")
+    a("<details class=\"drawer\"><summary>Toutes les limites de risque</summary><div class=\"drawer-body\">"
+      "<section class=\"sec\"><div class=\"eyebrow\">Planche complète des limites</div>")
     a("<div class=\"rule\"></div>")
     if S["gates"]:
         a("<div class=\"wedge\">")
@@ -970,10 +1116,10 @@ def render(state: dict) -> str:
     else:
         a("<p class=\"empty\">risk.yaml illisible — aucune limite à afficher. "
           "Une planche vide vaut mieux qu'une planche inventée.</p>")
-    a("</section>")
+    a("</section></div></details>")
 
     # -- positions
-    a("<section class=\"sec\"><div class=\"eyebrow\">Positions</div><div class=\"rule\"></div>")
+    a("<section class=\"sec primary-section\"><div class=\"eyebrow\">Positions ouvertes</div><div class=\"rule\"></div>")
     if S["positions"]:
         a("<div class=\"wrap\"><table class=\"tbl\"><thead><tr>"
           "<th>Venue</th><th>Sym</th><th>Sens</th><th class=\"num\">Notionnel</th>"
@@ -1003,7 +1149,8 @@ def render(state: dict) -> str:
     a("</section>")
 
     # -- edge
-    a("<section class=\"sec\"><div class=\"eyebrow\">Edge — mesuré, jamais supposé</div>")
+    a("<details class=\"drawer\"><summary>Performance statistique de N*ABU</summary><div class=\"drawer-body\">"
+      "<section class=\"sec\"><div class=\"eyebrow\">Edge — mesuré, jamais supposé</div>")
     a("<div class=\"rule\"></div>")
     n, tgt = edge["n_closes"], edge["target_trades"]
     if edge["verified"]:
@@ -1065,11 +1212,12 @@ def render(state: dict) -> str:
     else:
         a("<p class=\"empty\">Aucun trade clos non-artefact dans le journal. Rien à mesurer, "
           "rien à inventer.</p>")
-    a("</section>")
+    a("</section></div></details>")
 
     # -- contexte live
     ctx = (S["market"].get("context") or {}).get("coins") or {}
-    a("<section class=\"sec\"><div class=\"eyebrow\">Contexte live — lu avant toute décision</div>")
+    a("<details class=\"drawer\"><summary>Contexte de marché</summary><div class=\"drawer-body\">"
+      "<section class=\"sec\"><div class=\"eyebrow\">Contexte live — lu avant toute décision</div>")
     a("<div class=\"rule\"></div>")
     if ctx:
         a("<div class=\"wrap\"><table class=\"tbl\"><thead><tr><th>Actif</th>"
@@ -1089,11 +1237,12 @@ def render(state: dict) -> str:
     else:
         a("<p class=\"empty\">live_context.json absent. Invariant opérationnel n°1 : "
           "pas de trade sans lecture du contexte live.</p>")
-    a("</section>")
+    a("</section></div></details>")
 
     # -- signaux
     sig = S["market"].get("signals") or []
-    a("<section class=\"sec\"><div class=\"eyebrow\">Signaux du dernier scan</div>")
+    a("<details class=\"drawer\"><summary>Opportunités détectées</summary><div class=\"drawer-body\">"
+      "<section class=\"sec\"><div class=\"eyebrow\">Signaux du dernier scan</div>")
     a("<div class=\"rule\"></div>")
     if sig:
         perps = [x for x in sig if x.get("class") == "perp"]
@@ -1128,7 +1277,7 @@ def render(state: dict) -> str:
     else:
         a("<p class=\"empty\">Aucun signal dans le dernier scan — ou scan_latest.json absent. "
           "Flat par défaut, le silence n'est pas un bug.</p>")
-    a("</section>")
+    a("</section></div></details>")
 
     # -- avertissements
     if S.get("warnings"):
@@ -1139,7 +1288,8 @@ def render(state: dict) -> str:
         a("</ul></section>")
 
     # -- provenance
-    a("<section class=\"sec\"><div class=\"eyebrow\">Provenance — Verify nommé par source</div>")
+    a("<details class=\"drawer\"><summary>Audit et provenance des sources</summary><div class=\"drawer-body\">"
+      "<section class=\"sec\"><div class=\"eyebrow\">Provenance — Verify nommé par source</div>")
     a("<div class=\"rule\"></div><div class=\"wrap\"><table class=\"tbl prov\"><thead><tr>"
       "<th>Source</th><th>État</th><th>Âge fichier</th><th>Note</th><th>Chemin</th>"
       "</tr></thead><tbody>")
@@ -1148,7 +1298,7 @@ def render(state: dict) -> str:
           f"<td><span class=\"vs vs--{e(pr['state'])}\">{e(pr['state'])}</span></td>"
           f"<td>{e(dur(pr.get('age_s')))}</td><td>{e(pr['note'])}</td>"
           f"<td class=\"path\">{e(pr['path'])}</td></tr>")
-    a("</tbody></table></div></section>")
+    a("</tbody></table></div></section></div></details>")
 
     a("<footer><b>Lecture seule.</b> Cette page n'ouvre, ne ferme et ne modifie rien. "
       "Elle ne charge aucun secret et ne joint aucun venue.<br>"
