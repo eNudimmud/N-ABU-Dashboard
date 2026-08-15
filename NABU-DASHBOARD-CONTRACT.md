@@ -104,6 +104,28 @@ donc le consommer sans réimplémenter les calculs.
     "r_histogram": [{ "label":"<−1R", "n":1 }, …]
   },
 
+  "self_eval": {
+    "schema_version": 1,
+    "verdict": "LEARNING", // HALTED | BLOCKED | LEARNING | DEGRADING | IMPROVING | PERFORMING
+    "score": 54,
+    "improvement_needed": false,
+    "confidence": "low",
+    "scores": { "data":12, "risk":15, "discipline":20, "edge":4 },
+    "evidence": ["échantillon 11/30 trades", "risque max Série pertes 67 %"],
+    "blockers": [],
+    "next_action": "Collecter 19 clôtures supplémentaires sans retuner la stratégie.",
+    "actions": ["…maximum quatre actions ordonnées…"],
+    "review": { "closed_trades_now":11, "closed_trades_target":30,
+                "next_review_after_closes":30 },
+    "mutation_policy": {
+      "risk_limits_mutable": false,
+      "live_autopromotion": false,
+      "one_hypothesis_per_cycle": true,
+      "paper_validation_required": true,
+      "human_approval_for_live": true
+    }
+  },
+
   "market": { "context": {…live_context…}, "signals": [...], "scan_ts": … },
   "warnings": [ "…book.warnings…" ],
 
@@ -200,9 +222,28 @@ une barre pleine n'annonce pas une perte, elle annonce un **refus du gate**.
 
 ---
 
-## 6. Ce que cette page ne fait pas
+## 6. Boucle d'auto-évaluation
 
-- Elle ne décide rien, ne propose rien, n'ouvre rien. Lecture seule, sans exception.
+N*ABU consomme directement `.self_eval`, pas le texte visuel de la page :
+
+```bash
+/opt/data/.nabu/bin/nabu_dashboard.py json | jq .self_eval
+```
+
+Ordre de décision déterministe : KILL → fraîcheur → limites → taille de
+l'échantillon → espérance/IC95 → discipline → coûts. Une seule hypothèse peut
+être testée par cycle, en paper. Les revues sont déclenchées par un nombre de
+trades clos, pas par le temps : aucun retuning quotidien sur le bruit.
+
+`PERFORMING` exige au moins 30 clôtures, une espérance positive et une borne
+basse de l'IC95 strictement positive. `LEARNING` interdit de conclure avant le
+seuil. `DEGRADING` demande une segmentation des pertes mais n'autorise jamais
+à desserrer une limite. `BLOCKED` et `HALTED` suspendent la boucle.
+
+## 7. Ce que cette page ne fait pas
+
+- Elle n'ouvre, ne ferme et ne modifie aucune position. Lecture seule, sans exception.
+- Elle propose une prochaine expérience, mais n'applique aucun changement de stratégie.
 - Elle ne remplace pas `book.json`. En cas de conflit, le book gagne — c'est un
   tirage, pas la source.
 - Elle ne mesure pas d'edge sous 30 trades clos. Elle affiche les chiffres avec

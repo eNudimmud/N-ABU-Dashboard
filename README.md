@@ -67,3 +67,18 @@ the center circle slightly larger and raised, exactly three separate tall tapere
 center pillar upright and symmetrical, outer pillars subtly splayed outward, clear negative space
 between all six elements, compact monumental silhouette, flat single-color vector mark, no letters,
 no typography, no merged shapes, no extra elements.”
+
+## Boucle d'auto-évaluation
+
+Le dashboard expose `self_eval` dans le JSON embarqué et dans la commande `json`. N*ABU reçoit un
+verdict (`HALTED`, `BLOCKED`, `LEARNING`, `DEGRADING`, `IMPROVING`, `PERFORMING`), un score sur 100,
+les preuves utilisées et une prochaine action unique. Le score combine données, risque, discipline
+et edge ; il ne confond pas une série gagnante avec une stratégie démontrée.
+
+```bash
+./nabu_dashboard.py json | jq .self_eval
+```
+
+Les limites de risque sont immuables depuis cette boucle. Une amélioration teste une seule hypothèse
+en paper, attend la prochaine taille d'échantillon, puis exige une validation humaine avant toute
+promotion live.

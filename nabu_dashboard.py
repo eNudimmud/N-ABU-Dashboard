@@ -435,6 +435,109 @@ def compute_positions(book: dict, account: dict | None) -> list[dict]:
     return out
 
 
+def compute_self_eval(freshness: dict, edge: dict, gates: list[dict], kill: dict) -> dict:
+    """Deterministic introspection loop. It evaluates; it never changes risk limits."""
+    n = int(edge.get("n_closes") or 0)
+    target = int(edge.get("target_trades") or TARGET_TRADES)
+    exp = edge.get("expectancy_r")
+    ci = edge.get("ci95")
+    plan = edge.get("plan_written_pct")
+    costs = edge.get("cost_ratio_pct")
+    max_gate = max(gates, key=lambda g: g.get("util_pct", 0), default=None)
+    max_util = float(max_gate.get("util_pct", 0)) if max_gate else 0.0
+
+    data_score = {"ok": 20, "watch": 12, "unknown": 2, "hot": 0}.get(
+        freshness.get("status"), 0)
+    risk_score = 25 if max_util < 60 else 15 if max_util < 85 else 5 if max_util < 100 else 0
+    discipline_score = 10 if plan is None else 20 if plan >= 95 else 12 if plan >= 80 else 4
+    if costs is not None and costs > 30:
+        discipline_score = max(0, discipline_score - 5)
+
+    if n < target:
+        edge_score = round(min(10, n / max(target, 1) * 10))
+    elif exp is None:
+        edge_score = 5
+    elif ci and ci[0] > 0:
+        edge_score = 35
+    elif exp > 0:
+        edge_score = 22
+    elif exp > -0.10:
+        edge_score = 12
+    else:
+        edge_score = 2
+    score = int(max(0, min(100, data_score + risk_score + discipline_score + edge_score)))
+
+    blockers, actions, evidence = [], [], []
+    if kill.get("active"):
+        blockers.append("KILL actif")
+        actions.append("Stopper toute nouvelle prise de risque et demander une revue humaine.")
+    if freshness.get("status") in ("hot", "unknown"):
+        blockers.append("données périmées ou incomplètes")
+        actions.append("Rétablir et vérifier book-sync / marks avant toute autre analyse.")
+    if max_gate and max_gate.get("status") in ("hot", "breach"):
+        blockers.append(f"limite {max_gate['label']} consommée à {max_util:.0f} %")
+        actions.append(f"Réduire le risque lié à « {max_gate['label']} » ; ne modifier aucune limite.")
+    if n < target:
+        actions.append(f"Collecter {target - n} clôtures supplémentaires sans retuner la stratégie.")
+        evidence.append(f"échantillon {n}/{target} trades")
+    elif exp is None:
+        actions.append("Réparer la journalisation des multiples R avant d'évaluer l'edge.")
+    elif exp <= 0:
+        actions.append("Segmenter les pertes par setup, actif et régime ; tester une seule hypothèse en paper.")
+        evidence.append(f"espérance {exp:+.2f} R")
+    elif ci and ci[0] <= 0:
+        actions.append("Conserver les paramètres et élargir l'échantillon : l'edge positif reste incertain.")
+        evidence.append(f"IC95 {ci[0]:+.2f}…{ci[1]:+.2f} R")
+    else:
+        actions.append("Maintenir la stratégie ; surveiller la dérive sans optimisation opportuniste.")
+        evidence.append(f"espérance {exp:+.2f} R")
+    if plan is not None and plan < 90:
+        actions.append("Rendre thèse et invalidation obligatoires avant chaque ouverture.")
+        evidence.append(f"plans complets {plan:.0f} %")
+    if costs is not None and costs > 30:
+        actions.append("Réduire frais, slippage ou rotation avant de chercher davantage de rendement brut.")
+        evidence.append(f"coûts / brut {costs:.1f} %")
+    if max_gate:
+        evidence.append(f"risque max {max_gate['label']} {max_util:.0f} %")
+
+    if kill.get("active"):
+        verdict = "HALTED"
+    elif freshness.get("status") in ("hot", "unknown"):
+        verdict = "BLOCKED"
+    elif max_util >= 100 or (exp is not None and n >= target and exp <= 0):
+        verdict = "DEGRADING"
+    elif n < target:
+        verdict = "LEARNING"
+    elif exp is not None and exp > 0 and ci and ci[0] > 0:
+        verdict = "PERFORMING"
+    else:
+        verdict = "IMPROVING"
+
+    confidence = "low" if n < target else "high" if ci and ci[0] > 0 else "medium"
+    return {
+        "schema_version": 1,
+        "verdict": verdict,
+        "score": score,
+        "improvement_needed": verdict in ("DEGRADING", "IMPROVING", "BLOCKED"),
+        "confidence": confidence,
+        "scores": {"data": data_score, "risk": risk_score,
+                   "discipline": discipline_score, "edge": edge_score},
+        "evidence": evidence,
+        "blockers": blockers,
+        "next_action": actions[0] if actions else "Observer sans modifier.",
+        "actions": actions[:4],
+        "review": {"closed_trades_now": n, "closed_trades_target": target,
+                   "next_review_after_closes": max(n + 1, target) if n < target else n + 10},
+        "mutation_policy": {
+            "risk_limits_mutable": False,
+            "live_autopromotion": False,
+            "one_hypothesis_per_cycle": True,
+            "paper_validation_required": True,
+            "human_approval_for_live": True,
+        },
+    }
+
+
 def build_state(demo: bool = False) -> tuple[dict, list[Source]]:
     if demo:
         return _demo_state(), _demo_sources()
@@ -494,6 +597,7 @@ def build_state(demo: bool = False) -> tuple[dict, list[Source]]:
         "provenance": [s.as_dict() for s in sources],
         "demo": False,
     }
+    state["self_eval"] = compute_self_eval(fresh, edge, gates, kill)
     return state, sources
 
 
@@ -612,7 +716,7 @@ def _demo_state() -> dict:
         {"asset": "SPX6900", "class": "memecoin_cg", "side": "alert", "conviction": "faible",
          "price": 0.317395, "thesis": "cluster memes saturé", "invalidation": "—"},
     ]
-    return {
+    state = {
         "built_ts": now,
         "built_iso": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(now)),
         "mode": "paper",
@@ -629,6 +733,9 @@ def _demo_state() -> dict:
         "provenance": [s.as_dict() for s in _demo_sources()],
         "demo": True,
     }
+    state["self_eval"] = compute_self_eval(
+        state["freshness"], edge, gates, state["kill"])
+    return state
 
 
 # ---------------------------------------------------------------------------
@@ -947,6 +1054,18 @@ footer::after{content:"";width:54px;height:48px;background:var(--gold);
 .decision{display:flex;gap:10px;align-items:flex-start;margin-top:15px;padding-top:14px;border-top:1px solid var(--hair);
   font-family:var(--serif);font-style:italic;color:var(--ink-soft)}
 .decision b{font:800 9px var(--mono);font-style:normal;letter-spacing:.16em;text-transform:uppercase;color:var(--cobalt)}
+.self-eval{margin-top:12px;display:grid;grid-template-columns:190px minmax(0,1fr) 1.1fr;border:1px solid var(--ink);background:var(--paper-3)}
+.eval-verdict{padding:20px;background:var(--navy);color:var(--paper-3);display:flex;flex-direction:column;justify-content:space-between}
+.eval-k{font-size:8px;letter-spacing:.2em;text-transform:uppercase;color:rgba(242,238,230,.56)}
+.eval-status{font:900 21px/1 var(--sans);letter-spacing:.04em;margin-top:8px;color:var(--gold-lite)}
+.eval-status--PERFORMING{color:var(--paper-3)}.eval-status--DEGRADING,.eval-status--HALTED,.eval-status--BLOCKED{color:var(--oxblood-lite)}
+.eval-score{font:900 58px/.9 var(--sans);margin-top:22px}.eval-score small{font:10px var(--mono);color:rgba(242,238,230,.55)}
+.eval-axes{padding:20px;border-right:1px solid var(--hair)}
+.axis{display:grid;grid-template-columns:80px 1fr 28px;gap:8px;align-items:center;margin:10px 0;font-size:8px;letter-spacing:.12em;text-transform:uppercase}
+.axis-track{height:6px;background:rgba(31,69,200,.10)}.axis-track i{display:block;width:var(--w);height:100%;background:var(--cobalt)}
+.eval-action{padding:20px;display:flex;flex-direction:column;justify-content:space-between}.eval-action strong{font:800 9px var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--cobalt)}
+.eval-action p{font:italic 17px/1.35 var(--serif);margin:10px 0;color:var(--ink)}
+.eval-meta{font-size:9px;color:var(--ink-soft)}
 .risk-strip{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
 .risk-card{border:1px solid var(--hair);padding:13px;background:rgba(242,238,230,.65)}
 .risk-card-head{display:flex;justify-content:space-between;gap:8px;font-size:9px;text-transform:uppercase;letter-spacing:.08em}
@@ -965,6 +1084,8 @@ footer::after{content:"";width:54px;height:48px;background:var(--gold);
 @media(max-width:850px){.overview-grid{grid-template-columns:repeat(2,1fr)}.metric:first-child{grid-column:1/-1}.risk-strip{grid-template-columns:1fr 1fr}}
 @media(max-width:520px){.overview{padding:15px}.overview-head{align-items:flex-start;flex-direction:column}.overview-grid{grid-template-columns:1fr 1fr}
   .metric{padding:12px 10px}.risk-strip{grid-template-columns:1fr}.decision{display:block}.decision b{display:block;margin-bottom:4px}}
+@media(max-width:850px){.self-eval{grid-template-columns:150px 1fr}.eval-action{grid-column:1/-1;border-top:1px solid var(--hair)}.eval-axes{border-right:0}}
+@media(max-width:520px){.self-eval{grid-template-columns:1fr}.eval-verdict{min-height:150px}.eval-axes,.eval-action{grid-column:auto;border-top:1px solid var(--hair)}.eval-score{font-size:46px}}
 
 /* ---------- modern agent command center ---------- */
 body{background:var(--paper-3)}
@@ -1098,6 +1219,29 @@ def render(state: dict) -> str:
           f"<div class=\"metric-v{' neg' if bad else ''}\">{e(vv)}</div>"
           f"<div class=\"metric-n\">{e(nn)}</div></div>")
     a(f"</div><div class=\"decision\"><b>Lecture</b><span>{e(v)}</span></div></section>")
+
+    # -- boucle d'auto-évaluation, lisible par l'humain et reflétée dans #nabu-state
+    se = S.get("self_eval") or {}
+    if se:
+        labels = {"data": "Données", "risk": "Risque", "discipline": "Discipline", "edge": "Edge"}
+        maxima = {"data": 20, "risk": 25, "discipline": 20, "edge": 35}
+        a("<section class=\"self-eval\" id=\"self-eval\" aria-label=\"Auto-évaluation de N*ABU\">")
+        a(f"<div class=\"eval-verdict\"><div><div class=\"eval-k\">Self-evaluation / cycle</div>"
+          f"<div class=\"eval-status eval-status--{e(se['verdict'])}\">{e(se['verdict'])}</div></div>"
+          f"<div class=\"eval-score\">{int(se['score'])}<small>/100</small></div></div>")
+        a("<div class=\"eval-axes\"><div class=\"eval-k\" style=\"color:var(--ink-soft)\">Qualité du système</div>")
+        for key in ("data", "risk", "discipline", "edge"):
+            val = int(se["scores"].get(key, 0))
+            pct_axis = val / maxima[key] * 100
+            a(f"<div class=\"axis\"><span>{e(labels[key])}</span>"
+              f"<span class=\"axis-track\"><i style=\"--w:{pct_axis:.1f}%\"></i></span>"
+              f"<b>{val}</b></div>")
+        a("</div>")
+        review = se.get("review") or {}
+        a(f"<div class=\"eval-action\"><div><strong>Prochaine amélioration</strong>"
+          f"<p>{e(se.get('next_action') or 'Observer sans modifier.')}</p></div>"
+          f"<div class=\"eval-meta\">Confiance {e(se.get('confidence'))} · prochaine revue après "
+          f"{e(review.get('next_review_after_closes', '—'))} clôtures · limites de risque immuables</div></div></section>")
 
     # -- attestation technique, disponible sans encombrer la lecture
     open_attr = " open" if fr["status"] in ("hot", "unknown") else ""
