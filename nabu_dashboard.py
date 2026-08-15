@@ -676,6 +676,7 @@ CSS = """
   --gold:#B0801F; --gold-lite:#D7A83A;
   --oxblood:#7C1D21; --oxblood-lite:#B14A44;
   --hair:rgba(11,21,51,.22);
+  --iii-symbol:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 108'%3E%3Ccircle cx='20' cy='25' r='16' fill='black'/%3E%3Ccircle cx='60' cy='19' r='18' fill='black'/%3E%3Ccircle cx='100' cy='25' r='16' fill='black'/%3E%3Cpath d='M7 50L35 45L41 103L3 106Z' fill='black'/%3E%3Cpath d='M46 43H74L78 104H42Z' fill='black'/%3E%3Cpath d='M85 45L113 50L117 106L79 103Z' fill='black'/%3E%3C/svg%3E");
   --mono:ui-monospace,"SF Mono","Cascadia Mono","JetBrains Mono",Menlo,Consolas,monospace;
   --sans:ui-sans-serif,"Helvetica Neue",Helvetica,Arial,sans-serif;
   --serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
@@ -901,8 +902,9 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:-1;
   bottom:-25px;font:7px var(--mono);letter-spacing:.24em;transform:rotate(-8deg)}
 .mast-right{text-align:left;margin-top:32px}.mast-right .badge{margin-bottom:10px}
 .attest{margin-top:18px;border:1px solid var(--hair);padding:20px;background:rgba(242,238,230,.55)}
-.sec{margin-top:58px}.eyebrow{display:flex;align-items:center;gap:12px}.eyebrow::before{
-  content:"iii";font-family:var(--sans);font-weight:900;letter-spacing:-.12em;color:var(--gold)}
+.sec{margin-top:58px}.eyebrow{display:flex;align-items:center;gap:10px}.eyebrow::before{
+  content:"";width:19px;height:18px;flex:0 0 auto;background:var(--gold);
+  -webkit-mask:var(--iii-symbol) center/contain no-repeat;mask:var(--iii-symbol) center/contain no-repeat}
 .plate{padding:34px 30px;box-shadow:10px 10px 0 rgba(15,46,99,.11)}
 .clock,.step,.cell{transition:transform .18s ease,background .18s ease}
 .clock:hover,.cell:hover{transform:translateY(-2px);background:var(--paper-3)}
@@ -913,8 +915,8 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:-1;
 .tbl th{color:var(--cobalt);border-bottom:2px solid var(--cobalt)}
 .stamp{box-shadow:3px 3px 0 rgba(124,29,33,.12)}
 footer{display:grid;grid-template-columns:1fr auto;gap:24px;align-items:end}
-footer::after{content:"iii";font-family:var(--sans);font-size:48px;font-weight:900;
-  letter-spacing:-.14em;color:var(--gold)}
+footer::after{content:"";width:54px;height:48px;background:var(--gold);
+  -webkit-mask:var(--iii-symbol) center/contain no-repeat;mask:var(--iii-symbol) center/contain no-repeat}
 @media(max-width:760px){
   .page{padding:14px 14px 72px}.topline span:nth-child(2){display:none}
   .mast{grid-template-columns:1fr}.mast-main{min-height:260px;padding:24px 20px}
@@ -981,7 +983,10 @@ body{background:var(--paper-3)}
 .mast::after{content:"";position:absolute;inset:0;pointer-events:none;z-index:4;opacity:.18;
   background:repeating-linear-gradient(0deg,transparent 0 3px,rgba(255,255,255,.16) 4px)}
 .mast-copy{padding:34px 36px;display:flex;flex-direction:column;justify-content:space-between;position:relative;z-index:5;color:var(--paper-3)}
-.mast-copy::after{content:"iii";position:absolute;right:20px;top:14px;color:rgba(215,168,58,.24);font:900 86px var(--sans);letter-spacing:-.14em}
+.mast-copy::after{content:"";position:absolute;right:22px;top:18px;width:86px;height:78px;background:rgba(215,168,58,.24);
+  -webkit-mask:var(--iii-symbol) center/contain no-repeat;mask:var(--iii-symbol) center/contain no-repeat}
+.iii-icon{display:inline-block;width:22px;height:20px;background:currentColor;vertical-align:middle;
+  -webkit-mask:var(--iii-symbol) center/contain no-repeat;mask:var(--iii-symbol) center/contain no-repeat}
 .wordmark{font-size:clamp(68px,9vw,126px);line-height:.76}.tagline{margin-top:20px}.motto{font-size:21px;margin:0;max-width:470px}
 .agent-id{display:flex;gap:12px;align-items:center;font-size:8px;letter-spacing:.18em;text-transform:uppercase;color:rgba(242,238,230,.62)}
 .agent-id i{width:28px;height:1px;background:var(--gold-lite)}
@@ -999,7 +1004,7 @@ body{background:var(--paper-3)}
 @media(max-width:760px){
   .rail{inset:auto 0 0 0;width:auto;height:58px;flex-direction:row;padding:7px 12px;border-right:0;border-top:1px solid rgba(242,238,230,.18)}
   .rail-logo,.rail-avatar,.rail-foot{display:none}.rail-nav{margin:0;width:100%;flex-direction:row;justify-content:space-around;gap:6px}.rail-nav a{width:48px;height:42px}
-  .page{margin:0;padding:10px 12px 82px}.mast{height:430px;grid-template-columns:1fr;grid-template-rows:190px 240px}.mast-copy{padding:22px}.mast-copy::after{font-size:58px}
+  .page{margin:0;padding:10px 12px 82px}.mast{height:430px;grid-template-columns:1fr;grid-template-rows:190px 240px}.mast-copy{padding:22px}.mast-copy::after{width:58px;height:52px;right:14px;top:14px}
   .mast-visual img{object-position:50% 30%}.wordmark{font-size:72px}.motto{font-size:16px}.topline{height:30px}.metric:first-child{grid-column:1/-1}
 }
 """
@@ -1030,10 +1035,10 @@ def render(state: dict) -> str:
       "<a href=\"#risk\" aria-label=\"Risques\">RK</a>"
       "<a href=\"#positions\" aria-label=\"Positions\">PX</a>"
       "<a href=\"#analysis\" aria-label=\"Analyse\">AN</a>"
-      "</nav><div class=\"rail-foot\">READ ONLY / iii</div></aside><main class=\"page\">")
+      "</nav><div class=\"rail-foot\">READ ONLY / MARK 03</div></aside><main class=\"page\">")
     a("<div class=\"topline\"><span><strong>NOUS / N*ABU</strong> · Agent telemetry</span>"
       "<span>Sacred technology · Evidence before assertion</span>"
-      "<span class=\"issue\">iii / 2026</span></div>")
+      "<span class=\"issue\"><i class=\"iii-icon\" aria-label=\"symbole iii\"></i> / 2026</span></div>")
 
     # -- masthead incarné
     a("<header class=\"mast\"><div class=\"mast-copy\"><div>"

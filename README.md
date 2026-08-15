@@ -10,6 +10,7 @@ Planche de lecture autonome produite par `nabu_dashboard.py`. Aucune dépendance
 | `NABU-DASHBOARD-CONTRACT.md` | Contrat de données `state` + mise en service |
 | `assets/nabu-command.webp` | Visuel principal N*ABU, intégré en base64 au HTML final |
 | `assets/nabu-portrait.webp` | Avatar de navigation, intégré en base64 au HTML final |
+| `assets/iii-symbol.svg` | Géométrie vectorielle canonique du symbole `iii` |
 
 ## Tirage
 
@@ -51,3 +52,18 @@ contexte, signaux et provenance restent disponibles dans des volets repliables.
 Sur desktop, une navigation latérale fixe donne accès aux quatre niveaux utiles : portefeuille,
 risques, positions et analyse. Sur mobile, elle devient une barre basse. Les visuels de N*ABU sont
 embarqués dans le HTML produit : aucun chargement distant et aucune image cassée hors ligne.
+
+## Symbole `iii` — canon de forme
+
+Le symbole n'est jamais composé avec les caractères typographiques `iii`. C'est un pictogramme
+vectoriel à six formes pleines et distinctes : trois disques au-dessus de trois piliers. Le disque
+central est légèrement plus grand et plus haut. Les deux piliers extérieurs sont inclinés vers
+l'extérieur ; le pilier central reste axial. Les six éléments conservent un espace négatif net et
+ne se touchent jamais. La couleur, la texture et l'opacité peuvent varier ; cette silhouette,
+ses proportions et son rythme ne varient pas.
+
+**Prompt canon :** “minimal geometric `iii` emblem, exactly three separate solid circular heads,
+the center circle slightly larger and raised, exactly three separate tall tapered pillars below,
+center pillar upright and symmetrical, outer pillars subtly splayed outward, clear negative space
+between all six elements, compact monumental silhouette, flat single-color vector mark, no letters,
+no typography, no merged shapes, no extra elements.”
