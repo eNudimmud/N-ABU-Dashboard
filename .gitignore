@@ -1,0 +1,6 @@
+# Dashboard
+dashboard.html
+dashboard.tmp
+__pycache__/
+*.pyc
+*.pyo
