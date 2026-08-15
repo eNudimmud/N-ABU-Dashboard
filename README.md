@@ -8,6 +8,8 @@ Planche de lecture autonome produite par `nabu_dashboard.py`. Aucune dépendance
 |---|---|
 | `nabu_dashboard.py` | Générateur — lecture seule, compatible `nabu_guard.sh` |
 | `NABU-DASHBOARD-CONTRACT.md` | Contrat de données `state` + mise en service |
+| `assets/nabu-command.webp` | Visuel principal N*ABU, intégré en base64 au HTML final |
+| `assets/nabu-portrait.webp` | Avatar de navigation, intégré en base64 au HTML final |
 
 ## Tirage
 
@@ -45,3 +47,7 @@ La vue initiale répond à cinq questions seulement : equity actuelle, performan
 ouvert, PnL réalisé et risque le plus consommé. Elle montre ensuite les quatre limites prioritaires
 et les positions ouvertes. Fraîcheur technique, grand livre, limites complètes, statistiques,
 contexte, signaux et provenance restent disponibles dans des volets repliables.
+
+Sur desktop, une navigation latérale fixe donne accès aux quatre niveaux utiles : portefeuille,
+risques, positions et analyse. Sur mobile, elle devient une barre basse. Les visuels de N*ABU sont
+embarqués dans le HTML produit : aucun chargement distant et aucune image cassée hors ligne.

@@ -64,6 +64,7 @@ rendue par un zéro : un zéro se lit comme une mesure.
 from __future__ import annotations
 
 import argparse
+import base64
 import html
 import json
 import math
@@ -658,6 +659,15 @@ def money(v, dec=2) -> str:
     return f"{v:,.{dec}f}".replace(",", NB) + NB + "$"
 
 
+def asset_uri(name: str) -> str:
+    """Embed a bundled visual so the generated dashboard stays offline-first."""
+    path = Path(__file__).resolve().parent / "assets" / name
+    if not path.exists():
+        return ""
+    mime = "image/webp" if path.suffix.lower() == ".webp" else "image/jpeg"
+    return f"data:{mime};base64," + base64.b64encode(path.read_bytes()).decode("ascii")
+
+
 CSS = """
 :root{
   --paper:#E8E3D9; --paper-2:#DED7C8; --paper-3:#F2EEE6;
@@ -953,6 +963,45 @@ footer::after{content:"iii";font-family:var(--sans);font-size:48px;font-weight:9
 @media(max-width:850px){.overview-grid{grid-template-columns:repeat(2,1fr)}.metric:first-child{grid-column:1/-1}.risk-strip{grid-template-columns:1fr 1fr}}
 @media(max-width:520px){.overview{padding:15px}.overview-head{align-items:flex-start;flex-direction:column}.overview-grid{grid-template-columns:1fr 1fr}
   .metric{padding:12px 10px}.risk-strip{grid-template-columns:1fr}.decision{display:block}.decision b{display:block;margin-bottom:4px}}
+
+/* ---------- modern agent command center ---------- */
+body{background:var(--paper-3)}
+.rail{position:fixed;inset:0 auto 0 0;width:82px;z-index:70;background:var(--navy);color:var(--paper-3);
+  display:flex;flex-direction:column;align-items:center;padding:18px 0 16px;border-right:1px solid rgba(242,238,230,.16)}
+.rail-logo{font:900 28px/1 var(--sans);letter-spacing:-.16em;color:var(--gold-lite);writing-mode:vertical-rl;transform:rotate(180deg)}
+.rail-avatar{width:48px;height:48px;margin-top:16px;border-radius:50%;object-fit:cover;border:1px solid rgba(215,168,58,.7);
+  filter:grayscale(.45) contrast(1.15);box-shadow:0 0 0 4px rgba(31,69,200,.18)}
+.rail-nav{margin:auto 0;display:flex;flex-direction:column;gap:9px}.rail-nav a{width:42px;height:42px;display:grid;place-items:center;
+  border:1px solid rgba(242,238,230,.18);color:rgba(242,238,230,.68);text-decoration:none;font-size:9px;letter-spacing:.08em;transition:.18s}
+.rail-nav a:hover,.rail-nav a:focus{background:var(--cobalt);color:white;border-color:var(--cobalt);transform:translateX(3px)}
+.rail-foot{font-size:7px;letter-spacing:.2em;writing-mode:vertical-rl;color:rgba(242,238,230,.45)}
+.page{max-width:1320px;margin:0 auto 0 calc(82px + max(0px,(100vw - 1402px)/2));padding:18px 28px 90px}
+.topline{border-top:0;height:36px;padding:0 2px}
+.mast{height:350px;display:grid;grid-template-columns:1.08fr .92fr;margin-top:10px;border:0;background:var(--prussian);overflow:hidden;position:relative}
+.mast::after{content:"";position:absolute;inset:0;pointer-events:none;z-index:4;opacity:.18;
+  background:repeating-linear-gradient(0deg,transparent 0 3px,rgba(255,255,255,.16) 4px)}
+.mast-copy{padding:34px 36px;display:flex;flex-direction:column;justify-content:space-between;position:relative;z-index:5;color:var(--paper-3)}
+.mast-copy::after{content:"iii";position:absolute;right:20px;top:14px;color:rgba(215,168,58,.24);font:900 86px var(--sans);letter-spacing:-.14em}
+.wordmark{font-size:clamp(68px,9vw,126px);line-height:.76}.tagline{margin-top:20px}.motto{font-size:21px;margin:0;max-width:470px}
+.agent-id{display:flex;gap:12px;align-items:center;font-size:8px;letter-spacing:.18em;text-transform:uppercase;color:rgba(242,238,230,.62)}
+.agent-id i{width:28px;height:1px;background:var(--gold-lite)}
+.mast-visual{position:relative;overflow:hidden;background:var(--navy)}
+.mast-visual img{width:100%;height:100%;object-fit:cover;object-position:50% 36%;filter:grayscale(.5) contrast(1.15) saturate(.72)}
+.mast-visual::before{content:"";position:absolute;inset:0;z-index:2;background:rgba(31,69,200,.42);mix-blend-mode:color}
+.mast-visual::after{content:"AGENT 03 / ACTIVE OBSERVER";position:absolute;z-index:3;right:16px;bottom:14px;padding:6px 8px;
+  background:var(--paper-3);color:var(--prussian);font:700 8px var(--mono);letter-spacing:.17em}
+.mast-meta{position:absolute;z-index:5;left:18px;top:18px;display:flex;gap:6px;flex-wrap:wrap}.mast-meta .badge{background:rgba(7,12,30,.78);color:var(--paper-3);border-color:rgba(242,238,230,.45)}
+.overview{margin-top:12px;border:0;padding:0;background:transparent}.overview-head{margin:0 0 10px;padding:12px 15px;background:var(--ink);color:var(--paper-3)}
+.overview-title{font-size:10px}.overview-grid{border:1px solid var(--hair);gap:0;background:transparent}.metric{border-right:1px solid var(--hair)}
+.metric:last-child{border-right:0}.metric:first-child{background:var(--cobalt)}
+.decision{margin-top:0;padding:12px 15px;border:1px solid var(--hair);border-top:0;background:rgba(31,69,200,.04)}
+.primary-section{scroll-margin-top:18px}.drawer{scroll-margin-top:18px}
+@media(max-width:760px){
+  .rail{inset:auto 0 0 0;width:auto;height:58px;flex-direction:row;padding:7px 12px;border-right:0;border-top:1px solid rgba(242,238,230,.18)}
+  .rail-logo,.rail-avatar,.rail-foot{display:none}.rail-nav{margin:0;width:100%;flex-direction:row;justify-content:space-around;gap:6px}.rail-nav a{width:48px;height:42px}
+  .page{margin:0;padding:10px 12px 82px}.mast{height:430px;grid-template-columns:1fr;grid-template-rows:190px 240px}.mast-copy{padding:22px}.mast-copy::after{font-size:58px}
+  .mast-visual img{object-position:50% 30%}.wordmark{font-size:72px}.motto{font-size:16px}.topline{height:30px}.metric:first-child{grid-column:1/-1}
+}
 """
 
 
@@ -961,6 +1010,8 @@ def render(state: dict) -> str:
     fr = S["freshness"]
     cap = S["capital"]
     edge = S["edge"]
+    hero = asset_uri("nabu-command.webp")
+    avatar = asset_uri("nabu-portrait.webp")
     o: list[str] = []
     a = o.append
 
@@ -969,21 +1020,34 @@ def render(state: dict) -> str:
     a(f"<title>N*ABU · planche de lecture · {e(S['built_iso'])}</title>")
     a("<meta name=\"color-scheme\" content=\"light\">")
     a("<style>" + CSS + "</style></head><body>")
-    a("<div class=\"grain\"></div><div class=\"fibers\"></div><main class=\"page\">")
+    a("<div class=\"grain\"></div><div class=\"fibers\"></div>"
+      "<aside class=\"rail\" aria-label=\"Navigation principale\">"
+      "<div class=\"rail-logo\">N*ABU</div>")
+    if avatar:
+        a(f"<img class=\"rail-avatar\" src=\"{avatar}\" alt=\"N*ABU\">")
+    a("<nav class=\"rail-nav\">"
+      "<a href=\"#portfolio\" aria-label=\"Portefeuille\">PF</a>"
+      "<a href=\"#risk\" aria-label=\"Risques\">RK</a>"
+      "<a href=\"#positions\" aria-label=\"Positions\">PX</a>"
+      "<a href=\"#analysis\" aria-label=\"Analyse\">AN</a>"
+      "</nav><div class=\"rail-foot\">READ ONLY / iii</div></aside><main class=\"page\">")
     a("<div class=\"topline\"><span><strong>NOUS / N*ABU</strong> · Agent telemetry</span>"
       "<span>Sacred technology · Evidence before assertion</span>"
       "<span class=\"issue\">iii / 2026</span></div>")
 
-    # -- masthead
-    a("<header class=\"mast\"><div class=\"mast-main\"><div><div class=\"wordmark\">N*ABU</div>")
-    a("<div class=\"tagline\">Trade · Analyse · Execute</div></div>"
-      "<p class=\"motto\">Le signal avant le bruit. La preuve avant le récit.</p></div>")
-    a("<div class=\"mast-side\"><div class=\"agent-mark\" aria-label=\"Symbole iii\">iii</div><div class=\"mast-right\">")
-    a(f"<span class=\"badge badge--mode\">{e(str(S['mode']).upper())}</span> ")
+    # -- masthead incarné
+    a("<header class=\"mast\"><div class=\"mast-copy\"><div>"
+      "<div class=\"agent-id\"><i></i>Autonomous portfolio intelligence</div>"
+      "<div class=\"wordmark\">N*ABU</div><div class=\"tagline\">Trade · Analyse · Execute</div></div>"
+      "<p class=\"motto\">Le signal avant le bruit.<br>La preuve avant le récit.</p></div>"
+      "<div class=\"mast-visual\">")
+    if hero:
+        a(f"<img src=\"{hero}\" alt=\"Portrait de N*ABU devant ses écrans de marché\">")
+    a("<div class=\"mast-meta\">")
+    a(f"<span class=\"badge badge--mode\">{e(str(S['mode']).upper())}</span>")
     if S.get("demo"):
         a("<span class=\"badge badge--demo\">Données de démonstration</span>")
-    a(f"<div style=\"margin-top:8px\">Tirage {e(S['built_iso'])}</div>")
-    a("<div>Lecture seule · aucun ordre</div></div></div></header>")
+    a("<span class=\"badge\">Read only</span></div></div></header>")
 
     # -- kill
     k = S["kill"]
@@ -1013,7 +1077,7 @@ def render(state: dict) -> str:
                     "unknown": "Inconnu"}.get(fr["status"], fr["status"])
     p = cap.get("paper") or {}
     realized = float(p.get("realized_pnl_usd") or 0)
-    a("<section class=\"overview\" aria-label=\"Synthèse du portefeuille\">")
+    a("<section class=\"overview\" id=\"portfolio\" aria-label=\"Synthèse du portefeuille\">")
     a(f"<div class=\"overview-head\"><div class=\"overview-title\">Portefeuille · maintenant</div>"
       f"<span class=\"health health--{e(fr['status'])}\">{e(health_label)}</span></div>")
     a("<div class=\"overview-grid\">")
@@ -1076,7 +1140,7 @@ def render(state: dict) -> str:
     a("</div></section></div></details>")
 
     # -- risques essentiels puis planche complète repliable
-    a("<section class=\"sec primary-section\"><div class=\"eyebrow\">Risques à surveiller</div><div class=\"rule\"></div>")
+    a("<section class=\"sec primary-section\" id=\"risk\"><div class=\"eyebrow\">Risques à surveiller</div><div class=\"rule\"></div>")
     if S["gates"]:
         essentials = sorted(S["gates"], key=lambda x: x["util_pct"], reverse=True)[:4]
         a("<div class=\"risk-strip\">")
@@ -1119,7 +1183,7 @@ def render(state: dict) -> str:
     a("</section></div></details>")
 
     # -- positions
-    a("<section class=\"sec primary-section\"><div class=\"eyebrow\">Positions ouvertes</div><div class=\"rule\"></div>")
+    a("<section class=\"sec primary-section\" id=\"positions\"><div class=\"eyebrow\">Positions ouvertes</div><div class=\"rule\"></div>")
     if S["positions"]:
         a("<div class=\"wrap\"><table class=\"tbl\"><thead><tr>"
           "<th>Venue</th><th>Sym</th><th>Sens</th><th class=\"num\">Notionnel</th>"
@@ -1149,7 +1213,7 @@ def render(state: dict) -> str:
     a("</section>")
 
     # -- edge
-    a("<details class=\"drawer\"><summary>Performance statistique de N*ABU</summary><div class=\"drawer-body\">"
+    a("<details class=\"drawer\" id=\"analysis\"><summary>Performance statistique de N*ABU</summary><div class=\"drawer-body\">"
       "<section class=\"sec\"><div class=\"eyebrow\">Edge — mesuré, jamais supposé</div>")
     a("<div class=\"rule\"></div>")
     n, tgt = edge["n_closes"], edge["target_trades"]

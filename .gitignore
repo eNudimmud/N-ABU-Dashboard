@@ -3,3 +3,5 @@ dashboard.tmp
 __pycache__/
 *.pyc
 *.pyo
+dashboard.html
+assets/
