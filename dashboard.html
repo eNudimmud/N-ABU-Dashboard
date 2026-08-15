@@ -1,0 +1,359 @@
+<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>N*ABU · planche de lecture · 2026-08-15T02:51:39Z</title>
+<meta name="color-scheme" content="light">
+<style>
+:root{
+  --paper:#E8E3D9; --paper-2:#DED7C8; --paper-3:#F2EEE6;
+  --ink:#0B1533; --ink-soft:#3A4468;
+  --cobalt:#1F45C8; --prussian:#0F2E63; --indigo:#141C52; --navy:#070C1E;
+  --gold:#B0801F; --gold-lite:#D7A83A;
+  --oxblood:#7C1D21; --oxblood-lite:#B14A44;
+  --hair:rgba(11,21,51,.22);
+  --mono:ui-monospace,"SF Mono","Cascadia Mono","JetBrains Mono",Menlo,Consolas,monospace;
+  --sans:ui-sans-serif,"Helvetica Neue",Helvetica,Arial,sans-serif;
+  --serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:var(--paper); color:var(--ink);
+  font-family:var(--mono); font-size:14px; line-height:1.5;
+  -webkit-font-smoothing:antialiased;
+  background-image:
+    radial-gradient(120% 60% at 88% -8%, rgba(31,69,200,.13), transparent 62%),
+    radial-gradient(80% 45% at -10% 108%, rgba(124,29,33,.06), transparent 60%);
+  background-attachment:fixed;
+}
+.grain{position:fixed;inset:0;pointer-events:none;z-index:60;opacity:.30;
+  mix-blend-mode:multiply;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='4' stitchTiles='stitch'/><feColorMatrix type='saturate' values='0'/></filter><rect width='180' height='180' filter='url(%23n)' opacity='.55'/></svg>");
+  background-size:180px 180px}
+.fibers{position:fixed;inset:0;pointer-events:none;z-index:59;opacity:.16;
+  mix-blend-mode:multiply;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='420' height='420'><filter id='f'><feTurbulence type='fractalNoise' baseFrequency='.012 .34' numOctaves='2'/><feColorMatrix type='saturate' values='0'/></filter><rect width='420' height='420' filter='url(%23f)' opacity='.5'/></svg>")}
+
+.page{max-width:900px;margin:0 auto;padding:34px 22px 90px;position:relative}
+.page::before,.page::after{content:"";position:absolute;width:16px;height:16px;
+  border:1px solid var(--cobalt);opacity:.5}
+.page::before{top:12px;left:6px;border-right:0;border-bottom:0}
+.page::after{bottom:56px;right:6px;border-left:0;border-top:0}
+
+.eyebrow{font-size:9.5px;letter-spacing:.30em;text-transform:uppercase;
+  color:var(--cobalt);font-weight:700;margin:0 0 8px}
+.rule{height:1px;background:var(--hair);margin:0 0 16px}
+.rule--thick{height:3px;background:var(--ink);opacity:.9}
+.sec{margin:44px 0 0}
+.note{font-size:11px;color:var(--ink-soft);line-height:1.55}
+.serif{font-family:var(--serif);font-style:italic}
+
+/* ---------- masthead ---------- */
+.mast{display:flex;justify-content:space-between;align-items:flex-end;gap:18px;flex-wrap:wrap}
+.wordmark{font-family:var(--sans);font-weight:800;font-size:clamp(46px,13vw,92px);
+  line-height:.82;letter-spacing:-.045em;transform:scaleX(.9);transform-origin:left bottom;
+  color:var(--ink);position:relative}
+.wordmark::after{content:"N*ABU";position:absolute;left:1.5px;top:1.5px;
+  color:var(--gold);mix-blend-mode:multiply;opacity:.55;z-index:-1}
+.path{font-size:9px;color:var(--ink-soft);text-align:left;word-break:break-all}
+@media(max-width:600px){.mast-right{text-align:left!important}}
+.mast-right{text-align:right;font-size:10px;letter-spacing:.18em;text-transform:uppercase;
+  color:var(--ink-soft)}
+.badge{display:inline-block;border:1px solid var(--ink);padding:3px 8px;
+  font-size:9.5px;letter-spacing:.2em;text-transform:uppercase;font-weight:700}
+.badge--mode{background:var(--ink);color:var(--paper)}
+.badge--demo{border-color:var(--gold);color:var(--gold)}
+.tagline{font-size:9.5px;letter-spacing:.34em;text-transform:uppercase;color:var(--cobalt);
+  margin-top:10px}
+
+/* ---------- kill ---------- */
+.kill{margin-top:26px;background:var(--oxblood);color:var(--paper-3);padding:18px 20px;
+  border:2px solid var(--navy)}
+.kill h2{margin:0 0 6px;font-family:var(--sans);font-size:26px;letter-spacing:.06em}
+.kill p{margin:0;font-size:12px;opacity:.92}
+
+/* ---------- attestation (héros) ---------- */
+.attest{margin-top:30px}
+.attest-line{font-family:var(--sans);font-weight:700;
+  font-size:clamp(15px,3.4vw,23px);line-height:1.34;letter-spacing:-.012em;
+  margin:0 0 20px;word-break:break-word}
+.clocks{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:520px){.clocks{grid-template-columns:1fr}}
+.clock{border:1px solid var(--hair);border-left:5px solid var(--cobalt);
+  padding:12px 14px;background:rgba(255,255,255,.28)}
+.clock--watch{border-left-color:var(--gold);background:rgba(176,128,31,.09)}
+.clock--hot{border-left-color:var(--oxblood);background:rgba(124,29,33,.09)}
+.clock--unknown{border-left-color:var(--ink-soft)}
+.clock-k{display:block;font-size:9.5px;letter-spacing:.26em;color:var(--ink-soft)}
+.clock-v{display:block;font-family:var(--sans);font-weight:800;font-size:30px;
+  line-height:1.1;margin:2px 0 2px;font-variant-numeric:tabular-nums}
+.clock--watch .clock-v{color:var(--gold)}
+.clock--hot .clock-v{color:var(--oxblood)}
+.clock-n{display:block;font-size:10.5px;color:var(--ink-soft)}
+.verdict{margin:18px 0 0;font-family:var(--serif);font-style:italic;
+  font-size:15px;line-height:1.6;color:var(--ink);border-left:2px solid var(--cobalt);
+  padding-left:14px}
+
+/* ---------- plaque (fond encré) ---------- */
+.plate{background:var(--prussian);color:var(--paper-3);padding:26px 24px;position:relative;
+  overflow:hidden;box-shadow:0 1px 0 rgba(11,21,51,.5)}
+.plate::before{content:"";position:absolute;inset:0;pointer-events:none;opacity:.30;
+  background-image:radial-gradient(rgba(232,227,217,.5) .7px, transparent .8px);
+  background-size:4px 4px}
+.plate::after{content:"";position:absolute;inset:0;pointer-events:none;opacity:.16;
+  background:repeating-linear-gradient(180deg,rgba(255,255,255,.14) 0 1px,transparent 1px 3px)}
+.plate .eyebrow{color:var(--gold-lite)}
+.plate .note{color:rgba(232,227,217,.68)}
+.plate > *{position:relative;z-index:1}
+
+.cap-grid{display:grid;grid-template-columns:1.35fr 1fr 1fr;gap:22px;align-items:end}
+@media(max-width:640px){.cap-grid{grid-template-columns:1fr 1fr}}
+.cap-eq{white-space:nowrap;font-family:var(--sans);font-weight:800;letter-spacing:-.035em;
+  font-size:clamp(40px,10.5vw,68px);line-height:.94;font-variant-numeric:tabular-nums}
+.cap-k{font-size:9.5px;letter-spacing:.26em;color:rgba(232,227,217,.6);text-transform:uppercase}
+.cap-v{font-family:var(--sans);font-weight:700;font-size:22px;font-variant-numeric:tabular-nums;
+  line-height:1.2}
+.neg{color:var(--oxblood-lite)}
+.cap-strip{display:flex;flex-wrap:wrap;gap:20px;margin-top:22px;padding-top:16px;
+  border-top:1px solid rgba(232,227,217,.22);font-size:11.5px}
+.cap-strip b{font-weight:700;font-variant-numeric:tabular-nums}
+
+/* ---------- planche des limites (signature) ---------- */
+.wedge{display:grid;grid-template-columns:repeat(auto-fit,minmax(72px,1fr));gap:1px;
+  background:var(--paper-3);padding:1px}
+.step{background:var(--paper-3);box-shadow:0 0 0 1px var(--hair);padding:12px 6px 10px;display:flex;flex-direction:column;
+  align-items:center;gap:8px;min-width:0}
+.step-pct{font-family:var(--sans);font-weight:800;font-size:13px;
+  font-variant-numeric:tabular-nums;color:var(--cobalt)}
+.step--watch .step-pct{color:var(--gold)}
+.step--hot .step-pct,.step--breach .step-pct{color:var(--oxblood)}
+.track{width:100%;height:132px;position:relative;background:rgba(31,69,200,.07);
+  background-image:repeating-linear-gradient(0deg,rgba(11,21,51,.16) 0 1px,transparent 1px 26.4px);
+  overflow:hidden}
+.fill{position:absolute;left:0;right:0;bottom:0;height:var(--h);background:var(--cobalt);
+  animation:expose .85s cubic-bezier(.2,.75,.25,1) both}
+.step--watch .fill{background:var(--gold)}
+.step--hot .fill{background:var(--oxblood)}
+.step--breach .fill{background:repeating-linear-gradient(45deg,var(--oxblood) 0 5px,var(--navy) 5px 10px)}
+@keyframes expose{from{height:0}to{height:var(--h)}}
+@media(prefers-reduced-motion:reduce){.fill{animation:none}}
+.step-l{font-size:9px;letter-spacing:.08em;text-transform:uppercase;text-align:center;
+  line-height:1.25;color:var(--ink);min-height:22px}
+.step-v{font-size:10px;font-variant-numeric:tabular-nums;text-align:center;color:var(--ink)}
+.step-lim{font-size:9px;color:var(--ink-soft);text-align:center}
+.legend{display:flex;gap:16px;flex-wrap:wrap;margin-top:12px;font-size:10px;
+  letter-spacing:.06em;color:var(--ink-soft)}
+.dot{display:inline-block;width:8px;height:8px;margin-right:5px;vertical-align:baseline}
+.dot--ok{background:var(--cobalt)}.dot--watch{background:var(--gold)}
+.dot--hot{background:var(--oxblood)}
+
+/* ---------- tables ---------- */
+.tbl{width:100%;border-collapse:collapse;font-size:12px}
+.tbl th{text-align:left;font-size:9px;letter-spacing:.2em;text-transform:uppercase;
+  color:var(--ink-soft);font-weight:700;padding:0 10px 7px 0;border-bottom:1px solid var(--hair);
+  white-space:nowrap}
+.tbl td{padding:9px 10px 9px 0;border-bottom:1px solid rgba(11,21,51,.10);
+  font-variant-numeric:tabular-nums;vertical-align:top}
+.tbl tr:last-child td{border-bottom:0}
+.tbl .num{text-align:right;padding-right:20px;white-space:nowrap}
+.side{font-weight:700;letter-spacing:.1em;font-size:10px;text-transform:uppercase}
+.side--short{color:var(--oxblood)}.side--long{color:var(--cobalt)}
+.conv{font-size:9px;letter-spacing:.14em;text-transform:uppercase;border:1px solid currentColor;
+  padding:1px 5px}
+.conv--elevee{color:var(--gold)}.conv--moyenne{color:var(--cobalt)}
+.conv--faible{color:var(--ink-soft)}
+.wrap{max-width:100%;overflow-x:auto}
+.thesis{font-family:var(--serif);font-style:italic;font-size:12.5px;color:var(--ink-soft);
+  margin:8px 0 0;line-height:1.55}
+.empty{font-family:var(--serif);font-style:italic;font-size:16px;color:var(--ink-soft);
+  padding:20px 0}
+
+/* ---------- edge ---------- */
+.stamp{display:inline-block;border:2px solid var(--oxblood);color:var(--oxblood);
+  padding:4px 10px;font-size:10px;letter-spacing:.22em;font-weight:700;text-transform:uppercase;
+  transform:rotate(-1.4deg)}
+.stamp--ok{border-color:var(--cobalt);color:var(--cobalt)}
+.edge-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(128px,1fr));gap:1px;
+  background:var(--hair);margin-top:16px}
+.cell{background:var(--paper-3);padding:13px 12px}
+.cell-k{font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(--ink-soft)}
+.cell-v{font-family:var(--sans);font-weight:800;font-size:24px;line-height:1.2;margin-top:3px;
+  font-variant-numeric:tabular-nums}
+.cell-n{font-size:10px;color:var(--ink-soft);margin-top:3px}
+.progress{height:8px;background:rgba(31,69,200,.12);margin-top:12px;position:relative}
+.progress span{position:absolute;inset:0 auto 0 0;background:var(--cobalt);width:var(--w)}
+.hist{display:grid;grid-template-columns:repeat(8,1fr);gap:3px;align-items:end;height:92px;
+  margin-top:18px}
+.hbar{background:var(--cobalt);min-height:2px;position:relative}
+.hbar--neg{background:var(--oxblood)}
+.hlab{display:grid;grid-template-columns:repeat(8,1fr);gap:3px;margin-top:6px;
+  font-size:8.5px;color:var(--ink-soft);text-align:center;letter-spacing:.02em}
+
+/* ---------- provenance ---------- */
+.prov{font-size:11.5px}
+.prov td:first-child{font-weight:700}
+.vs{font-size:9px;letter-spacing:.18em;font-weight:700;padding:1px 6px;border:1px solid currentColor}
+.vs--VERIFIED{color:var(--cobalt)}.vs--UNVERIFIED{color:var(--gold)}
+.vs--FAILED{color:var(--oxblood)}
+
+footer{margin-top:56px;padding-top:18px;border-top:3px solid var(--ink);
+  font-size:10.5px;color:var(--ink-soft);line-height:1.7}
+footer b{color:var(--ink)}
+</style></head><body>
+<div class="grain"></div><div class="fibers"></div><main class="page">
+<header class="mast"><div><div class="wordmark">N*ABU</div>
+<div class="tagline">Planche de lecture · Trade · Analyse · Execute</div></div>
+<div class="mast-right">
+<span class="badge badge--mode">PAPER</span> 
+<div style="margin-top:8px">Tirage 2026-08-15T02:51:39Z</div>
+<div>Lecture seule · aucun ordre</div></div></header>
+<section class="attest"><div class="eyebrow">Attestation — invariant #2</div>
+<div class="rule rule--thick"></div>
+<p class="attest-line">BOOK · sync 2026-08-15T02:47:12Z · equity 1000.84$ · DD 0.00% · positions 0</p>
+<div class="clocks">
+<div class="clock clock--ok"><span class="clock-k">Âge du sync</span><span class="clock-v">4 min</span><span class="clock-n">book.json · book-sync toutes les 5 min</span></div>
+<div class="clock clock--ok"><span class="clock-k">Âge du mark</span><span class="clock-v">—</span><span class="clock-n">paper/account.json · wrap_mtm.py toutes les heures<br>sans objet — flat, l&#x27;equity vaut le cash au centime près</span></div>
+</div>
+<p class="verdict">Les deux horloges concordent. L&#x27;equity affichée est celle du moment, pas celle d&#x27;une bougie oubliée.</p></section>
+<section class="sec"><div class="eyebrow">Capital</div><div class="rule"></div>
+<div class="plate"><div class="cap-grid">
+<div><div class="cap-k">Equity</div><div class="cap-eq">1 000.84 $</div></div>
+<div><div class="cap-k">Drawdown / pic</div><div class="cap-v">0.00 %</div><div class="note">pic 1 001 $</div></div>
+<div><div class="cap-k">Jour / semaine</div><div class="cap-v">+0.00 %</div><div class="cap-v" style="font-size:16px;opacity:.85">+0.08 % · 7 j</div></div>
+</div>
+<div class="cap-strip">
+<span>Cash <b>1 000.84 $</b></span>
+<span>PnL réalisé <b>0.89 $</b></span>
+<span>Frais cumulés <b>0.09 $</b></span>
+<span>Funding cumulé <b>0.0000 $</b></span>
+<span>Trades clos <b>1</b></span>
+<span>Capital initial <b>1 000 $</b></span>
+</div>
+</div></section>
+<section class="sec"><div class="eyebrow">Planche des limites — part de chaque limite déjà consommée</div>
+<div class="rule"></div>
+<div class="wedge">
+<div class="step step--ok" title="depuis le pic d&#x27;equity · au-delà : KILL global">
+<div class="step-pct">0%</div>
+<div class="track"><div class="fill" style="--h:0.0%;animation-delay:0ms"></div></div>
+<div class="step-l">Drawdown</div>
+<div class="step-v">0.00 %</div>
+<div class="step-lim">/ 20 %</div></div>
+<div class="step step--ok" title="journée UTC">
+<div class="step-pct">0%</div>
+<div class="track"><div class="fill" style="--h:0.0%;animation-delay:55ms"></div></div>
+<div class="step-l">Perte jour</div>
+<div class="step-v">+0.00 %</div>
+<div class="step-lim">/ −4 %</div></div>
+<div class="step step--ok" title="semaine glissante">
+<div class="step-pct">0%</div>
+<div class="track"><div class="fill" style="--h:0.0%;animation-delay:110ms"></div></div>
+<div class="step-l">Perte semaine</div>
+<div class="step-v">+0.08 %</div>
+<div class="step-lim">/ −8 %</div></div>
+<div class="step step--ok" title="sous le plancher : sorties seulement">
+<div class="step-pct">30%</div>
+<div class="track"><div class="fill" style="--h:30.0%;animation-delay:165ms"></div></div>
+<div class="step-l">Plancher equity</div>
+<div class="step-v">1001 $</div>
+<div class="step-lim">/ 300 $</div></div>
+<div class="step step--ok" title="concurrentes, tous venues">
+<div class="step-pct">0%</div>
+<div class="track"><div class="fill" style="--h:0.0%;animation-delay:220ms"></div></div>
+<div class="step-l">Positions</div>
+<div class="step-v">0</div>
+<div class="step-lim">/ 4</div></div>
+<div class="step step--ok" title="somme des notionnels / equity">
+<div class="step-pct">0%</div>
+<div class="track"><div class="fill" style="--h:0.0%;animation-delay:275ms"></div></div>
+<div class="step-l">Expo brute</div>
+<div class="step-v">0 %</div>
+<div class="step-lim">/ 150 %</div></div>
+<div class="step step--ok" title="|long − short| / equity">
+<div class="step-pct">0%</div>
+<div class="track"><div class="fill" style="--h:0.0%;animation-delay:330ms"></div></div>
+<div class="step-l">Expo nette</div>
+<div class="step-v">0 %</div>
+<div class="step-lim">/ 100 %</div></div>
+<div class="step step--ok" title="anti-boucle folle">
+<div class="step-pct">0%</div>
+<div class="track"><div class="fill" style="--h:0.0%;animation-delay:385ms"></div></div>
+<div class="step-l">Ordres / h</div>
+<div class="step-v">0</div>
+<div class="step-lim">/ 8</div></div>
+<div class="step step--ok" title="anti-overtrading">
+<div class="step-pct">0%</div>
+<div class="track"><div class="fill" style="--h:0.0%;animation-delay:440ms"></div></div>
+<div class="step-l">Ordres / j</div>
+<div class="step-v">0</div>
+<div class="step-lim">/ 30</div></div>
+<div class="step step--ok" title="au-delà : cooldown imposé">
+<div class="step-pct">0%</div>
+<div class="track"><div class="fill" style="--h:0.0%;animation-delay:495ms"></div></div>
+<div class="step-l">Série pertes</div>
+<div class="step-v">0</div>
+<div class="step-lim">/ 3</div></div>
+<div class="step step--ok" title="s&#x27;arme après la série">
+<div class="step-pct">0%</div>
+<div class="track"><div class="fill" style="--h:0.0%;animation-delay:550ms"></div></div>
+<div class="step-l">Cooldown</div>
+<div class="step-v">inactif</div>
+<div class="step-lim">/ 6 h</div></div>
+</div>
+<div class="legend"><span><i class="dot dot--ok"></i>sous 60 %</span><span><i class="dot dot--watch"></i>60–85 % · surveiller</span><span><i class="dot dot--hot"></i>au-delà de 85 % · le gate va refuser</span><span>hachuré · limite franchie</span></div>
+<p class="note" style="margin-top:10px">Chaque barre est la part de la limite consommée, pas la valeur brute. Une barre pleine ne raconte pas une perte : elle annonce un refus du gate. Les limites viennent de <b>risk.yaml</b>, jamais d'ici.</p>
+</section>
+<section class="sec"><div class="eyebrow">Positions</div><div class="rule"></div>
+<p class="empty">Flat. C'est une position, pas une absence de position.</p>
+</section>
+<section class="sec"><div class="eyebrow">Edge — mesuré, jamais supposé</div>
+<div class="rule"></div>
+<span class="stamp">Unverified · 0 / 30 trades clos</span>
+<div class="progress"><span style="--w:0.0%"></span></div>
+<p class="note" style="margin-top:8px">Sortie du gate G0 : 30 trades journalisés. En dessous, ces chiffres décrivent un échantillon, pas un edge — l'intervalle le dit mieux que la moyenne.</p>
+<p class="empty">Aucun trade clos non-artefact dans le journal. Rien à mesurer, rien à inventer.</p>
+</section>
+<section class="sec"><div class="eyebrow">Contexte live — lu avant toute décision</div>
+<div class="rule"></div>
+<div class="wrap"><table class="tbl"><thead><tr><th>Actif</th><th class="num">Mid</th><th class="num">vs MA20</th><th class="num">Range 50 h</th><th class="num">Funding 8 h</th><th>Lecture daily</th></tr></thead><tbody>
+<tr><td><b>ETH</b></td><td class="num">1,884.35</td><td class="num">+0.37 %</td><td class="num">1,862.30 – 1,899.50</td><td class="num">+0.083 bps</td><td>daily downtrend (MA200 2019, pos20j 52%, pos100j 40%)</td></tr>
+<tr><td><b>BTC</b></td><td class="num">63,091.50</td><td class="num">+0.31 %</td><td class="num">62,523.00 – 63,978.00</td><td class="num">+0.125 bps</td><td>daily downtrend (MA200 69382, pos20j 14%, pos100j 19%)</td></tr>
+</tbody></table></div>
+</section>
+<section class="sec"><div class="eyebrow">Signaux du dernier scan</div>
+<div class="rule"></div>
+<div class="wrap" style="margin-top:22px"><table class="tbl"><thead><tr><th>Actif</th><th>Classe</th><th class="num">Prix</th><th>Note</th></tr></thead><tbody>
+<tr><td><b>DOGE</b></td><td>memecoin_cg</td><td class="num">0.070016</td><td>prix $0.070016</td></tr>
+<tr><td><b>PEPE</b></td><td>memecoin_cg</td><td class="num">0.000003</td><td>prix $2.65e-06</td></tr>
+<tr><td><b>SHIB</b></td><td>memecoin_cg</td><td class="num">0.000005</td><td>prix $4.59e-06</td></tr>
+<tr><td><b>SPX6900</b></td><td>memecoin_cg</td><td class="num">0.319498</td><td>prix $0.319498</td></tr>
+<tr><td><b>ANTHROPICx</b></td><td>xstock</td><td class="num">822.59</td><td>prix $822.59</td></tr>
+<tr><td><b>CRCLx</b></td><td>xstock</td><td class="num">71.52</td><td>prix $71.52</td></tr>
+<tr><td><b>GLDx</b></td><td>xstock</td><td class="num">4,359.15</td><td>prix $4359.15</td></tr>
+<tr><td><b>MCDx</b></td><td>xstock</td><td class="num">277.26</td><td>prix $277.26</td></tr>
+<tr><td><b>NVDAx</b></td><td>xstock</td><td class="num">224.82</td><td>prix $224.82</td></tr>
+<tr><td><b>SPCXx</b></td><td>xstock</td><td class="num">140.55</td><td>prix $140.55</td></tr>
+<tr><td><b>TSLAx</b></td><td>xstock</td><td class="num">341.53</td><td>prix $341.53</td></tr>
+<tr><td><b>ANSEM</b></td><td>memecoin_sol</td><td class="num">0.213605</td><td>prix $0.213605</td></tr>
+<tr><td><b>AWR</b></td><td>memecoin_sol</td><td class="num">0.000511</td><td>prix $0.00051137</td></tr>
+<tr><td><b>GBOY</b></td><td>memecoin_sol</td><td class="num">0.000816</td><td>prix $0.00081567</td></tr>
+</tbody></table></div>
+<p class="note" style="margin-top:10px">Un signal n'est pas un ordre. Le gate reste seul juge, et refuse encore après cette page.</p>
+</section>
+<section class="sec"><div class="eyebrow">Avertissements du book</div>
+<div class="rule"></div><ul class="note" style="margin:0;padding-left:18px">
+<li>mode paper — compte simulé réel · cash 1000.84$ · frais cumulés 0.09$ · funding cumulé 0.0$</li>
+</ul></section>
+<section class="sec"><div class="eyebrow">Provenance — Verify nommé par source</div>
+<div class="rule"></div><div class="wrap"><table class="tbl prov"><thead><tr><th>Source</th><th>État</th><th>Âge fichier</th><th>Note</th><th>Chemin</th></tr></thead><tbody>
+<tr><td>risk.yaml</td><td><span class="vs vs--VERIFIED">VERIFIED</span></td><td>8.6 h</td><td>limites chargées</td><td class="path">/opt/data/.nabu/risk.yaml</td></tr>
+<tr><td>book.json</td><td><span class="vs vs--VERIFIED">VERIFIED</span></td><td>4 min</td><td>lu</td><td class="path">/opt/data/.nabu/book.json</td></tr>
+<tr><td>paper/account.json</td><td><span class="vs vs--VERIFIED">VERIFIED</span></td><td>5.8 h</td><td>lu</td><td class="path">/opt/data/.nabu/paper/account.json</td></tr>
+<tr><td>journal.jsonl</td><td><span class="vs vs--VERIFIED">VERIFIED</span></td><td>3.7 h</td><td>1 enregistrements</td><td class="path">/opt/data/.nabu/journal.jsonl</td></tr>
+<tr><td>live_context.json</td><td><span class="vs vs--VERIFIED">VERIFIED</span></td><td>21 min</td><td>lu</td><td class="path">/opt/data/.nabu/live_context.json</td></tr>
+<tr><td>scan_latest.json</td><td><span class="vs vs--VERIFIED">VERIFIED</span></td><td>48 min</td><td>lu</td><td class="path">/opt/data/.nabu/data/scan_latest.json</td></tr>
+</tbody></table></div></section>
+<footer><b>Lecture seule.</b> Cette page n'ouvre, ne ferme et ne modifie rien. Elle ne charge aucun secret et ne joint aucun venue.<br>En cas de conflit avec ce qui est affiché ici, <b>book.json gagne</b> — cette planche n'est qu'un tirage, pas la source.<br>Tirée le 2026-08-15T02:51:39Z par <b>nabu_dashboard.py</b> · limites lues dans risk.yaml, jamais réécrites.</footer>
+</main>
+<script type="application/json" id="nabu-state">
+{"built_ts": 1786762299.5469341, "built_iso": "2026-08-15T02:51:39Z", "mode": "paper", "attestation": "BOOK · sync 2026-08-15T02:47:12Z · equity 1000.84$ · DD 0.00% · positions 0", "kill": {"active": false, "reason": null, "since_iso": null}, "freshness": {"sync_age_s": 266.56204319000244, "sync_status": "ok", "mark_age_s": null, "mark_status": "ok", "mark_note": "sans objet — flat, l'equity vaut le cash au centime près", "status": "ok"}, "capital": {"equity_usd": 1000.84, "peak_usd": 1000.84, "day_open_usd": 1000.84, "week_open_usd": 1000.0, "dd_pct": 0.0, "day_pnl_pct": 0.0, "week_pnl_pct": 0.08400000000000318, "paper": {"cash_usd": 1000.84048763365, "realized_pnl_usd": 0.8855506107000047, "fees_paid_usd": 0.08970736635000001, "funding_paid_usd": 0.0, "closed_trades": 1, "start_equity_usd": 1000.0}}, "gates": [{"key": "dd", "label": "Drawdown", "value_txt": "0.00 %", "limit_txt": "20 %", "util_pct": 0.0, "status": "ok", "note": "depuis le pic d'equity · au-delà : KILL global"}, {"key": "day", "label": "Perte jour", "value_txt": "+0.00 %", "limit_txt": "−4 %", "util_pct": 0.0, "status": "ok", "note": "journée UTC"}, {"key": "week", "label": "Perte semaine", "value_txt": "+0.08 %", "limit_txt": "−8 %", "util_pct": 0.0, "status": "ok", "note": "semaine glissante"}, {"key": "floor", "label": "Plancher equity", "value_txt": "1001 $", "limit_txt": "300 $", "util_pct": 30.0, "status": "ok", "note": "sous le plancher : sorties seulement"}, {"key": "pos", "label": "Positions", "value_txt": "0", "limit_txt": "4", "util_pct": 0.0, "status": "ok", "note": "concurrentes, tous venues"}, {"key": "gross", "label": "Expo brute", "value_txt": "0 %", "limit_txt": "150 %", "util_pct": 0.0, "status": "ok", "note": "somme des notionnels / equity"}, {"key": "net", "label": "Expo nette", "value_txt": "0 %", "limit_txt": "100 %", "util_pct": 0.0, "status": "ok", "note": "|long − short| / equity"}, {"key": "oh", "label": "Ordres / h", "value_txt": "0", "limit_txt": "8", "util_pct": 0.0, "status": "ok", "note": "anti-boucle folle"}, {"key": "od", "label": "Ordres / j", "value_txt": "0", "limit_txt": "30", "util_pct": 0.0, "status": "ok", "note": "anti-overtrading"}, {"key": "streak", "label": "Série pertes", "value_txt": "0", "limit_txt": "3", "util_pct": 0.0, "status": "ok", "note": "au-delà : cooldown imposé"}, {"key": "cooldown", "label": "Cooldown", "value_txt": "inactif", "limit_txt": "6 h", "util_pct": 0.0, "status": "ok", "note": "s'arme après la série"}], "positions": [], "edge": {"n_opens": 0, "n_closes": 0, "target_trades": 30, "verified": false, "expectancy_r": null, "ci95": null, "win_rate_pct": null, "cost_ratio_pct": null, "stop_share_pct": null, "median_hold_h": null, "plan_written_pct": null, "best_r": null, "worst_r": null, "fees_usd": 0.0, "funding_usd": 0.0, "gross_usd": 0.0, "net_usd": 0.0, "r_histogram": []}, "market": {"context": {"ts": 1786761008, "coins": {"ETH": {"mid": 1884.35, "ma20": 1877.47, "dev_pct": 0.37, "range_hi_50h": 1899.5, "range_lo_50h": 1862.3, "funding_bps_8h": 0.0834, "n_bars": 51, "daily": {"trend": "downtrend", "ma200": 2018.73, "ma50": 1831.46, "ma20_daily": 1889.73, "dev_ma200_pct": -6.65, "range20_high": 1921.4, "range20_low": 1843.9, "range_pos20": 0.52, "range100_high": 2370.6, "range100_low": 1566.6, "range_pos100": 0.4, "n_days": 1001}, "daily_lecture": "daily downtrend (MA200 2019, pos20j 52%, pos100j 40%)"}, "BTC": {"mid": 63091.5, "ma20": 62899.5, "dev_pct": 0.31, "range_hi_50h": 63978.0, "range_lo_50h": 62523.0, "funding_bps_8h": 0.125, "n_bars": 51, "daily": {"trend": "downtrend", "ma200": 69382.01, "ma50": 63548.08, "ma20_daily": 63865.2, "dev_ma200_pct": -9.07, "range20_high": 64933.0, "range20_low": 62790.0, "range_pos20": 0.14, "range100_high": 82164.0, "range100_low": 58603.0, "range_pos100": 0.19, "n_days": 1001}, "daily_lecture": "daily downtrend (MA200 69382, pos20j 14%, pos100j 19%)"}}, "cross_signals": [{"class": "memecoin_cg", "asset": "ANSEM", "side": "long", "thesis": "FADE long ANSEM: vol=9.7%/j bas 10p (pos=0%)", "stop": 0.184, "entry": 0.1871, "conviction": "moyenne", "source": "CG hourly", "executable": false}, {"class": "equity", "asset": "NVDA", "side": "short", "thesis": "BOLL-REV short NVDA daily: z=1.6", "stop": 232.4572, "entry": 225.3, "conviction": "faible", "source": "yfinance daily", "executable": false}, {"class": "equity", "asset": "SPY", "side": "short", "thesis": "BOLL-REV short SPY daily: z=1.5", "stop": 788.6063, "entry": 777.88, "conviction": "faible", "source": "yfinance daily", "executable": false}, {"class": "commodity", "asset": "GOLD", "side": "short", "thesis": "BOLL-REV short GOLD daily: z=1.4", "stop": 407.9147, "entry": 398.96, "conviction": "faible", "source": "yfinance daily", "executable": false}, {"class": "commodity", "asset": "SILVER", "side": "short", "thesis": "BOLL-REV short SILVER daily: z=1.4", "stop": 60.0994, "entry": 58.16, "conviction": "faible", "source": "yfinance daily", "executable": false}], "cross_signals_updated": "2026-08-14 17:24 UTC"}, "signals": [{"asset": "DOGE", "class": "memecoin_cg", "side": "alert", "thesis": "prix $0.070016", "invalidation": "—", "conviction": "faible", "price": 0.070016, "market_cap": 10887376125, "vol_24h": 224535178}, {"asset": "PEPE", "class": "memecoin_cg", "side": "alert", "thesis": "prix $2.65e-06", "invalidation": "—", "conviction": "faible", "price": 2.65e-06, "market_cap": 1115985561, "vol_24h": 76939251}, {"asset": "SHIB", "class": "memecoin_cg", "side": "alert", "thesis": "prix $4.59e-06", "invalidation": "—", "conviction": "faible", "price": 4.59e-06, "market_cap": 2706795369, "vol_24h": 85432280}, {"asset": "SPX6900", "class": "memecoin_cg", "side": "alert", "thesis": "prix $0.319498", "invalidation": "—", "conviction": "faible", "price": 0.319498, "market_cap": 297398006, "vol_24h": 2691754}, {"asset": "ANTHROPICx", "class": "xstock", "side": "alert", "thesis": "prix $822.59", "invalidation": "—", "conviction": "moyenne", "price": 822.59, "market_cap": 6073703, "vol_24h": 245014}, {"asset": "CRCLx", "class": "xstock", "side": "alert", "thesis": "prix $71.52", "invalidation": "—", "conviction": "moyenne", "price": 71.52, "market_cap": 54995610, "vol_24h": 6549064}, {"asset": "GLDx", "class": "xstock", "side": "alert", "thesis": "prix $4359.15", "invalidation": "—", "conviction": "moyenne", "price": 4359.15, "market_cap": 118658647, "vol_24h": 10076739}, {"asset": "MCDx", "class": "xstock", "side": "alert", "thesis": "prix $277.26", "invalidation": "—", "conviction": "moyenne", "price": 277.26, "market_cap": 1085280, "vol_24h": 1283558}, {"asset": "NVDAx", "class": "xstock", "side": "alert", "thesis": "prix $224.82", "invalidation": "—", "conviction": "moyenne", "price": 224.82, "market_cap": 36313211, "vol_24h": 5438415}, {"asset": "SPCXx", "class": "xstock", "side": "alert", "thesis": "prix $140.55", "invalidation": "—", "conviction": "moyenne", "price": 140.55, "market_cap": 36582553, "vol_24h": 6830008}, {"asset": "TSLAx", "class": "xstock", "side": "alert", "thesis": "prix $341.53", "invalidation": "—", "conviction": "moyenne", "price": 341.53, "market_cap": 64961973, "vol_24h": 5544386}, {"asset": "ANSEM", "class": "memecoin_sol", "side": "alert", "thesis": "prix $0.213605", "invalidation": "—", "conviction": "moyenne", "price": 0.213605, "mint": "9cRCn9rGT8V2imeM2BaKs13yhMEais3ruM3rPvTGpump", "market_cap": 89112385, "vol_24h": 11230411}, {"asset": "AWR", "class": "memecoin_sol", "side": "alert", "thesis": "prix $0.00051137", "invalidation": "—", "conviction": "moyenne", "price": 0.00051137, "mint": "Ai4CL1SAxVRigxQFwBH8S2JkuL7EqrdiGwTC7JpCpump", "market_cap": 498403, "vol_24h": 534.2}, {"asset": "GBOY", "class": "memecoin_sol", "side": "alert", "thesis": "prix $0.00081567", "invalidation": "—", "conviction": "moyenne", "price": 0.00081567, "mint": "svy5ErijNYy9hEVzxknCdwWdZ3NeXJTdpb9Ndnso17f", "market_cap": 563461, "vol_24h": 245.57}], "scan_ts": 1786759420.2868001}, "warnings": ["mode paper — compte simulé réel · cash 1000.84$ · frais cumulés 0.09$ · funding cumulé 0.0$"], "provenance": [{"source": "risk.yaml", "path": "/opt/data/.nabu/risk.yaml", "state": "VERIFIED", "note": "limites chargées", "age_s": 31073.764567136765}, {"source": "book.json", "path": "/opt/data/.nabu/book.json", "state": "VERIFIED", "note": "lu", "age_s": 266.56268286705017}, {"source": "paper/account.json", "path": "/opt/data/.nabu/paper/account.json", "state": "VERIFIED", "note": "lu", "age_s": 21020.31595826149}, {"source": "journal.jsonl", "path": "/opt/data/.nabu/journal.jsonl", "state": "VERIFIED", "note": "1 enregistrements", "age_s": 13490.416977405548}, {"source": "live_context.json", "path": "/opt/data/.nabu/live_context.json", "state": "VERIFIED", "note": "lu", "age_s": 1287.2752652168274}, {"source": "scan_latest.json", "path": "/opt/data/.nabu/data/scan_latest.json", "state": "VERIFIED", "note": "lu", "age_s": 2879.264218568802}], "demo": false}
+</script></body></html>
