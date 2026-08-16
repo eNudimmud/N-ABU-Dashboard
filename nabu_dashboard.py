@@ -87,6 +87,7 @@ P_JOURNAL = LIVE / "journal.jsonl"
 P_KILL = LIVE / "KILL"
 P_CTX = LIVE / "live_context.json"
 P_SCAN = LIVE / "data" / "scan_latest.json"
+P_HIST = LIVE / "data" / "equity_history.jsonl"   # écrit UNIQUEMENT par ce script (append)
 
 TARGET_TRADES = 30          # gate G0 du README — en dessous, les stats = bruit
 SYNC_WATCH_S, SYNC_HOT_S = 15 * 60, 60 * 60
@@ -400,7 +401,79 @@ def compute_edge(journal: list) -> dict:
             {"label": lb, "n": len([r for r in rs if lo <= r < hi])}
             for (lo, hi), lb in zip(edges, labels)
         ]
+        # expectancy glissante sur les 10 dernières clôtures — la dérive avant la moyenne
+        if len(rs) >= 4:
+            k = min(10, len(rs))
+            out["expectancy_r_recent"] = statistics.fmean(rs[-k:])
+            out["recent_window"] = k
     return out
+
+
+def compute_recent_closes(journal: list, limit: int = 8) -> list[dict]:
+    """Les dernières clôtures, telles quelles — matière première du post-mortem."""
+    closes = [r for r in journal if r.get("event") == "fill"
+              and r.get("kind") == "close" and not _is_artifact(r)]
+    out = []
+    for r in closes[-limit:][::-1]:
+        out.append({
+            "ts": r.get("ts"), "iso": r.get("iso"),
+            "symbol": r.get("symbol"), "side": r.get("side"),
+            "r_multiple": r.get("r_multiple"),
+            "realized_pnl_usd": r.get("realized_pnl_usd"),
+            "fees_usd": r.get("fees_usd"), "hold_hours": r.get("hold_hours"),
+            "reason": r.get("reason"), "thesis": r.get("thesis") or "",
+        })
+    return out
+
+
+# ---------------------------------------------------------------------------
+# Historique — appendé par ce script à chaque build (jamais réécrit)
+# ---------------------------------------------------------------------------
+
+def append_history(state: dict) -> None:
+    """Un point par build : equity, score, verdict. Dédoublonné sur le synced_at."""
+    try:
+        cap, se = state.get("capital") or {}, state.get("self_eval") or {}
+        rec = {
+            "ts": round(state.get("built_ts") or time.time(), 1),
+            "sync_ts": None, "equity": round(float(cap.get("equity_usd") or 0), 2),
+            "dd_pct": round(float(cap.get("dd_pct") or 0), 3),
+            "score": se.get("score"), "verdict": se.get("verdict"),
+            "n_closes": (state.get("edge") or {}).get("n_closes"),
+            "upnl": round(sum(float(p.get("unrealized_pnl_usd") or 0)
+                              for p in state.get("positions") or []), 2),
+        }
+        last = None
+        if P_HIST.exists():
+            tail = P_HIST.read_text(encoding="utf-8").strip().splitlines()
+            if tail:
+                last = json.loads(tail[-1])
+        # inutile d'empiler des points identiques quand rien n'a bougé
+        if last and last.get("equity") == rec["equity"] and \
+           last.get("score") == rec["score"] and last.get("upnl") == rec["upnl"] and \
+           (rec["ts"] - float(last.get("ts") or 0)) < 3600:
+            return
+        P_HIST.parent.mkdir(parents=True, exist_ok=True)
+        with P_HIST.open("a", encoding="utf-8") as f:
+            f.write(json.dumps(rec, ensure_ascii=False) + "\n")
+    except Exception:
+        pass                    # l'historique ne casse jamais un tirage
+
+
+def read_history(max_points: int = 400) -> list[dict]:
+    try:
+        if not P_HIST.exists():
+            return []
+        lines = P_HIST.read_text(encoding="utf-8").strip().splitlines()
+        pts = []
+        for l in lines[-max_points:]:
+            try:
+                pts.append(json.loads(l))
+            except Exception:
+                continue
+        return pts
+    except Exception:
+        return []
 
 
 def compute_positions(book: dict, account: dict | None) -> list[dict]:
@@ -500,6 +573,15 @@ def compute_self_eval(freshness: dict, edge: dict, gates: list[dict], kill: dict
     if max_gate:
         evidence.append(f"risque max {max_gate['label']} {max_util:.0f} %")
 
+    # dérive de fenêtre récente — l'edge meurt d'abord dans les 10 derniers trades
+    rec = edge.get("expectancy_r_recent")
+    if rec is not None and exp is not None and n >= 8:
+        drift = rec - exp
+        evidence.append(f"espérance récente {rec:+.2f} R (dérive {drift:+.2f})")
+        if rec < 0 and exp > 0:
+            actions.insert(0, "Fenêtre récente négative alors que le global est positif : "
+                              "suspendre l'ajout de risque et segmenter les 10 derniers trades.")
+
     if kill.get("active"):
         verdict = "HALTED"
     elif freshness.get("status") in ("hot", "unknown"):
@@ -588,6 +670,8 @@ def build_state(demo: bool = False) -> tuple[dict, list[Source]]:
         "gates": gates,
         "positions": positions,
         "edge": edge,
+        "recent_closes": compute_recent_closes(journal),
+        "history": read_history(),
         "market": {
             "context": (s_ctx.data or {}),
             "signals": ((s_scan.data or {}).get("signals") or []),
@@ -773,6 +857,36 @@ def asset_uri(name: str) -> str:
         return ""
     mime = "image/webp" if path.suffix.lower() == ".webp" else "image/jpeg"
     return f"data:{mime};base64," + base64.b64encode(path.read_bytes()).decode("ascii")
+
+
+def spark_svg(points: list[dict], key: str = "equity", w: int = 640, h: int = 96,
+              baseline: float | None = None) -> str:
+    """Courbe inline SVG — lisible sans JS, thème cyanotype. Vide si < 2 points."""
+    vals = [(float(p["ts"]), float(p[key])) for p in points
+            if p.get(key) is not None and p.get("ts")]
+    if len(vals) < 2:
+        return ""
+    xs, ys = [v[0] for v in vals], [v[1] for v in vals]
+    x0, x1, y0, y1 = min(xs), max(xs), min(ys), max(ys)
+    if baseline is not None:
+        y0, y1 = min(y0, baseline), max(y1, baseline)
+    pad = max((y1 - y0) * 0.12, 0.01)
+    y0, y1 = y0 - pad, y1 + pad
+    sx = lambda x: 2 + (x - x0) / max(x1 - x0, 1e-9) * (w - 4)
+    sy = lambda y: h - 3 - (y - y0) / max(y1 - y0, 1e-9) * (h - 6)
+    pts = " ".join(f"{sx(x):.1f},{sy(y):.1f}" for x, y in vals)
+    base_line = ""
+    if baseline is not None and y0 <= baseline <= y1:
+        by = sy(baseline)
+        base_line = (f'<line x1="0" y1="{by:.1f}" x2="{w}" y2="{by:.1f}" '
+                     f'stroke="#B0801F" stroke-width="1" stroke-dasharray="3 4" opacity=".8"/>')
+    last_col = "#7C1D21" if (baseline is not None and ys[-1] < baseline) else "#1F45C8"
+    area = f"M{pts.split()[0].split(',')[0]},{h} L{pts.replace(' ', ' L')} L{sx(xs[-1]):.1f},{h} Z"
+    return (f'<svg class="spark" viewBox="0 0 {w} {h}" preserveAspectRatio="none" '
+            f'role="img" aria-label="courbe {key}">'
+            f'<path d="{area}" fill="rgba(31,69,200,.08)"/>{base_line}'
+            f'<polyline points="{pts}" fill="none" stroke="#1F45C8" stroke-width="1.6"/>'
+            f'<circle cx="{sx(xs[-1]):.1f}" cy="{sy(ys[-1]):.1f}" r="3" fill="{last_col}"/></svg>')
 
 
 CSS = """
@@ -1128,7 +1242,148 @@ body{background:var(--paper-3)}
   .page{margin:0;padding:10px 12px 82px}.mast{height:430px;grid-template-columns:1fr;grid-template-rows:190px 240px}.mast-copy{padding:22px}.mast-copy::after{width:58px;height:52px;right:14px;top:14px}
   .mast-visual img{object-position:50% 30%}.wordmark{font-size:72px}.motto{font-size:16px}.topline{height:30px}.metric:first-child{grid-column:1/-1}
 }
+
+/* ---------- vie : live chip, pouls, sparkline, clôtures ---------- */
+.live-chip{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--hair);
+  padding:4px 9px;font-size:8.5px;letter-spacing:.16em;text-transform:uppercase;font-weight:700;
+  color:var(--ink-soft);background:rgba(242,238,230,.7);font-variant-numeric:tabular-nums}
+.live-chip::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--ink-soft)}
+.live-chip--on{color:var(--cobalt)}
+.live-chip--on::before{background:var(--cobalt);animation:pulse 2.2s ease-out infinite}
+.live-chip--stale{color:var(--gold)}.live-chip--stale::before{background:var(--gold)}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(31,69,200,.45)}70%{box-shadow:0 0 0 7px rgba(31,69,200,0)}100%{box-shadow:0 0 0 0 rgba(31,69,200,0)}}
+@media(prefers-reduced-motion:reduce){.live-chip--on::before{animation:none}}
+.flash{animation:flash .9s ease-out}
+@keyframes flash{0%{background:rgba(215,168,58,.35)}100%{background:transparent}}
+.delta-up{color:var(--cobalt)}.delta-dn{color:var(--oxblood)}
+.curve{margin-top:12px;border:1px solid var(--hair);background:var(--paper-3);padding:16px 18px 12px}
+.curve-head{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:8px}
+.curve-title{font:800 10px var(--sans);letter-spacing:.18em;text-transform:uppercase;color:var(--cobalt)}
+.curve-meta{font-size:9px;color:var(--ink-soft);letter-spacing:.08em}
+.spark{width:100%;height:96px;display:block}
+.closes-tbl .r-pos{color:var(--cobalt);font-weight:700}.closes-tbl .r-neg{color:var(--oxblood);font-weight:700}
+.reason-tag{font-size:8px;letter-spacing:.14em;text-transform:uppercase;border:1px solid currentColor;padding:1px 5px;color:var(--ink-soft)}
+.reason-tag--stop{color:var(--oxblood)}.reason-tag--thesis{color:var(--cobalt)}
+.upd{transition:color .3s ease}
+#live-note{font-size:9px;color:var(--ink-soft);margin-top:6px;font-variant-numeric:tabular-nums}
 """
+
+# ---------------------------------------------------------------------------
+# Couche vivante — JS embarqué, dégradation propre.
+#
+# Trois responsabilités, rien d'autre :
+#   1. marks live  : POST allMids sur l'API publique Hyperliquid (CORS ouvert,
+#                    lecture seule, aucun secret, aucune clé) toutes les 15 s
+#                    quand l'onglet est visible → recalcul LOCAL du uPnL des
+#                    positions inlinées dans la page. Ce calcul ne touche
+#                    aucun fichier : book.json reste la source, la page le dit.
+#   2. horloges    : les âges (sync/mark) avancent en continu au lieu d'être
+#                    figés à l'instant du tirage.
+#   3. rechargement: toutes les 3 min, si un tirage plus récent existe sur le
+#                    même URL, la page se remplace — jamais de reload aveugle.
+# Hors ligne (fichier local, réseau coupé), la chip dit « page statique » et
+# tout le reste fonctionne comme avant : zéro dépendance dure au réseau.
+# ---------------------------------------------------------------------------
+
+LIVE_JS = """<script>
+(function(){
+"use strict";
+var S; try{ S = JSON.parse(document.getElementById("nabu-state").textContent); }catch(_){ return; }
+var chip = document.getElementById("live-chip");
+var note = document.getElementById("live-note");
+var NBSP = "\\u00a0";
+function fmt(v, dec){ return v.toLocaleString("en-US",{minimumFractionDigits:dec===undefined?2:dec,maximumFractionDigits:dec===undefined?2:dec}).replace(/,/g,NBSP)+NBSP+"$"; }
+function setChip(cls, txt){ if(!chip) return; chip.className = "live-chip"+(cls?" "+cls:""); chip.textContent = txt; }
+
+/* ---- 1. horloges qui avancent ------------------------------------- */
+var builtMs = (S.built_ts||0)*1000;
+function tickAges(){
+  var extra = (Date.now()-builtMs)/1000;
+  document.querySelectorAll(".clock").forEach(function(c){
+    var v = c.querySelector(".clock-v"); if(!v) return;
+    if(v.dataset.base===undefined){
+      var k = c.querySelector(".clock-k")||{textContent:""};
+      v.dataset.base = /sync/i.test(k.textContent) ? (S.freshness.sync_age_s||"") : (S.freshness.mark_age_s||"");
+    }
+    var b = parseFloat(v.dataset.base); if(isNaN(b)) return;
+    var s = b + extra;
+    v.textContent = s<90 ? Math.round(s)+NBSP+"s" : s<5400 ? Math.round(s/60)+NBSP+"min" : s<172800 ? (s/3600).toFixed(1)+NBSP+"h" : (s/86400).toFixed(1)+NBSP+"j";
+  });
+}
+setInterval(tickAges, 30000);
+
+/* ---- 2. marks live Hyperliquid ------------------------------------ */
+var rows = Array.prototype.slice.call(document.querySelectorAll(".pos-row"));
+var isPaper = String(S.mode||"").toLowerCase()==="paper";
+var staticUpnl = (S.positions||[]).reduce(function(a,p){return a+(p.unrealized_pnl_usd||0);},0);
+var lastOk = 0, failures = 0;
+
+function applyMids(mids){
+  var liveUpnl = 0, n = 0;
+  rows.forEach(function(r){
+    var sym = r.dataset.sym, mid = parseFloat(mids[sym]);
+    if(!mid || !isFinite(mid)) return;
+    var size = parseFloat(r.dataset.size), entry = parseFloat(r.dataset.entry);
+    var pnl = (r.dataset.side==="short" ? (entry-mid) : (mid-entry)) * size;
+    liveUpnl += pnl; n++;
+    var cell = r.querySelector(".pos-upnl");
+    if(cell){
+      var old = cell.textContent;
+      cell.textContent = (pnl>=0?"+":"")+pnl.toFixed(2)+NBSP+"$";
+      cell.classList.toggle("neg", pnl<0);
+      if(old!==cell.textContent){ cell.classList.remove("flash"); void cell.offsetWidth; cell.classList.add("flash"); }
+    }
+    var mk = r.querySelector(".pos-mark");
+    if(mk){ mk.textContent = "live"; mk.classList.add("delta-up"); }
+  });
+  if(!n) return;
+  var mU = document.getElementById("m-upnl");
+  if(mU){ mU.textContent = fmt(liveUpnl); mU.classList.toggle("neg", liveUpnl<0); }
+  /* equity live = equity du book corrigée du delta de marks — approximation affichée comme telle */
+  var eq = (S.capital.equity_usd||0) - staticUpnl + liveUpnl;
+  var mE = document.getElementById("m-equity");
+  if(mE){ mE.textContent = fmt(eq); }
+  var dOpen = S.capital.day_open_usd||0;
+  if(dOpen>0){
+    var dp = (eq-dOpen)/dOpen*100;
+    var mD = document.getElementById("m-day");
+    if(mD){ mD.textContent = (dp>=0?"+":"")+dp.toFixed(2)+NBSP+"%"; mD.classList.toggle("neg", dp<0); }
+  }
+  lastOk = Date.now();
+  setChip("live-chip--on", "LIVE · HL");
+  if(note) note.textContent = "marks live Hyperliquid · uPnL recalculé localement · " +
+    new Date().toISOString().slice(11,19) + "Z · book.json reste la source (" + n + "/" + rows.length + " positions)";
+}
+
+function poll(){
+  if(document.hidden) return;
+  if(!rows.length){ setChip("live-chip--on","LIVE · flat"); return; }
+  var ctl = new AbortController(); var t = setTimeout(function(){ctl.abort();}, 8000);
+  fetch("https://api.hyperliquid.xyz/info", {
+    method:"POST", headers:{"Content-Type":"application/json"},
+    body:'{"type":"allMids"}', signal:ctl.signal, cache:"no-store"
+  }).then(function(r){ clearTimeout(t); if(!r.ok) throw 0; return r.json(); })
+    .then(function(mids){ failures=0; applyMids(mids); })
+    .catch(function(){ clearTimeout(t); failures++;
+      if(failures>=2){ setChip("live-chip--stale", lastOk ? "live perdu · tirage "+S.built_iso.slice(11,16)+"Z" : "page statique"); } });
+}
+
+/* ---- 3. tirage plus récent → remplacement doux --------------------- */
+function checkNewer(){
+  if(document.hidden || location.protocol==="file:") return;
+  fetch(location.href, {cache:"no-store"}).then(function(r){ return r.text(); })
+    .then(function(txt){
+      var m = txt.match(/"built_ts":\\s*([0-9.]+)/);
+      if(m && parseFloat(m[1]) > (S.built_ts||0)+1){ location.reload(); }
+    }).catch(function(){});
+}
+
+if(rows.length || isPaper){ poll(); setInterval(poll, 15000); }
+setInterval(checkNewer, 180000);
+document.addEventListener("visibilitychange", function(){ if(!document.hidden){ poll(); tickAges(); } });
+tickAges();
+})();
+</script>"""
 
 
 def render(state: dict) -> str:
@@ -1205,20 +1460,34 @@ def render(state: dict) -> str:
     realized = float(p.get("realized_pnl_usd") or 0)
     a("<section class=\"overview\" id=\"portfolio\" aria-label=\"Synthèse du portefeuille\">")
     a(f"<div class=\"overview-head\"><div class=\"overview-title\">Portefeuille · maintenant</div>"
-      f"<span class=\"health health--{e(fr['status'])}\">{e(health_label)}</span></div>")
+      f"<div style=\"display:flex;gap:8px;align-items:center\">"
+      f"<span class=\"live-chip\" id=\"live-chip\" title=\"prix Hyperliquid en direct — recalcul local du uPnL\">page statique</span>"
+      f"<span class=\"health health--{e(fr['status'])}\">{e(health_label)}</span></div></div>")
     a("<div class=\"overview-grid\">")
     metrics = [
-        ("Equity", money(cap["equity_usd"]), f"pic {money(cap['peak_usd'], 0)}", False),
-        ("Aujourd'hui", f"{cap['day_pnl_pct']:+.2f}{NB}%", "performance UTC", cap["day_pnl_pct"] < 0),
-        ("uPnL ouvert", money(upnl), f"{len(positions)} position{'s' if len(positions) != 1 else ''}", upnl < 0),
-        ("PnL réalisé", money(realized), "net des clôtures", realized < 0),
-        ("Risque max", risk_txt, risk_note, bool(max_gate and max_gate["status"] in ("hot", "breach"))),
+        ("Equity", money(cap["equity_usd"]), f"pic {money(cap['peak_usd'], 0)}", False, "m-equity"),
+        ("Aujourd'hui", f"{cap['day_pnl_pct']:+.2f}{NB}%", "performance UTC", cap["day_pnl_pct"] < 0, "m-day"),
+        ("uPnL ouvert", money(upnl), f"{len(positions)} position{'s' if len(positions) != 1 else ''}", upnl < 0, "m-upnl"),
+        ("PnL réalisé", money(realized), "net des clôtures", realized < 0, "m-realized"),
+        ("Risque max", risk_txt, risk_note, bool(max_gate and max_gate["status"] in ("hot", "breach")), "m-risk"),
     ]
-    for kk, vv, nn, bad in metrics:
+    for kk, vv, nn, bad, mid in metrics:
         a(f"<div class=\"metric\"><div class=\"metric-k\">{e(kk)}</div>"
-          f"<div class=\"metric-v{' neg' if bad else ''}\">{e(vv)}</div>"
+          f"<div class=\"metric-v upd{' neg' if bad else ''}\" id=\"{mid}\">{e(vv)}</div>"
           f"<div class=\"metric-n\">{e(nn)}</div></div>")
-    a(f"</div><div class=\"decision\"><b>Lecture</b><span>{e(v)}</span></div></section>")
+    a(f"</div><div class=\"decision\"><b>Lecture</b><span>{e(v)}</span></div>"
+      f"<div id=\"live-note\"></div></section>")
+
+    # -- courbe d'equity — la mémoire de la page
+    hist = S.get("history") or []
+    curve = spark_svg(hist, "equity", baseline=float((cap.get("paper") or {}).get("start_equity_usd") or 0) or None)
+    if curve:
+        first, lastp = hist[0], hist[-1]
+        span_h = (float(lastp["ts"]) - float(first["ts"])) / 3600
+        span_txt = f"{span_h / 24:.1f} j" if span_h > 48 else f"{span_h:.0f} h"
+        a(f"<div class=\"curve\"><div class=\"curve-head\"><span class=\"curve-title\">Courbe d'equity</span>"
+          f"<span class=\"curve-meta\">{len(hist)} points · {e(span_txt)} · trait or = capital initial · "
+          f"dernier point {money(float(lastp.get('equity') or 0))}</span></div>{curve}</div>")
 
     # -- boucle d'auto-évaluation, lisible par l'humain et reflétée dans #nabu-state
     se = S.get("self_eval") or {}
@@ -1342,16 +1611,17 @@ def render(state: dict) -> str:
         for pos in S["positions"]:
             up = pos["unrealized_pnl_usd"]
             sd = f"{pos['stop_dist_pct']:.2f}{NB}%" if pos.get("stop_dist_pct") else "—"
-            a("<tr>"
+            a(f"<tr class=\"pos-row\" data-sym=\"{e(pos['symbol'])}\" data-side=\"{e(pos['side'])}\" "
+              f"data-size=\"{pos['size']}\" data-entry=\"{pos['entry_px']}\" data-stop=\"{pos['stop_px']}\">"
               f"<td>{e(pos['venue'])}</td><td><b>{e(pos['symbol'])}</b></td>"
               f"<td><span class=\"side side--{e(pos['side'])}\">{e(pos['side'])}</span></td>"
               f"<td class=\"num\">{e(money(pos['notional_usd'], 0))}</td>"
               f"<td class=\"num\">{pos['entry_px']:,.2f}</td>"
               f"<td class=\"num\">{pos['stop_px']:,.2f}<br><span class=\"step-lim\">{e(sd)}</span></td>"
-              f"<td class=\"num{' neg' if up < 0 else ''}\">{up:+.2f}{NB}$</td>"
+              f"<td class=\"num upd pos-upnl{' neg' if up < 0 else ''}\">{up:+.2f}{NB}$</td>"
               f"<td class=\"num\">{pos['funding_paid_usd']:+.3f}{NB}$</td>"
               f"<td class=\"num\">{(pos['hold_h'] or 0):.1f}{NB}h</td>"
-              f"<td class=\"num\">{e(dur(pos.get('mark_age_s')))}</td></tr>")
+              f"<td class=\"num upd pos-mark\">{e(dur(pos.get('mark_age_s')))}</td></tr>")
         a("</tbody></table></div>")
         for pos in S["positions"]:
             if pos.get("thesis") or pos.get("invalidation"):
@@ -1422,6 +1692,45 @@ def render(state: dict) -> str:
             a("<p class=\"note\" style=\"margin-top:10px\">Distribution des R. "
               "Une espérance portée par une seule barre à droite n'est pas un edge, "
               "c'est un trade.</p>")
+
+        rec = edge.get("expectancy_r_recent")
+        if rec is not None:
+            drift = ""
+            if edge.get("expectancy_r") is not None:
+                d = rec - edge["expectancy_r"]
+                drift = f" · dérive vs global {d:+.2f} R"
+            a(f"<p class=\"note\" style=\"margin-top:8px\"><b>Espérance récente ({edge.get('recent_window')} derniers) : "
+              f"{rec:+.2f} R</b>{e(drift)} — c'est la fenêtre qui meurt en premier quand l'edge décède.</p>")
+
+        closes_r = S.get("recent_closes") or []
+        if closes_r:
+            a("<div class=\"eyebrow\" style=\"margin-top:26px\">Dernières clôtures — matière du post-mortem</div>"
+              "<div class=\"rule\"></div>"
+              "<div class=\"wrap\"><table class=\"tbl closes-tbl\"><thead><tr>"
+              "<th>Quand</th><th>Sym</th><th>Sens</th><th class=\"num\">R</th>"
+              "<th class=\"num\">PnL net</th><th class=\"num\">Portage</th><th>Sortie</th><th>Thèse</th>"
+              "</tr></thead><tbody>")
+            for c in closes_r:
+                r_val = c.get("r_multiple")
+                r_txt = f"{float(r_val):+.2f}" if r_val is not None else "—"
+                r_cls = "" if r_val is None else (" r-pos" if float(r_val) > 0 else " r-neg")
+                pnl = float(c.get("realized_pnl_usd") or 0)
+                when = c.get("iso") or (time.strftime("%m-%d %H:%M", time.gmtime(float(c["ts"]))) if c.get("ts") else "—")
+                if isinstance(when, str) and "T" in when:
+                    when = when[5:16].replace("T", " ")
+                reason = str(c.get("reason") or "—")
+                thesis_short = (c.get("thesis") or "—")
+                if len(thesis_short) > 70:
+                    thesis_short = thesis_short[:67] + "…"
+                a(f"<tr><td class=\"num\" style=\"text-align:left\">{e(when)}</td>"
+                  f"<td><b>{e(c.get('symbol'))}</b></td>"
+                  f"<td><span class=\"side side--{e(c.get('side'))}\">{e(c.get('side'))}</span></td>"
+                  f"<td class=\"num{r_cls}\">{e(r_txt)}</td>"
+                  f"<td class=\"num{' neg' if pnl < 0 else ''}\">{pnl:+.2f}{NB}$</td>"
+                  f"<td class=\"num\">{float(c.get('hold_hours') or 0):.1f}{NB}h</td>"
+                  f"<td><span class=\"reason-tag reason-tag--{e(reason)}\">{e(reason)}</span></td>"
+                  f"<td class=\"note\">{e(thesis_short)}</td></tr>")
+            a("</tbody></table></div>")
     else:
         a("<p class=\"empty\">Aucun trade clos non-artefact dans le journal. Rien à mesurer, "
           "rien à inventer.</p>")
@@ -1523,7 +1832,9 @@ def render(state: dict) -> str:
     a("</main>")
     a("<script type=\"application/json\" id=\"nabu-state\">")
     a(html.escape(json.dumps(S, ensure_ascii=False, default=str), quote=False))
-    a("</script></body></html>")
+    a("</script>")
+    a(LIVE_JS)
+    a("</body></html>")
     return "\n".join(o)
 
 
@@ -1549,6 +1860,8 @@ def main() -> int:
     tmp = out.with_suffix(".tmp")
     tmp.write_text(render(state), encoding="utf-8")
     tmp.replace(out)                 # atomique : jamais de page à moitié écrite
+    if a.cmd == "build":
+        append_history(state)        # trace de la courbe d'equity + score
 
     fr = state["freshness"]
     print(f"DASHBOARD · {out} · mode {state['mode']} · "

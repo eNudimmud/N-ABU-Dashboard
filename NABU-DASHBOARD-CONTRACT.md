@@ -13,9 +13,10 @@ n'écrit que son `--out`.
 | `risk.yaml` | **lecture** | limites — la planche ne les recopie pas, elle les cite |
 | `book.json` | **lecture** | equity, positions, ancrages jour/semaine, `synced_at` |
 | `paper/account.json` | **lecture** | `last_mark_ts`, thèse, invalidation, cash/frais/funding |
-| `journal.jsonl` | **lecture** | edge, ordres/h, ordres/j, série de pertes |
+| `journal.jsonl` | **lecture** | edge, ordres/h, ordres/j, série de pertes, dernières clôtures |
 | `live_context.json` | **lecture** | contexte hourly + lecture daily |
 | `data/scan_latest.json` | **lecture** | signaux du dernier scan |
+| `data/equity_history.jsonl` | **append** | un point (equity, score, verdict) par build — seul fichier d'état écrit, par ce script uniquement |
 | `KILL` | **lecture** | bandeau oxblood |
 | `--out` (HTML) | **écriture** | seul fichier écrit, en remplacement atomique |
 
@@ -138,6 +139,40 @@ donc le consommer sans réimplémenter les calculs.
 **Règle du contrat :** une source absente ne produit jamais un zéro. Elle
 produit `UNVERIFIED`, la section concernée affiche une phrase, et la page
 refuse de meubler. Un zéro se lit comme une mesure.
+
+Champs ajoutés à la refonte 2026-08-16 :
+
+- `edge.expectancy_r_recent` + `edge.recent_window` — espérance glissante sur
+  les 10 dernières clôtures. C'est la fenêtre qui meurt en premier quand
+  l'edge décède ; `self_eval` la consomme (fenêtre récente négative sur global
+  positif → action prioritaire « suspendre l'ajout de risque »).
+- `recent_closes[]` — les 8 dernières clôtures (R, PnL net, portage, raison de
+  sortie, thèse) : la matière première du post-mortem, affichée dans le volet
+  Edge.
+- `history[]` — points `{ts, equity, dd_pct, score, verdict, n_closes, upnl}`
+  appendés dans `data/equity_history.jsonl` à chaque `build` (dédoublonnés si
+  rien n'a bougé en moins d'une heure). Rend la courbe d'equity et la
+  trajectoire du score d'auto-évaluation.
+
+### Couche vivante (JS embarqué, dégradation propre)
+
+La page reste lisible sans JS et hors ligne — le JS n'ajoute que trois choses :
+
+1. **Marks live** — `POST allMids` sur l'API publique Hyperliquid (CORS
+   ouvert, lecture seule, zéro secret) toutes les 15 s quand l'onglet est
+   visible. Le uPnL des positions est recalculé **localement** à partir de
+   `size`/`entry` inlinés ; equity et perf du jour suivent. La chip d'état
+   passe à `LIVE · HL`, chaque valeur qui change flashe or. `book.json` reste
+   la source — la page l'écrit sous les métriques.
+2. **Horloges qui avancent** — les âges sync/mark vieillissent en continu au
+   lieu de rester figés à l'instant du tirage.
+3. **Rafraîchissement doux** — toutes les 3 min, si un tirage plus récent
+   existe au même URL (`built_ts` supérieur), la page se recharge. Jamais de
+   reload aveugle ; rien en `file://`.
+
+Échec réseau : après 2 échecs consécutifs la chip passe à
+`live perdu · tirage HH:MMZ` (or). Aucune valeur inventée : les chiffres
+retombent sur ceux du tirage.
 
 Artefacts exclus des stats d'edge : `exclude_from_edge`, `phantom`,
 `test_trade` — même filtre que `nabu_watchdog.py` et `compute_state()`.
