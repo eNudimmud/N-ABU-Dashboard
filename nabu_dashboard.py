@@ -425,6 +425,103 @@ def compute_edge(journal: list) -> dict:
     return out
 
 
+# ---------------------------------------------------------------------------
+# Paliers de revue — chaque palier évalué sur SES trades, jamais sur le cumul
+# ---------------------------------------------------------------------------
+
+def _slice_stats(chunk: list[dict]) -> dict:
+    """Mêmes maths que compute_edge, appliquées à une tranche de clôtures."""
+    out = {"n_trades": len(chunk), "expectancy_r": None, "ci95": None,
+           "win_rate_pct": None, "best_r": None, "worst_r": None,
+           "stop_share_pct": None, "median_hold_h": None,
+           "cost_ratio_pct": None, "net_usd": 0.0,
+           "avg_win_r": None, "avg_loss_r": None}
+    if not chunk:
+        return out
+    rs = [float(r["r_multiple"]) for r in chunk if r.get("r_multiple") is not None]
+    fees = sum(abs(float(r.get("fees_usd") or 0)) for r in chunk)
+    fund = sum(float(r.get("funding_usd") or 0) for r in chunk)
+    gross = sum(abs(float(r.get("gross_pnl_usd") or 0)) for r in chunk)
+    holds = [float(r["hold_hours"]) for r in chunk if r.get("hold_hours") is not None]
+    out["net_usd"] = sum(float(r.get("realized_pnl_usd") or 0) for r in chunk)
+    out["cost_ratio_pct"] = (fees + abs(fund)) / gross * 100.0 if gross > 0 else None
+    out["stop_share_pct"] = len([r for r in chunk if r.get("reason") == "stop"]) / len(chunk) * 100.0
+    out["median_hold_h"] = statistics.median(holds) if holds else None
+    if rs:
+        wins = [r for r in rs if r > 0]
+        losses = [r for r in rs if r <= 0]
+        out["expectancy_r"] = statistics.fmean(rs)
+        out["win_rate_pct"] = len(wins) / len(rs) * 100.0
+        out["best_r"], out["worst_r"] = max(rs), min(rs)
+        out["avg_win_r"] = statistics.fmean(wins) if wins else None
+        out["avg_loss_r"] = statistics.fmean(losses) if losses else None
+        if len(rs) >= 2:
+            half = 1.96 * statistics.stdev(rs) / math.sqrt(len(rs))
+            out["ci95"] = [out["expectancy_r"] - half, out["expectancy_r"] + half]
+    return out
+
+
+def _palier_verdict(st: dict, target: int) -> tuple[str, str]:
+    """(verdict, lecture) d'un palier — sur ses trades seulement."""
+    n, exp, ci = st["n_trades"], st["expectancy_r"], st["ci95"]
+    if not n:
+        return "À VENIR", f"Palier non entamé — {target} clôtures à produire."
+    if exp is None:
+        return "SANS R", "Aucun R journalisé sur ce palier : rien de mesurable."
+    if n < target:
+        return "EN COURS", (f"{n} / {target} clôtures. Espérance partielle {exp:+.2f} R, "
+                            f"non significative : aucune conclusion avant la fin du palier.")
+    if ci and ci[0] > 0:
+        return "EDGE PROUVÉ", (f"Espérance {exp:+.2f} R et borne basse de l'IC95 positive "
+                               f"({ci[0]:+.2f} R). L'edge survit au bruit sur ce palier.")
+    if ci and ci[1] < 0:
+        return "PERTE PROUVÉE", (f"Espérance {exp:+.2f} R et borne haute de l'IC95 négative "
+                                 f"({ci[1]:+.2f} R). Ce palier perd de façon mesurable.")
+    if exp > 0:
+        return "POSITIF NON PROUVÉ", (f"Espérance {exp:+.2f} R mais l'IC95 traverse zéro : "
+                                      f"rentable sans que ce soit démontrable.")
+    return "SANS EDGE", (f"Espérance {exp:+.2f} R, IC95 à cheval sur zéro : ce palier ne "
+                         f"distingue pas la stratégie du hasard.")
+
+
+def compute_paliers(journal: list, target: int = TARGET_TRADES,
+                    milestone: dict | None = None) -> list[dict]:
+    """Découpe les clôtures en paliers de `target` trades et évalue chacun sur
+    sa propre tranche. Calcul local : la section se rend même si
+    nabu_milestone.py ne répond pas. Les améliorations proposées, elles,
+    viennent de nabu_milestone.py — on ne les invente pas."""
+    closes = [r for r in journal if r.get("event") == "fill"
+              and r.get("kind") == "close" and not _is_artifact(r)]
+    ext = {}
+    for pp in ((milestone or {}).get("paliers") or []):
+        if pp.get("n") is not None:
+            ext[int(pp["n"])] = pp
+
+    total = len(closes)
+    n_show = max(3, total // target + 2)
+    out: list[dict] = []
+    prev_exp = None
+    for i in range(1, n_show + 1):
+        chunk = closes[(i - 1) * target: i * target]
+        st = _slice_stats(chunk)
+        status = "completed" if len(chunk) == target else "building" if chunk else "pending"
+        verdict, reading = _palier_verdict(st, target)
+        delta = (st["expectancy_r"] - prev_exp) if (st["expectancy_r"] is not None
+                                                    and prev_exp is not None) else None
+        if st["expectancy_r"] is not None and status == "completed":
+            prev_exp = st["expectancy_r"]
+        st.update({
+            "n": i, "label": f"Palier {i}", "status": status,
+            "range_txt": f"trades {(i - 1) * target + 1} – {i * target}",
+            "verdict": verdict, "reading": reading, "delta_r": delta,
+            "improvements": (ext.get(i) or {}).get("improvements") or [],
+            "first_iso": (chunk[0].get("iso") if chunk else None),
+            "last_iso": (chunk[-1].get("iso") if chunk else None),
+        })
+        out.append(st)
+    return out
+
+
 def compute_recent_closes(journal: list, limit: int = 8) -> list[dict]:
     """Les dernières clôtures, telles quelles — matière première du post-mortem."""
     closes = [r for r in journal if r.get("event") == "fill"
@@ -698,6 +795,7 @@ def build_state(demo: bool = False) -> tuple[dict, list[Source]]:
         "demo": False,
     }
     state["milestone"] = compute_milestone_state()
+    state["paliers"] = compute_paliers(journal, milestone=state["milestone"])
     state["self_eval"] = compute_self_eval(fresh, edge, gates, kill)
     return state, sources
 
@@ -724,6 +822,55 @@ def _demo_sources() -> list[Source]:
     return out
 
 
+def _demo_journal() -> list[dict]:
+    """Journal synthetique - 68 clotures sur trois paliers. Le mode demo passe
+    par compute_edge / compute_paliers comme la production : ce qui casse en
+    demo casse en prod, et inversement."""
+    import random
+    rng = random.Random(1789)
+    now = time.time()
+    syms = ["ETH", "BTC", "SOL", "HYPE", "ZEC"]
+    theses = ["Rejet du haut de range 50h, funding neutre.",
+              "Sous MA200 daily, OI en expansion sur prix plat.",
+              "Reprise au-dessus du bas de range, funding negatif.",
+              "Cassure du bas de range 50h sur volume.",
+              "Divergence OI/prix, squeeze probable."]
+    # palier 1 : stops qui glissent - palier 2 : apres correction - palier 3 : en cours
+    regimes = [(30, 0.36, 1.20), (30, 0.46, 1.02), (8, 0.50, 0.97)]
+    total = sum(r[0] for r in regimes)
+    out: list[dict] = []
+    idx = 0
+    for n_tr, p_win, loss_mag in regimes:
+        for _ in range(n_tr):
+            idx += 1
+            win = rng.random() < p_win
+            r = (round(abs(rng.gauss(1.30, 0.70)), 2) if win
+                 else round(-abs(rng.gauss(loss_mag, 0.20)), 2))
+            sym, side = rng.choice(syms), rng.choice(["long", "short"])
+            hold = round(abs(rng.gauss(13, 8)) + 1.2, 1)
+            risk_usd = round(rng.uniform(8.0, 11.5), 2)
+            gross = round(r * risk_usd, 2)
+            fees = round(abs(gross) * 0.02 + 0.35, 2)
+            fund = round(rng.gauss(-0.05, 0.18), 3)
+            ts_c = now - (total - idx + 1) * 9.4 * 3600
+            ts_o = ts_c - hold * 3600
+            reason = "stop" if r <= -0.85 else "target" if r >= 1.0 else "invalidation"
+            out.append({"event": "fill", "kind": "open", "symbol": sym, "side": side,
+                        "ts": ts_o,
+                        "iso": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(ts_o)),
+                        "thesis": rng.choice(theses),
+                        "invalidation": "Cloture horaire de l\u2019autre cote du niveau."})
+            out.append({"event": "fill", "kind": "close", "symbol": sym, "side": side,
+                        "ts": ts_c,
+                        "iso": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(ts_c)),
+                        "r_multiple": r, "realized_pnl_usd": round(gross - fees + fund, 2),
+                        "gross_pnl_usd": gross, "fees_usd": fees, "funding_usd": fund,
+                        "hold_hours": hold, "reason": reason,
+                        "thesis": ("These tenue jusqu\u2019a la sortie." if r > 0
+                                   else "These invalidee avant l\u2019objectif.")})
+    return out
+
+
 def _demo_state() -> dict:
     now = time.time()
     eq, peak, day_open, week_open = 918.44, 1000.0, 942.90, 963.10
@@ -737,22 +884,32 @@ def _demo_state() -> dict:
                   "fees_paid_usd": 11.42, "funding_paid_usd": -2.63,
                   "closed_trades": 11, "start_equity_usd": 1000.0},
     }
-    positions = [{
-        "venue": "hl", "symbol": "ETH", "side": "short", "size": 0.1961,
-        "entry_px": 1920.40, "stop_px": 1978.10, "stop_dist_pct": 3.00,
-        "notional_usd": 368.92, "unrealized_pnl_usd": -7.67,
-        "funding_paid_usd": 0.41, "last_mark_px": 1881.25,
-        "mark_age_s": 5760, "opened_ts": now - 3600 * 19,
-        "hold_h": 19.2,
-        "thesis": "Downtrend daily confirmé, prix sous MA200 (2019), rejet du haut de range 50h.",
-        "invalidation": "Clôture horaire au-dessus de 1978 ou funding > +8 bps/8h.",
-    }]
+    def _pos(sym, side, size, entry, stop, mark, dist, fund, age, hold, th, inv):
+        pnl = ((entry - mark) if side == "short" else (mark - entry)) * size
+        return {"venue": "hl", "symbol": sym, "side": side, "size": size,
+                "entry_px": entry, "stop_px": stop, "stop_dist_pct": dist,
+                "notional_usd": round(mark * size, 2),
+                "unrealized_pnl_usd": round(pnl, 2), "funding_paid_usd": fund,
+                "last_mark_px": mark, "mark_age_s": age,
+                "opened_ts": now - 3600 * hold, "hold_h": hold,
+                "thesis": th, "invalidation": inv}
+    positions = [
+        _pos("ETH", "short", 0.1961, 1920.40, 1978.10, 1881.25, 3.00, 0.41, 5760, 19.2,
+             "Downtrend daily confirm\u00e9, prix sous MA200 (2019), rejet du haut de range 50h.",
+             "Cl\u00f4ture horaire au-dessus de 1978 ou funding > +8 bps/8h."),
+        _pos("BTC", "short", 0.0031, 63750.0, 65180.0, 63028.50, 2.24, -0.08, 3420, 6.4,
+             "Sous MA200 daily, rejet net du 64.9k, OI plat.",
+             "Cl\u00f4ture 1h au-dessus de 65 180."),
+        _pos("SOL", "long", 1.42, 74.60, 72.95, 75.37, 2.21, 0.02, 1180, 2.1,
+             "Rebond sur le bas de range 50h (74.1), funding neutre.",
+             "Perte du 72.95 en cl\u00f4ture horaire."),
+    ]
     gates = [
         _gate("dd", "Drawdown", "8.16 %", "20 %", 40.8, "depuis le pic d'equity · au-delà : KILL global"),
         _gate("day", "Perte jour", "−2.59 %", "−4 %", 64.8, "journée UTC"),
         _gate("week", "Perte semaine", "−4.64 %", "−8 %", 58.0, "semaine glissante"),
         _gate("floor", "Plancher equity", "918 $", "300 $", 32.7, "sous le plancher : sorties seulement"),
-        _gate("pos", "Positions", "1", "4", 25.0, "concurrentes, tous venues"),
+        _gate("pos", "Positions", "3", "4", 75.0, "concurrentes, tous venues"),
         _gate("gross", "Expo brute", "40 %", "150 %", 26.8, "somme des notionnels / equity"),
         _gate("net", "Expo nette", "40 %", "100 %", 40.2, "|long − short| / equity"),
         _gate("oh", "Ordres / h", "1", "8", 12.5, "anti-boucle folle"),
@@ -760,19 +917,12 @@ def _demo_state() -> dict:
         _gate("streak", "Série pertes", "2", "3", 66.7, "au-delà : cooldown imposé"),
         _gate("cooldown", "Cooldown", "inactif", "6 h", 0.0, "s'arme après la série"),
     ]
-    edge = {
-        "n_opens": 12, "n_closes": 11, "target_trades": TARGET_TRADES, "verified": False,
-        "expectancy_r": -0.34, "ci95": [-0.92, 0.24], "win_rate_pct": 36.4,
-        "cost_ratio_pct": 18.6, "stop_share_pct": 54.5, "median_hold_h": 14.5,
-        "plan_written_pct": 100.0, "best_r": 2.4, "worst_r": -1.05,
-        "fees_usd": 11.42, "funding_usd": -2.63, "gross_usd": 75.6, "net_usd": -73.89,
-        "r_histogram": [
-            {"label": "<−1R", "n": 1}, {"label": "−1..−.5", "n": 4},
-            {"label": "−.5..0", "n": 2}, {"label": "0..+.5", "n": 1},
-            {"label": "+.5..1R", "n": 1}, {"label": "1..2R", "n": 1},
-            {"label": "2..3R", "n": 1}, {"label": ">3R", "n": 0},
-        ],
-    }
+    journal = _demo_journal()
+    edge = compute_edge(journal)
+    paliers = compute_paliers(journal)
+    cap["paper"]["closed_trades"] = edge["n_closes"]
+    cap["paper"]["realized_pnl_usd"] = round(edge["net_usd"], 2)
+
     ctx = {"ts": int(now - 940), "coins": {
         "BTC": {"mid": 63028.50, "ma20": 63910.20, "dev_pct": -1.38, "range_lo_50h": 62110.0,
                 "range_hi_50h": 64980.0, "funding_bps_8h": 0.125,
@@ -822,12 +972,15 @@ def _demo_state() -> dict:
         "built_iso": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(now)),
         "mode": "paper",
         "attestation": (f"BOOK · sync {time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime(now - 118))} · "
-                        f"equity 918.44$ · DD 8.16% · positions 1"),
+                        f"equity 918.44$ · DD 8.16% · positions {len(positions)}"),
         "kill": {"active": False, "reason": None, "since_iso": None},
         "freshness": {"sync_age_s": 118, "sync_status": "ok",
                       "mark_age_s": 5760, "mark_status": "watch",
                       "mark_note": "position la plus mal marquée", "status": "watch"},
         "capital": cap, "gates": gates, "positions": positions, "edge": edge,
+        "paliers": paliers,
+        "recent_closes": compute_recent_closes(journal),
+        "history": read_history(),
         "market": {"context": ctx, "signals": signals, "scan_ts": now - 940},
         "warnings": ["mode paper — compte simulé réel · cash 926.11$ · frais cumulés 11.42$ "
                      "· funding cumulé -2.63$"],
@@ -1093,6 +1246,52 @@ body{
 .hlab{display:grid;grid-template-columns:repeat(8,1fr);gap:3px;margin-top:6px;
   font-size:8.5px;color:var(--ink-soft);text-align:center;letter-spacing:.02em}
 
+
+/* ---------- paliers de revue ---------- */
+.tier{border:1px solid var(--hair);border-left:4px solid var(--cobalt);
+  background:rgba(255,255,255,.30);margin-top:14px}
+.tier--building{border-left-color:var(--gold);background:rgba(176,128,31,.06)}
+.tier--pending{border-left-color:var(--hair);opacity:.72}
+.tier-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;
+  flex-wrap:wrap;padding:11px 14px;border-bottom:1px solid var(--hair)}
+.tier--pending .tier-head{border-bottom:0}
+.tier-id{display:flex;flex-direction:column;gap:2px;min-width:0}
+.tier-n{font-family:var(--sans);font-weight:800;font-size:17px;letter-spacing:-.01em;
+  line-height:1.1}
+.tier-range{font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-faint)}
+.tier-right{display:flex;align-items:center;gap:10px;margin-left:auto}
+.tier-verdict{font-size:8.5px;letter-spacing:.16em;font-weight:700;padding:2px 7px;
+  border:1px solid currentColor;text-transform:uppercase;color:var(--ink-soft);white-space:nowrap}
+.tier-verdict--completed{color:var(--cobalt)}
+.tier-verdict--building{color:var(--gold)}
+.tier-verdict--pending{color:var(--ink-faint)}
+.tier-exp{font-family:var(--sans);font-weight:800;font-size:22px;
+  font-variant-numeric:tabular-nums;line-height:1}
+.tier-exp.neg{color:var(--oxblood)}
+.tier-body{padding:12px 14px 14px}
+.tier-fill{display:flex;align-items:center;gap:9px;margin-bottom:12px}
+.tier-fill span{flex:1;height:5px;background:rgba(31,69,200,.13);position:relative;display:block}
+.tier-fill span::after{content:"";position:absolute;inset:0 auto 0 0;width:var(--w);
+  background:var(--cobalt)}
+.tier--building .tier-fill span::after{background:var(--gold)}
+.tier-fill b{font-size:9.5px;color:var(--ink-soft);font-variant-numeric:tabular-nums}
+.tier-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:1px;background:var(--hair);
+  border:1px solid var(--hair)}
+@media(min-width:560px){.tier-grid{grid-template-columns:repeat(4,1fr)}}
+.tier-cell{background:var(--paper-3);padding:8px 10px;min-width:0}
+.tier-cell span{display:block;font-size:8px;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--ink-faint)}
+.tier-cell b{display:block;font-size:13px;font-weight:700;margin-top:2px;
+  font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.tier-cell b.neg{color:var(--oxblood)}
+.tier-read{margin:12px 0 0;font-family:var(--serif);font-style:italic;font-size:13px;
+  line-height:1.55;border-left:2px solid var(--cobalt);padding-left:12px}
+.tier--building .tier-read{border-left-color:var(--gold)}
+.tier-delta{margin-top:9px}
+.tier-imp{margin-top:12px;border-top:1px solid var(--hair);padding-top:10px}
+.tier-imp ul{margin:6px 0 0;padding-left:18px;font-size:11px;color:var(--ink-soft);line-height:1.6}
+.tier-imp-empty{margin-top:12px;border-top:1px solid var(--hair);padding-top:10px}
+
 /* ---------- provenance ---------- */
 .prov{font-size:11.5px}
 .prov td:first-child{font-weight:700}
@@ -1302,17 +1501,27 @@ body{background:var(--paper-3)}
 # tout le reste fonctionne comme avant : zéro dépendance dure au réseau.
 # ---------------------------------------------------------------------------
 
-LIVE_JS = """<script>
+LIVE_JS = r"""<script>
 (function(){
 "use strict";
 var S; try{ S = JSON.parse(document.getElementById("nabu-state").textContent); }catch(_){ return; }
 var chip = document.getElementById("live-chip");
 var note = document.getElementById("live-note");
-var NBSP = "\\u00a0";
-function fmt(v, dec){ return v.toLocaleString("en-US",{minimumFractionDigits:dec===undefined?2:dec,maximumFractionDigits:dec===undefined?2:dec}).replace(/,/g,NBSP)+NBSP+"$"; }
+var NBSP = "\u00a0";
+function fmt(v, dec){ dec = (dec===undefined?2:dec);
+  return v.toLocaleString("en-US",{minimumFractionDigits:dec,maximumFractionDigits:dec}).replace(/,/g,NBSP)+NBSP+"$"; }
 function setChip(cls, txt){ if(!chip) return; chip.className = "live-chip"+(cls?" "+cls:""); chip.textContent = txt; }
+function put(id, txt, neg){
+  var n = document.getElementById(id); if(!n) return;
+  if(n.textContent !== txt){ n.textContent = txt;
+    n.classList.remove("flash"); void n.offsetWidth; n.classList.add("flash"); }
+  if(neg !== undefined) n.classList.toggle("neg", !!neg);
+}
+function human(s){ s = Math.max(0, s); return s<90 ? Math.round(s)+NBSP+"s"
+  : s<5400 ? Math.round(s/60)+NBSP+"min"
+  : s<172800 ? (s/3600).toFixed(1)+NBSP+"h" : (s/86400).toFixed(1)+NBSP+"j"; }
 
-/* ---- 1. horloges qui avancent ------------------------------------- */
+/* ---- 1. horloges qui avancent, y compris le silence ---------------- */
 var builtMs = (S.built_ts||0)*1000;
 function tickAges(){
   var extra = (Date.now()-builtMs)/1000;
@@ -1323,26 +1532,35 @@ function tickAges(){
       v.dataset.base = /sync/i.test(k.textContent) ? (S.freshness.sync_age_s||"") : (S.freshness.mark_age_s||"");
     }
     var b = parseFloat(v.dataset.base); if(isNaN(b)) return;
-    var s = b + extra;
-    v.textContent = s<90 ? Math.round(s)+NBSP+"s" : s<5400 ? Math.round(s/60)+NBSP+"min" : s<172800 ? (s/3600).toFixed(1)+NBSP+"h" : (s/86400).toFixed(1)+NBSP+"j";
+    v.textContent = human(b + extra);
   });
+  var sil = document.getElementById("m-silence");
+  if(sil && sil.dataset.since){ sil.textContent = human(Date.now()/1000 - parseFloat(sil.dataset.since)); }
 }
-setInterval(tickAges, 30000);
+setInterval(tickAges, 15000);
 
-/* ---- 2. marks live Hyperliquid ------------------------------------ */
+/* ---- 2. marks live → uPnL, R par position, risque au stop ---------- */
 var rows = Array.prototype.slice.call(document.querySelectorAll(".pos-row"));
 var isPaper = String(S.mode||"").toLowerCase()==="paper";
 var staticUpnl = (S.positions||[]).reduce(function(a,p){return a+(p.unrealized_pnl_usd||0);},0);
 var lastOk = 0, failures = 0;
 
 function applyMids(mids){
-  var liveUpnl = 0, n = 0;
+  var liveUpnl = 0, rOpen = 0, atRiskUsd = 0, atRiskR = 0, n = 0;
   rows.forEach(function(r){
     var sym = r.dataset.sym, mid = parseFloat(mids[sym]);
     if(!mid || !isFinite(mid)) return;
-    var size = parseFloat(r.dataset.size), entry = parseFloat(r.dataset.entry);
-    var pnl = (r.dataset.side==="short" ? (entry-mid) : (mid-entry)) * size;
-    liveUpnl += pnl; n++;
+    var size = parseFloat(r.dataset.size), entry = parseFloat(r.dataset.entry),
+        stop = parseFloat(r.dataset.stop), short = r.dataset.side==="short",
+        risk = Math.abs(entry-stop);
+    var pnl = (short ? (entry-mid) : (mid-entry)) * size;
+    var rr  = risk>0 ? (short ? (entry-mid) : (mid-entry))/risk : 0;
+    var loss = ((short ? (stop-mid) : (mid-stop))) * size;
+    var unit = risk*size;
+    liveUpnl += pnl; rOpen += rr; n++;
+    atRiskUsd += Math.max(0, loss);
+    atRiskR   += unit ? Math.max(0, loss)/unit : 0;
+
     var cell = r.querySelector(".pos-upnl");
     if(cell){
       var old = cell.textContent;
@@ -1350,54 +1568,102 @@ function applyMids(mids){
       cell.classList.toggle("neg", pnl<0);
       if(old!==cell.textContent){ cell.classList.remove("flash"); void cell.offsetWidth; cell.classList.add("flash"); }
     }
+    var rc = r.querySelector(".pos-r");
+    if(rc){
+      var t = "<b>"+(rr>=0?"+":"")+rr.toFixed(2)+NBSP+"R</b>";
+      if(rc.innerHTML!==t){ rc.innerHTML = t;
+        rc.classList.remove("flash"); void rc.offsetWidth; rc.classList.add("flash"); }
+      rc.classList.toggle("neg", rr<0);
+    }
     var mk = r.querySelector(".pos-mark");
     if(mk){ mk.textContent = "live"; mk.classList.add("delta-up"); }
   });
   if(!n) return;
-  var mU = document.getElementById("m-upnl");
-  if(mU){ mU.textContent = fmt(liveUpnl); mU.classList.toggle("neg", liveUpnl<0); }
+  lastOk = Date.now();
+
+  put("m-upnl", fmt(liveUpnl), liveUpnl<0);
+  put("m-ropen", (rOpen>=0?"+":"")+rOpen.toFixed(2)+NBSP+"R", rOpen<0);
+  put("m-atrisk", "\u2212"+fmt(atRiskUsd), true);
+  var an = document.getElementById("m-atrisk-note");
+  if(an) an.textContent = atRiskR.toFixed(2)+" R rendus si tous les stops tombent";
   /* equity live = equity du book corrigée du delta de marks — approximation affichée comme telle */
   var eq = (S.capital.equity_usd||0) - staticUpnl + liveUpnl;
-  var mE = document.getElementById("m-equity");
-  if(mE){ mE.textContent = fmt(eq); }
+  put("m-equity", fmt(eq));
   var dOpen = S.capital.day_open_usd||0;
   if(dOpen>0){
     var dp = (eq-dOpen)/dOpen*100;
-    var mD = document.getElementById("m-day");
-    if(mD){ mD.textContent = (dp>=0?"+":"")+dp.toFixed(2)+NBSP+"%"; mD.classList.toggle("neg", dp<0); }
+    put("m-day", (dp>=0?"+":"")+dp.toFixed(2)+NBSP+"%", dp<0);
   }
-  lastOk = Date.now();
-  setChip("live-chip--on", "LIVE · HL");
-  if(note) note.textContent = "marks live Hyperliquid · uPnL recalculé localement · " +
+  if(note) note.textContent = "marks live Hyperliquid · uPnL et R recalculés localement · " +
     new Date().toISOString().slice(11,19) + "Z · book.json reste la source (" + n + "/" + rows.length + " positions)";
 }
 
-function poll(){
+/* ---- 3. transport : WebSocket d'abord, repli HTTP ------------------ */
+var ws = null, pollTimer = null, retry = 0;
+
+function startPoll(){
+  if(pollTimer || location.protocol==="file:") return;
+  pollOnce(); pollTimer = setInterval(pollOnce, 15000);
+}
+function stopPoll(){ if(pollTimer){ clearInterval(pollTimer); pollTimer = null; } }
+
+function pollOnce(){
   if(document.hidden) return;
-  if(!rows.length){ setChip("live-chip--on","LIVE · flat"); return; }
   var ctl = new AbortController(); var t = setTimeout(function(){ctl.abort();}, 8000);
   fetch("https://api.hyperliquid.xyz/info", {
     method:"POST", headers:{"Content-Type":"application/json"},
     body:'{"type":"allMids"}', signal:ctl.signal, cache:"no-store"
   }).then(function(r){ clearTimeout(t); if(!r.ok) throw 0; return r.json(); })
-    .then(function(mids){ failures=0; applyMids(mids); })
+    .then(function(mids){ failures=0; applyMids(mids);
+      if(!ws || ws.readyState!==1) setChip("live-chip--on","LIVE · HTTP"); })
     .catch(function(){ clearTimeout(t); failures++;
       if(failures>=2){ setChip("live-chip--stale", lastOk ? "live perdu · tirage "+S.built_iso.slice(11,16)+"Z" : "page statique"); } });
 }
 
-/* ---- 3. tirage plus récent → remplacement doux --------------------- */
+function startWS(){
+  if(location.protocol==="file:"){ setChip("", "hors ligne · fichier local"); return; }
+  var sock;
+  try{ sock = new WebSocket("wss://api.hyperliquid.xyz/ws"); }
+  catch(_){ startPoll(); return; }
+  ws = sock;
+  var opened = false;
+  var guard = setTimeout(function(){ if(!opened){ try{sock.close();}catch(_){} } }, 7000);
+  sock.onopen = function(){
+    opened = true; retry = 0; clearTimeout(guard); stopPoll();
+    setChip("live-chip--on","LIVE · WS");
+    sock.send(JSON.stringify({method:"subscribe",subscription:{type:"allMids"}}));
+  };
+  sock.onmessage = function(ev){
+    var m; try{ m = JSON.parse(ev.data); }catch(_){ return; }
+    if(m && m.channel==="allMids" && m.data && m.data.mids){
+      applyMids(m.data.mids); setChip("live-chip--on","LIVE · WS");
+    }
+  };
+  sock.onclose = function(){
+    clearTimeout(guard);
+    setChip("live-chip--stale", lastOk ? "reconnexion…" : "repli HTTP");
+    startPoll();                       /* on ne reste jamais aveugle */
+    retry = Math.min(retry+1, 5);
+    setTimeout(startWS, 3000 * retry); /* backoff, jamais de boucle serrée */
+  };
+  sock.onerror = function(){ };
+}
+
+/* ---- 4. tirage plus récent → remplacement doux --------------------- */
 function checkNewer(){
   if(document.hidden || location.protocol==="file:") return;
   fetch(location.href, {cache:"no-store"}).then(function(r){ return r.text(); })
     .then(function(txt){
-      var m = txt.match(/"built_ts":\\s*([0-9.]+)/);
+      var m = txt.match(/"built_ts":\s*([0-9.]+)/);
       if(m && parseFloat(m[1]) > (S.built_ts||0)+1){ location.reload(); }
     }).catch(function(){});
 }
 
-if(rows.length || isPaper){ poll(); setInterval(poll, 15000); }
+if(rows.length){ startWS(); }
+else { setChip("live-chip--on","LIVE · flat"); }
 setInterval(checkNewer, 180000);
-document.addEventListener("visibilitychange", function(){ if(!document.hidden){ poll(); tickAges(); } });
+document.addEventListener("visibilitychange", function(){
+  if(!document.hidden){ tickAges(); if(!ws || ws.readyState!==1) pollOnce(); } });
 tickAges();
 })();
 </script>"""
@@ -1475,6 +1741,25 @@ def render(state: dict) -> str:
                     "unknown": "Inconnu"}.get(fr["status"], fr["status"])
     p = cap.get("paper") or {}
     realized = float(p.get("realized_pnl_usd") or 0)
+
+    def _pos_r(q):
+        risk = abs(float(q["entry_px"]) - float(q["stop_px"]))
+        if not risk:
+            return 0.0
+        mk = float(q.get("last_mark_px") or q["entry_px"])
+        d = (float(q["entry_px"]) - mk) if q["side"] == "short" else (mk - float(q["entry_px"]))
+        return d / risk
+
+    r_open = sum(_pos_r(q) for q in positions)
+    at_risk_usd, at_risk_r = 0.0, 0.0
+    for q in positions:
+        mk = float(q.get("last_mark_px") or q["entry_px"])
+        loss = ((float(q["stop_px"]) - mk) if q["side"] == "short"
+                else (mk - float(q["stop_px"]))) * float(q["size"])
+        unit = abs(float(q["entry_px"]) - float(q["stop_px"])) * float(q["size"])
+        at_risk_usd += max(0.0, loss)
+        at_risk_r += (max(0.0, loss) / unit) if unit else 0.0
+    last_close_ts = next((c.get("ts") for c in (S.get("recent_closes") or []) if c.get("ts")), None)
     a("<section class=\"overview\" id=\"portfolio\" aria-label=\"Synthèse du portefeuille\">")
     a(f"<div class=\"overview-head\"><div class=\"overview-title\">Portefeuille · maintenant</div>"
       f"<div style=\"display:flex;gap:8px;align-items:center\">"
@@ -1486,14 +1771,23 @@ def render(state: dict) -> str:
         ("Aujourd'hui", f"{cap['day_pnl_pct']:+.2f}{NB}%", "performance UTC", cap["day_pnl_pct"] < 0, "m-day"),
         ("uPnL ouvert", money(upnl), f"{len(positions)} position{'s' if len(positions) != 1 else ''}", upnl < 0, "m-upnl"),
         ("PnL réalisé", money(realized), "net des clôtures", realized < 0, "m-realized"),
+        ("R ouvert", f"{r_open:+.2f}{NB}R", "somme des R en cours", r_open < 0, "m-ropen"),
+        ("Risque au stop", "−" + money(at_risk_usd),
+         f"{at_risk_r:.2f} R rendus si tous les stops tombent", True, "m-atrisk"),
         ("Risque max", risk_txt, risk_note, bool(max_gate and max_gate["status"] in ("hot", "breach")), "m-risk"),
     ]
     for kk, vv, nn, bad, mid in metrics:
         a(f"<div class=\"metric\"><div class=\"metric-k\">{e(kk)}</div>"
           f"<div class=\"metric-v upd{' neg' if bad else ''}\" id=\"{mid}\">{e(vv)}</div>"
-          f"<div class=\"metric-n\">{e(nn)}</div></div>")
-    a(f"</div><div class=\"decision\"><b>Lecture</b><span>{e(v)}</span></div>"
-      f"<div id=\"live-note\"></div></section>")
+          f"<div class=\"metric-n\"{' id=\"m-atrisk-note\"' if mid == 'm-atrisk' else ''}>"
+          f"{e(nn)}</div></div>")
+    a(f"</div><div class=\"decision\"><b>Lecture</b><span>{e(v)}</span></div>")
+    if last_close_ts:
+        a(f"<p class=\"note\" style=\"margin-top:9px\">Dernière clôture il y a "
+          f"<b id=\"m-silence\" data-since=\"{float(last_close_ts):.0f}\">"
+          f"{e(dur(time.time() - float(last_close_ts)))}</b> · le silence n'est pas une panne : "
+          f"flat est une position.</p>")
+    a("<div id=\"live-note\"></div></section>")
 
     # -- courbe d'equity — la mémoire de la page
     hist = S.get("history") or []
@@ -1621,17 +1915,20 @@ def render(state: dict) -> str:
     a("<section class=\"sec primary-section\" id=\"positions\"><div class=\"eyebrow\">Positions ouvertes</div><div class=\"rule\"></div>")
     if S["positions"]:
         a("<div class=\"wrap\"><table class=\"tbl\"><thead><tr>"
-          "<th>Venue</th><th>Sym</th><th>Sens</th><th class=\"num\">Notionnel</th>"
+          "<th>Venue</th><th>Sym</th><th>Sens</th><th class=\"num\">R</th>"
+          "<th class=\"num\">Notionnel</th>"
           "<th class=\"num\">Entrée</th><th class=\"num\">Stop</th><th class=\"num\">uPnL</th>"
           "<th class=\"num\">Funding</th><th class=\"num\">Portage</th><th class=\"num\">Mark</th>"
           "</tr></thead><tbody>")
         for pos in S["positions"]:
             up = pos["unrealized_pnl_usd"]
             sd = f"{pos['stop_dist_pct']:.2f}{NB}%" if pos.get("stop_dist_pct") else "—"
+            rp = _pos_r(pos)
             a(f"<tr class=\"pos-row\" data-sym=\"{e(pos['symbol'])}\" data-side=\"{e(pos['side'])}\" "
               f"data-size=\"{pos['size']}\" data-entry=\"{pos['entry_px']}\" data-stop=\"{pos['stop_px']}\">"
               f"<td>{e(pos['venue'])}</td><td><b>{e(pos['symbol'])}</b></td>"
               f"<td><span class=\"side side--{e(pos['side'])}\">{e(pos['side'])}</span></td>"
+              f"<td class=\"num pos-r{' neg' if rp < 0 else ''}\"><b>{rp:+.2f}{NB}R</b></td>"
               f"<td class=\"num\">{e(money(pos['notional_usd'], 0))}</td>"
               f"<td class=\"num\">{pos['entry_px']:,.2f}</td>"
               f"<td class=\"num\">{pos['stop_px']:,.2f}<br><span class=\"step-lim\">{e(sd)}</span></td>"
@@ -1648,108 +1945,24 @@ def render(state: dict) -> str:
         a("<p class=\"empty\">Flat. C'est une position, pas une absence de position.</p>")
     a("</section>")
 
-    # -- edge
-    a("<details class=\"drawer\" id=\"analysis\"><summary>Performance statistique de N*ABU</summary><div class=\"drawer-body\">"
-      "<section class=\"sec\"><div class=\"eyebrow\">Edge — mesuré, jamais supposé</div>")
-    a("<div class=\"rule\"></div>")
+    # -- edge · deux étages : tout depuis le début, puis palier par palier
+    a("<details class=\"drawer\" id=\"analysis\"><summary>Performance statistique de N*ABU</summary>"
+      "<div class=\"drawer-body\">")
+
+    # ===== ÉTAGE 1 — depuis le début ========================================
+    a("<section class=\"sec\"><div class=\"eyebrow\">Depuis le début — toutes les clôtures</div>")
+    a("<div class=\"rule rule--thick\"></div>")
     n, tgt = edge["n_closes"], edge["target_trades"]
     if edge["verified"]:
         a(f"<span class=\"stamp stamp--ok\">Verified · {n} trades clos</span>")
     else:
         a(f"<span class=\"stamp\">Unverified · {n} / {tgt} trades clos</span>")
-    pct = min(100.0, n / tgt * 100 if tgt else 0)
-    a(f"<div class=\"progress\"><span style=\"--w:{pct:.1f}%\"></span></div>")
+    pct_g0 = min(100.0, n / tgt * 100 if tgt else 0)
+    a(f"<div class=\"progress\"><span style=\"--w:{pct_g0:.1f}%\"></span></div>")
     a(f"<p class=\"note\" style=\"margin-top:8px\">Sortie du gate G0 : {tgt} trades journalisés. "
-      "En dessous, ces chiffres décrivent un échantillon, pas un edge — l'intervalle le dit mieux que la moyenne.</p>")
-    
-    # --- Milestone Review (intégré dans la section Edge) ---
-    ms = S.get("milestone") or {}
-    ms_n = ms.get("n_closes", 0)
-    ms_target = ms.get("target", tgt)
-    ms_progress = ms.get("progress", {})
-    ms_paliers = ms.get("paliers", [])
-    
-    if ms_paliers:
-        # Progression dans le palier actuel
-        a("<div class=\"rule\"></div>")
-        a("<div class=\"eyebrow\">Progression</div>")
-        pct_prog = ms_progress.get("pct", 0)
-        done_prog = ms_progress.get("done", 0)
-        total_prog = ms_progress.get("total", tgt)
-        a(f"<div class=\"progress\"><span style=\"--w:{pct_prog:.1f}%\"></span></div>")
-        a(f"<p class=\"note\" style=\"margin-top:8px\">{done_prog} / {total_prog} trades vers l'évaluation suivante.</p>")
-        
-        # Chaque palier
-        for p in ms_paliers:
-            p_n = p.get("n", 0)
-            p_status = p.get("status", "pending")
-            p_label = p.get("label", f"Palier {p_n}")
-            p_n_trades = p.get("n_trades", 0)
-            
-            a("<div class=\"rule\"></div>")
-            
-            if p_status == "completed":
-                p_exp = p.get("expectancy_r")
-                p_ci = p.get("ci95")
-                p_ci_txt = f"IC95 {p_ci[0]:+.2f} … {p_ci[1]:+.2f}" if p_ci else "IC95 indisponible"
-                p_exp_s = f"{p_exp:+.2f}R" if p_exp is not None else "?"
-                a(f"<div class=\"eyebrow\">{p_label} — {p_n_trades} trades · terminé</div>")
-                cells = [
-                    ("Espérance", p_exp_s, p_ci_txt, p_exp is not None and p_exp < 0),
-                    ("Taux de gain", f"{p.get('win_rate_pct', 0):.0f}%", "métrique de vanité", False),
-                    ("Meilleur R", f"{p.get('best_r', 0):+.2f}R", "best trade", False),
-                    ("Pire R", f"{p.get('worst_r', 0):+.2f}R", "worst trade", True),
-                ]
-                a("<div class=\"edge-grid\">")
-                for kk, vv, nn, bad in cells:
-                    a(f"<div class=\"cell\"><div class=\"cell-k\">{e(kk)}</div>"
-                      f"<div class=\"cell-v{' neg' if bad else ''}\">{e(vv)}</div>"
-                      f"<div class=\"cell-n\">{e(nn)}</div></div>")
-                a("</div>")
-                p_imps = p.get("improvements", [])
-                if p_imps:
-                    a("<div class=\"rule\"></div>")
-                    a("<div class=\"eyebrow\">Améliorations proposées</div>")
-                    a("<ul class=\"note\" style=\"margin:0;padding-left:18px\">")
-                    for imp in p_imps[:5]:
-                        a(f"<li>{e(imp)}</li>")
-                    a("</ul>")
-            elif p_status == "building":
-                p_exp = p.get("expectancy_r")
-                p_exp_s = f"{p_exp:+.2f}R" if p_exp is not None else "?"
-                a(f"<div class=\"eyebrow\">{p_label} — {p_n_trades} trades · en cours</div>")
-                cells = [
-                    ("Espérance partielle", p_exp_s, "non significatif", p_exp is not None and p_exp < 0),
-                    ("Taux de gain", f"{p.get('win_rate_pct', 0):.0f}%", "métrique de vanité", False),
-                    ("Meilleur R", f"{p.get('best_r', 0):+.2f}R", "best trade", False),
-                    ("Pire R", f"{p.get('worst_r', 0):+.2f}R", "worst trade", True),
-                ]
-                a("<div class=\"edge-grid\">")
-                for kk, vv, nn, bad in cells:
-                    a(f"<div class=\"cell\"><div class=\"cell-k\">{e(kk)}</div>"
-                      f"<div class=\"cell-v{' neg' if bad else ''}\">{e(vv)}</div>"
-                      f"<div class=\"cell-n\">{e(nn)}</div></div>")
-                a("</div>")
-            else:
-                a(f"<div class=\"eyebrow\">{p_label} — à venir</div>")
-    elif ms_n > 0 and ms_cur >= 1:
-        # En cours de palier → progression vers le prochain
-        next_palier = ms.get("display_palier", ms_cur + 1)
-        palier_start = (next_palier - 1) * ms_target
-        palier_progress = ms_n - palier_start
-        pct_palier = min(100.0, palier_progress / ms_target * 100)
-        a(f"<div class=\"rule\"></div>")
-        a(f"<div class=\"eyebrow\">Progression palier {next_palier}</div>")
-        a(f"<div class=\"progress\"><span style=\"--w:{pct_palier:.1f}%\"></span></div>")
-        a(f"<p class=\"note\" style=\"margin-top:8px\">{palier_progress} / {ms_target} trades vers l'évaluation du palier {next_palier}. "
-          f"Prochaine évaluation à {next_palier * ms_target} trades.</p>")
-    elif ms_n > 0:
-        # Avant le premier palier
-        a(f"<div class=\"rule\"></div>")
-        a(f"<div class=\"eyebrow\">Progression vers le palier 1</div>")
-        pct_palier = min(100.0, ms_n / ms_target * 100)
-        a(f"<div class=\"progress\"><span style=\"--w:{pct_palier:.1f}%\"></span></div>")
-        a(f"<p class=\"note\" style=\"margin-top:8px\">{ms_n} / {ms_target} trades vers la première évaluation.</p>")
+      "En dessous, ces chiffres décrivent un échantillon, pas un edge — l'intervalle le dit "
+      "mieux que la moyenne. Ce bloc agrège <b>tout depuis le premier trade</b> ; les paliers "
+      "sont évalués séparément plus bas.</p>")
 
     if n:
         exp = edge["expectancy_r"]
@@ -1787,14 +2000,14 @@ def render(state: dict) -> str:
             mx = max([h["n"] for h in hist] + [1])
             a("<div class=\"hist\">")
             for i, h in enumerate(hist):
-                hh = h["n"] / mx * 100
                 cls = " hbar--neg" if i < 3 else ""
-                a(f"<div class=\"hbar{cls}\" style=\"height:{hh:.1f}%\" title=\"{h['n']} trades\"></div>")
+                a(f"<div class=\"hbar{cls}\" style=\"height:{h['n'] / mx * 100:.1f}%\" "
+                  f"title=\"{h['n']} trades\"></div>")
             a("</div><div class=\"hlab\">")
             for h in hist:
                 a(f"<div>{e(h['label'])}<br>{h['n']}</div>")
             a("</div>")
-            a("<p class=\"note\" style=\"margin-top:10px\">Distribution des R. "
+            a("<p class=\"note\" style=\"margin-top:10px\">Distribution des R sur l'ensemble. "
               "Une espérance portée par une seule barre à droite n'est pas un edge, "
               "c'est un trade.</p>")
 
@@ -1802,31 +2015,32 @@ def render(state: dict) -> str:
         if rec is not None:
             drift = ""
             if edge.get("expectancy_r") is not None:
-                d = rec - edge["expectancy_r"]
-                drift = f" · dérive vs global {d:+.2f} R"
-            a(f"<p class=\"note\" style=\"margin-top:8px\"><b>Espérance récente ({edge.get('recent_window')} derniers) : "
-              f"{rec:+.2f} R</b>{e(drift)} — c'est la fenêtre qui meurt en premier quand l'edge décède.</p>")
+                drift = f" · dérive vs global {rec - edge['expectancy_r']:+.2f} R"
+            a(f"<p class=\"note\" style=\"margin-top:8px\"><b>Espérance récente "
+              f"({edge.get('recent_window')} derniers) : {rec:+.2f} R</b>{e(drift)} — "
+              "c'est la fenêtre qui meurt en premier quand l'edge décède.</p>")
 
         closes_r = S.get("recent_closes") or []
         if closes_r:
-            a("<div class=\"eyebrow\" style=\"margin-top:26px\">Dernières clôtures — matière du post-mortem</div>"
-              "<div class=\"rule\"></div>"
+            a("<div class=\"eyebrow\" style=\"margin-top:26px\">Dernières clôtures — matière du "
+              "post-mortem</div><div class=\"rule\"></div>"
               "<div class=\"wrap\"><table class=\"tbl closes-tbl\"><thead><tr>"
               "<th>Quand</th><th>Sym</th><th>Sens</th><th class=\"num\">R</th>"
-              "<th class=\"num\">PnL net</th><th class=\"num\">Portage</th><th>Sortie</th><th>Thèse</th>"
-              "</tr></thead><tbody>")
+              "<th class=\"num\">PnL net</th><th class=\"num\">Portage</th><th>Sortie</th>"
+              "<th>Thèse</th></tr></thead><tbody>")
             for c in closes_r:
                 r_val = c.get("r_multiple")
                 r_txt = f"{float(r_val):+.2f}" if r_val is not None else "—"
                 r_cls = "" if r_val is None else (" r-pos" if float(r_val) > 0 else " r-neg")
                 pnl = float(c.get("realized_pnl_usd") or 0)
-                when = c.get("iso") or (time.strftime("%m-%d %H:%M", time.gmtime(float(c["ts"]))) if c.get("ts") else "—")
+                when = c.get("iso") or (time.strftime("%m-%d %H:%M", time.gmtime(float(c["ts"])))
+                                        if c.get("ts") else "—")
                 if isinstance(when, str) and "T" in when:
                     when = when[5:16].replace("T", " ")
                 reason = str(c.get("reason") or "—")
-                thesis_short = (c.get("thesis") or "—")
-                if len(thesis_short) > 70:
-                    thesis_short = thesis_short[:67] + "…"
+                th = (c.get("thesis") or "—")
+                if len(th) > 70:
+                    th = th[:67] + "…"
                 a(f"<tr><td class=\"num\" style=\"text-align:left\">{e(when)}</td>"
                   f"<td><b>{e(c.get('symbol'))}</b></td>"
                   f"<td><span class=\"side side--{e(c.get('side'))}\">{e(c.get('side'))}</span></td>"
@@ -1834,12 +2048,93 @@ def render(state: dict) -> str:
                   f"<td class=\"num{' neg' if pnl < 0 else ''}\">{pnl:+.2f}{NB}$</td>"
                   f"<td class=\"num\">{float(c.get('hold_hours') or 0):.1f}{NB}h</td>"
                   f"<td><span class=\"reason-tag reason-tag--{e(reason)}\">{e(reason)}</span></td>"
-                  f"<td class=\"note\">{e(thesis_short)}</td></tr>")
+                  f"<td class=\"note\">{e(th)}</td></tr>")
             a("</tbody></table></div>")
     else:
         a("<p class=\"empty\">Aucun trade clos non-artefact dans le journal. Rien à mesurer, "
           "rien à inventer.</p>")
-    a("</section></div></details>")
+    a("</section>")
+
+    # ===== ÉTAGE 2 — paliers de 30 trades ===================================
+    paliers = S.get("paliers") or []
+    if paliers:
+        a(f"<section class=\"sec\"><div class=\"eyebrow\">Évaluation par paliers de {tgt} trades</div>")
+        a("<div class=\"rule rule--thick\"></div>")
+        a(f"<p class=\"note\">Chaque palier est mesuré <b>sur ses {tgt} clôtures seulement</b>, "
+          "jamais sur le cumul : c'est ce qui rend deux paliers comparables. La revue est "
+          "déclenchée par un nombre de trades, pas par le calendrier. Une seule hypothèse "
+          "testée par cycle, en paper, validation humaine avant tout passage live.</p>")
+
+        for pl in paliers:
+            st = pl["status"]
+            exp_p = pl.get("expectancy_r")
+            a(f"<article class=\"tier tier--{e(st)}\">")
+            # -- en-tête du palier
+            a("<header class=\"tier-head\"><div class=\"tier-id\">"
+              f"<span class=\"tier-n\">{e(pl['label'])}</span>"
+              f"<span class=\"tier-range\">{e(pl['range_txt'])}"
+              f"{' · ' + e(str(pl['first_iso'])[:10]) if pl.get('first_iso') else ''}"
+              f"{' → ' + e(str(pl['last_iso'])[:10]) if pl.get('last_iso') else ''}</span></div>"
+              f"<div class=\"tier-right\">"
+              f"<span class=\"tier-verdict tier-verdict--{e(st)}\">{e(pl['verdict'])}</span>"
+              f"<span class=\"tier-exp{' neg' if (exp_p or 0) < 0 else ''}\">"
+              f"{(f'{exp_p:+.2f}' + NB + 'R') if exp_p is not None else '—'}</span>"
+              "</div></header>")
+
+            if st == "pending":
+                a(f"<div class=\"tier-body\"><p class=\"note\">{e(pl['reading'])}</p></div>")
+                a("</article>")
+                continue
+
+            a("<div class=\"tier-body\">")
+            # -- barre de remplissage du palier
+            fill = min(100.0, pl["n_trades"] / tgt * 100)
+            a(f"<div class=\"tier-fill\"><span style=\"--w:{fill:.1f}%\"></span>"
+              f"<b>{pl['n_trades']} / {tgt}</b></div>")
+            # -- métriques compactes, corps volontairement plus petit que l'étage 1
+            ci_p = pl.get("ci95")
+            tcells = [
+                ("IC95", f"{ci_p[0]:+.2f} … {ci_p[1]:+.2f}" if ci_p else "—"),
+                ("Taux de gain", f"{pl['win_rate_pct']:.0f}{NB}%" if pl["win_rate_pct"] is not None else "—"),
+                ("Gain moyen", f"{pl['avg_win_r']:+.2f}{NB}R" if pl["avg_win_r"] is not None else "—"),
+                ("Perte moyenne", f"{pl['avg_loss_r']:+.2f}{NB}R" if pl["avg_loss_r"] is not None else "—"),
+                ("Meilleur / pire",
+                 f"{pl['best_r']:+.2f} / {pl['worst_r']:+.2f}" if pl["best_r"] is not None else "—"),
+                ("Sorties au stop",
+                 f"{pl['stop_share_pct']:.0f}{NB}%" if pl["stop_share_pct"] is not None else "—"),
+                ("Portage médian",
+                 f"{pl['median_hold_h']:.1f}{NB}h" if pl["median_hold_h"] is not None else "—"),
+                ("PnL net du palier", money(pl["net_usd"])),
+            ]
+            a("<div class=\"tier-grid\">")
+            for kk, vv in tcells:
+                bad = kk == "Perte moyenne" and (pl.get("avg_loss_r") or 0) < -1.02
+                a(f"<div class=\"tier-cell\"><span>{e(kk)}</span>"
+                  f"<b class=\"{'neg' if bad else ''}\">{e(vv)}</b></div>")
+            a("</div>")
+            # -- lecture + comparaison au palier précédent
+            a(f"<p class=\"tier-read\">{e(pl['reading'])}</p>")
+            d = pl.get("delta_r")
+            if d is not None:
+                word = "au-dessus" if d > 0 else "en dessous"
+                a(f"<p class=\"note tier-delta\">Écart au palier précédent : "
+                  f"<b class=\"{'neg' if d < 0 else ''}\">{d:+.2f}{NB}R</b> — ce palier est "
+                  f"{word}. C'est la seule comparaison qui a du sens : deux échantillons de "
+                  f"même taille, mesurés séparément.</p>")
+            # -- améliorations, uniquement si nabu_milestone.py en a produit
+            if pl.get("improvements"):
+                a("<div class=\"tier-imp\"><div class=\"eyebrow\">Améliorations proposées</div>"
+                  "<ul>")
+                for imp in pl["improvements"][:5]:
+                    a(f"<li>{e(imp)}</li>")
+                a("</ul></div>")
+            elif st == "completed":
+                a("<p class=\"note tier-imp-empty\">Aucune amélioration enregistrée pour ce "
+                  "palier — <b>nabu_milestone.py</b> n'a rien produit. Une case vide vaut mieux "
+                  "qu'une recommandation inventée ici.</p>")
+            a("</div></article>")
+        a("</section>")
+    a("</div></details>")
 
     # -- contexte live
     ctx = (S["market"].get("context") or {}).get("coins") or {}
