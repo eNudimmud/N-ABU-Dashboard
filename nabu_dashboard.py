@@ -70,6 +70,7 @@ import json
 import math
 import os
 import statistics
+import subprocess
 import sys
 import time
 from datetime import datetime, timezone
@@ -88,6 +89,7 @@ P_KILL = LIVE / "KILL"
 P_CTX = LIVE / "live_context.json"
 P_SCAN = LIVE / "data" / "scan_latest.json"
 P_HIST = LIVE / "data" / "equity_history.jsonl"   # écrit UNIQUEMENT par ce script (append)
+P_MILESTONE = LIVE / "bin" / "nabu_milestone.py"   # système de paliers
 
 TARGET_TRADES = 30          # gate G0 du README — en dessous, les stats = bruit
 SYNC_WATCH_S, SYNC_HOT_S = 15 * 60, 60 * 60
@@ -346,6 +348,20 @@ def compute_gates(cfg: dict, cap: dict, positions: list, journal: list) -> list[
         gates.append(_gate("cooldown", "Cooldown", "inactif", f"{cd_h:.0f}{NB}h", 0,
                            "s'arme après la série"))
     return gates
+
+
+def compute_milestone_state() -> dict:
+    """Calcule l'état du palier courant via nabu_milestone.py."""
+    try:
+        p = subprocess.run(
+            [sys.executable, str(P_MILESTONE), "json"],
+            capture_output=True, text=True, timeout=30
+        )
+        if p.returncode == 0:
+            return json.loads(p.stdout)
+    except Exception:
+        pass
+    return {"current": 0, "crossed": False, "n_closes": 0, "target_trades": TARGET_TRADES}
 
 
 def compute_edge(journal: list) -> dict:
@@ -681,6 +697,7 @@ def build_state(demo: bool = False) -> tuple[dict, list[Source]]:
         "provenance": [s.as_dict() for s in sources],
         "demo": False,
     }
+    state["milestone"] = compute_milestone_state()
     state["self_eval"] = compute_self_eval(fresh, edge, gates, kill)
     return state, sources
 
@@ -1735,6 +1752,63 @@ def render(state: dict) -> str:
         a("<p class=\"empty\">Aucun trade clos non-artefact dans le journal. Rien à mesurer, "
           "rien à inventer.</p>")
     a("</section></div></details>")
+
+    # -- milestone review (always present, even if empty)
+    ms = S.get("milestone") or {}
+    ms_cur = ms.get("current", 0)
+    ms_crossed = ms.get("crossed", False)
+    ms_stats = ms.get("palier_stats")
+    ms_improvements = ms.get("improvements", [])
+    ms_verdict = ms.get("verdict", "INSUFFICIENT")
+    ms_n = ms.get("n_closes", 0)
+    ms_target = ms.get("target_trades", TARGET_TRADES)
+    if ms_cur >= 1:
+        ms_status_class = {"PERFORMING": "ok", "IMPROVING": "watch", "DEGRADING": "hot"}.get(ms_verdict, "watch")
+        ms_stamp = f"Palier {ms_cur} · {ms_verdict}" if ms_verdict else f"Palier {ms_cur}"
+        a(f"<details class=\"drawer\" id=\"milestone\"\">"
+          f"<summary>Palier {ms_cur} — évaluation {'récente' if ms_crossed else 'en cours'}</summary>"
+          f"<div class=\"drawer-body\">"
+          f"<section class=\"sec\"><div class=\"eyebrow\">Milestone Review — tous les {ms_target} trades</div>")
+        a("<div class=\"rule\"></div>")
+        if ms_crossed:
+            a(f"<span class=\"stamp stamp--{ms_status_class}\">Nouveau palier · évaluation déclenchée</span>")
+        else:
+            a(f"<span class=\"stamp\">Palier {ms_cur} · {ms_n}/{ms_cur * ms_target} trades</span>")
+        if ms_stats:
+            exp_s = ms_stats.get("expectancy_r")
+            ci_s = ms_stats.get("ci95")
+            ci_txt = f"IC95 {ci_s[0]:+.2f} … {ci_s[1]:+.2f}" if ci_s else "IC95 indisponible"
+            cells = [
+                ("Espérance palier", f"{exp_s:+.2f}R" if exp_s is not None else "—", ci_txt, exp_s is not None and exp_s < 0),
+                ("Taux de gain", f"{ms_stats['win_rate_pct']:.0f}%" if ms_stats.get('win_rate_pct') is not None else "—", "métrique de vanité", False),
+                ("Meilleur R", f"{ms_stats['best_r']:+.2f}R" if ms_stats.get('best_r') is not None else "—", "best trade", False),
+                ("Pire R", f"{ms_stats['worst_r']:+.2f}R" if ms_stats.get('worst_r') is not None else "—", "worst trade", True),
+            ]
+            a("<div class=\"edge-grid\">")
+            for kk, vv, nn, bad in cells:
+                a(f"<div class=\"cell\"><div class=\"cell-k\">{e(kk)}</div>"
+                  f"<div class=\"cell-v{' neg' if bad else ''}\">{e(vv)}</div>"
+                  f"<div class=\"cell-n\">{e(nn)}</div></div>")
+            a("</div>")
+        if ms_improvements:
+            a("<div class=\"rule\"></div>")
+            a("<div class=\"eyebrow\">Améliorations proposées</div>")
+            a("<ul class=\"note\" style=\"margin:0;padding-left:18px\">")
+            for imp in ms_improvements[:5]:
+                a(f"<li>{e(imp)}</li>")
+            a("</ul>")
+        a("</section></div></details>")
+    elif ms_n > 0:
+        a(f"<details class=\"drawer\" id=\"milestone\"\">"
+          f"<summary>Prochain palier — {ms_n}/{ms_target} trades</summary>"
+          f"<div class=\"drawer-body\">"
+          f"<section class=\"sec\"><div class=\"eyebrow\">Milestone Review</div>")
+        a("<div class=\"rule\"></div>")
+        pct = min(100.0, ms_n / ms_target * 100)
+        a(f"<div class=\"progress\"><span style=\"--w:{pct:.1f}%\"></span></div>")
+        a(f"<p class=\"note\" style=\"margin-top:8px\">{ms_n} / {ms_target} trades vers le palier 1. "
+          "L'évaluation se déclenchera automatiquement au franchissement.</p>")
+        a("</section></div></details>")
 
     # -- contexte live
     ctx = (S["market"].get("context") or {}).get("coins") or {}
