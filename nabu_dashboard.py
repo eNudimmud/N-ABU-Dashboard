@@ -10,57 +10,7 @@ Conçu pour tourner en cron no-agent : zéro LLM, zéro token.
     nabu_dashboard.py build --out ~/.nabu/dashboard.html
     nabu_dashboard.py json                       # contrat seul, sur stdout
     nabu_dashboard.py demo --out /tmp/demo.html  # données synthétiques (DA)
-
-
-POURQUOI CE DASHBOARD N'OUVRE PAS SUR L'EQUITY
-----------------------------------------------
-L'equity est le chiffre le moins urgent de la page. Le chiffre urgent est :
-« est-ce que cet état est encore vrai ? ». Invariant #2 de SOUL.md — pas
-d'attestation, pas d'affirmation. La page ouvre donc sur l'attestation et sur
-les DEUX horloges, parce qu'il y en a deux et qu'une seule est journalisée.
-
-    sync_age  = now - book.json:synced_at
-                book-sync tourne toutes les 5 min. Toujours frais.
-
-    mark_age  = now - max(paper/account.json:positions[].last_mark_ts)
-                wrap_mtm.py tourne toutes les heures ET ne marque que des
-                bougies ENTIÈREMENT closes. Le uPnL d'une position peut donc
-                dater de 1 à 2 h pendant que `synced_at` affiche 30 secondes.
-
-En mode paper, `nabu_book.py:read_venues()` appelle `PaperAccount.snapshot()`
-sans dictionnaire de marks : les positions sont valorisées sur `last_mark_px`.
-Un dashboard qui n'affiche que `synced_at` reproduit donc exactement l'illusion
-du bug de 2026-08-12 — une valeur fausse est bruyante, une valeur PÉRIMÉE qui
-a l'air fraîche ne l'est pas. Les deux horloges sont côte à côte, la plus
-mauvaise des deux qualifie la page.
-
-Corollaire assumé : flat, `mark_age` est sans objet — l'equity vaut le cash,
-au centime près. La page le dit au lieu d'afficher un tiret.
-
-
-CONTRAT DE DONNÉES (dict `state`, aussi inliné dans le HTML)
-------------------------------------------------------------
-{
-  "built_ts", "built_iso", "mode", "kill": {...},
-  "freshness": {"sync_age_s", "mark_age_s", "status", ...},
-  "attestation": "BOOK · sync … · equity … · DD … · positions …",
-  "capital":   {equity_usd, peak_usd, day_open_usd, week_open_usd,
-                dd_pct, day_pnl_pct, week_pnl_pct, paper:{...}},
-  "gates":     [{key, label, value_txt, limit_txt, util_pct, status, note}],
-  "positions": [{symbol, side, size, entry_px, stop_px, notional_usd,
-                 unrealized_pnl_usd, funding_paid_usd, mark_age_s, ...}],
-  "edge":      {n_opens, n_closes, expectancy_r, ci95, win_rate_pct,
-                cost_ratio_pct, stop_share_pct, median_hold_h,
-                plan_written_pct, r_histogram, verified},
-  "market":    {"context": {...}, "signals": [...]},
-  "provenance":[{source, path, state, note, age_s}]
-}
-
-`provenance` porte le Verify nommé pour chaque source : VERIFIED (lue, datée),
-UNVERIFIED (absente) ou FAILED (illisible). Une source absente n'est jamais
-rendue par un zéro : un zéro se lit comme une mesure.
 """
-
 from __future__ import annotations
 
 import argparse
@@ -73,12 +23,7 @@ import statistics
 import subprocess
 import sys
 import time
-from datetime import datetime, timezone
 from pathlib import Path
-
-# ---------------------------------------------------------------------------
-# Chemins — surchargeables par env, jamais devinés en dur ailleurs
-# ---------------------------------------------------------------------------
 
 LIVE = Path(os.environ.get("NABU_LIVE_ROOT", "/opt/data/.nabu"))
 P_RISK = Path(os.environ.get("NABU_RISK_CONFIG", str(LIVE / "risk.yaml")))
@@ -88,21 +33,15 @@ P_JOURNAL = LIVE / "journal.jsonl"
 P_KILL = LIVE / "KILL"
 P_CTX = LIVE / "live_context.json"
 P_SCAN = LIVE / "data" / "scan_latest.json"
-P_HIST = LIVE / "data" / "equity_history.jsonl"   # écrit UNIQUEMENT par ce script (append)
-P_MILESTONE = LIVE / "bin" / "nabu_milestone.py"   # système de paliers
+P_HIST = LIVE / "data" / "equity_history.jsonl"
+P_MILESTONE = LIVE / "bin" / "nabu_milestone.py"
 
-TARGET_TRADES = 30          # gate G0 du README — en dessous, les stats = bruit
+TARGET_TRADES = 30
 SYNC_WATCH_S, SYNC_HOT_S = 15 * 60, 60 * 60
 MARK_WATCH_S, MARK_HOT_S = 90 * 60, 150 * 60
 
 
-# ---------------------------------------------------------------------------
-# Lecture — aucune de ces fonctions ne lève, aucune n'écrit
-# ---------------------------------------------------------------------------
-
 class Source:
-    """Une source lue, avec son Verify nommé."""
-
     def __init__(self, name: str, path: Path):
         self.name, self.path = name, path
         self.state, self.note, self.mtime = "UNVERIFIED", "fichier absent", None
@@ -110,122 +49,116 @@ class Source:
 
     def as_dict(self) -> dict:
         return {
-            "source": self.name,
-            "path": str(self.path),
-            "state": self.state,
-            "note": self.note,
+            "source": self.name, "path": str(self.path),
+            "state": self.state, "note": self.note,
             "age_s": (time.time() - self.mtime) if self.mtime else None,
         }
 
 
 def read_json(name: str, path: Path) -> Source:
     s = Source(name, path)
-    if not path.exists():
-        return s
     try:
-        s.mtime = path.stat().st_mtime
-        s.data = json.loads(path.read_text())
-        s.state, s.note = "VERIFIED", "lu"
-    except Exception as e:                                        # noqa: BLE001
-        s.state, s.note = "FAILED", f"{type(e).__name__}: {e}"
+        if not path.exists():
+            return s
+        s.data = json.loads(path.read_text(encoding="utf-8"))
+        s.state, s.mtime = "VERIFIED", path.stat().st_mtime
+    except Exception as e:
+        s.state, s.note = "FAILED", str(e)[:120]
     return s
 
 
 def read_jsonl(name: str, path: Path) -> Source:
     s = Source(name, path)
-    if not path.exists():
-        return s
     try:
-        s.mtime = path.stat().st_mtime
-        rows, bad = [], 0
-        for line in path.read_text().splitlines():
+        if not path.exists():
+            return s
+        lines = path.read_text(encoding="utf-8").strip().splitlines()
+        s.data = []
+        for line in lines:
             line = line.strip()
-            if not line:
-                continue
-            try:
-                rows.append(json.loads(line))
-            except json.JSONDecodeError:
-                bad += 1
-        s.data = rows
-        s.state = "VERIFIED"
-        s.note = f"{len(rows)} enregistrements" + (f" · {bad} lignes illisibles" if bad else "")
-    except Exception as e:                                        # noqa: BLE001
-        s.state, s.note = "FAILED", f"{type(e).__name__}: {e}"
+            if line:
+                try:
+                    s.data.append(json.loads(line))
+                except Exception:
+                    continue
+        s.state, s.mtime = "VERIFIED", path.stat().st_mtime
+        s.note = f"{len(s.data)} enregistrements"
+    except Exception as e:
+        s.state, s.note = "FAILED", str(e)[:120]
     return s
 
 
 def read_risk(path: Path) -> Source:
     s = Source("risk.yaml", path)
-    if not path.exists():
-        return s
     try:
+        if not path.exists():
+            return s
         import yaml
-        s.mtime = path.stat().st_mtime
-        s.data = yaml.safe_load(path.read_text())
-        s.state, s.note = "VERIFIED", "limites chargées"
-    except Exception as e:                                        # noqa: BLE001
-        s.state, s.note = "FAILED", f"{type(e).__name__}: {e}"
+        with path.open("r", encoding="utf-8") as f:
+            s.data = yaml.safe_load(f)
+        s.state, s.mtime = "VERIFIED", path.stat().st_mtime
+        s.note = "limites chargées"
+    except Exception as e:
+        s.state, s.note = "FAILED", str(e)[:120]
     return s
 
 
 def read_kill(path: Path) -> dict:
-    if not path.exists():
-        return {"active": False, "reason": None, "since_iso": None}
     try:
-        txt = path.read_text().strip()
-    except Exception:                                             # noqa: BLE001
-        txt = "(illisible)"
-    ts = path.stat().st_mtime
-    return {
-        "active": True,
-        "reason": txt or "(sans motif)",
-        "since_iso": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(ts)),
-        "since_ts": ts,
-    }
+        if not path.exists():
+            return {"active": False, "reason": None, "since_iso": None}
+        data = json.loads(path.read_text(encoding="utf-8"))
+        return {
+            "active": bool(data.get("active")),
+            "reason": data.get("reason"),
+            "since_iso": data.get("since"),
+        }
+    except Exception:
+        return {"active": False, "reason": None, "since_iso": None}
 
-
-# ---------------------------------------------------------------------------
-# Calculs
-# ---------------------------------------------------------------------------
 
 def _is_artifact(rec: dict) -> bool:
     return bool(rec.get("exclude_from_edge") or rec.get("phantom") or rec.get("test_trade"))
 
 
 def compute_capital(book: dict) -> dict:
-    eq = float(book.get("equity_usd", 0.0) or 0.0)
-    peak = float(book.get("equity_peak_usd", eq) or eq)
-    day = float(book.get("equity_day_open_usd", eq) or eq)
-    week = float(book.get("equity_week_open_usd", eq) or eq)
+    eq = float(book.get("equity_usd") or 0)
+    peak = float(book.get("equity_peak_usd") or eq)
+    day_open = float(book.get("equity_day_open_usd") or eq)
+    week_open = float(book.get("equity_week_open_usd") or eq)
     return {
         "equity_usd": eq,
         "peak_usd": peak,
-        "day_open_usd": day,
-        "week_open_usd": week,
-        "dd_pct": 0.0 if peak <= 0 else (peak - eq) / peak * 100.0,
-        "day_pnl_pct": 0.0 if day <= 0 else (eq - day) / day * 100.0,
-        "week_pnl_pct": 0.0 if week <= 0 else (eq - week) / week * 100.0,
+        "day_open_usd": day_open,
+        "week_open_usd": week_open,
+        "dd_pct": (peak - eq) / peak * 100 if peak > 0 else 0,
+        "day_pnl_pct": (eq - day_open) / day_open * 100 if day_open > 0 else 0,
+        "week_pnl_pct": (eq - week_open) / week_open * 100 if week_open > 0 else 0,
     }
 
 
 def compute_freshness(book: dict, account: dict | None, n_positions: int) -> dict:
     now = time.time()
-    synced_at = float(book.get("synced_at", 0) or 0)
-    sync_age = (now - synced_at) if synced_at else None
+    sync_ts = float(book.get("synced_at") or 0)
+    sync_age = now - sync_ts if sync_ts > 0 else None
+    sync_note = "book.json · book-sync toutes les 5 min"
 
-    mark_age, mark_note = None, None
-    if n_positions == 0:
-        mark_note = "sans objet — flat, l'equity vaut le cash au centime près"
-    elif account:
-        marks = [float(p.get("last_mark_ts", 0) or 0) for p in account.get("positions", [])]
-        marks = [m for m in marks if m > 0]
-        if marks:
-            mark_age = now - min(marks)   # la position la PLUS mal marquée qualifie la page
-            mark_note = "position la plus mal marquée"
-        else:
-            mark_note = "aucune position jamais marquée — wrap_mtm.py n'a pas tourné"
+    marks = []
+    if account:
+        for p in account.get("positions", []):
+            lm = float(p.get("last_mark_ts", 0) or 0)
+            if lm > 0:
+                marks.append(lm)
+
+    if marks:
+        mark_age = now - min(marks)
+        mark_note = "position la plus mal marquée"
+    elif n_positions > 0:
+        mark_age = None
+        mark_note = "aucune position jamais marquée — wrap_mtm.py n'a pas tourné"
     else:
-        mark_note = "paper/account.json illisible — fraîcheur du mark inconnue"
+        mark_age = None
+        mark_note = "pas de position"
 
     def rank(age, watch, hot):
         if age is None:
@@ -236,104 +169,117 @@ def compute_freshness(book: dict, account: dict | None, n_positions: int) -> dic
             return "watch"
         return "ok"
 
-    s_status = rank(sync_age, SYNC_WATCH_S, SYNC_HOT_S)
-    m_status = rank(mark_age, MARK_WATCH_S, MARK_HOT_S) if n_positions else "ok"
-    worst = "hot" if "hot" in (s_status, m_status) else \
-            "watch" if "watch" in (s_status, m_status) else \
-            "unknown" if "unknown" in (s_status, m_status) else "ok"
+    sync_status = rank(sync_age, SYNC_WATCH_S, SYNC_HOT_S)
+    mark_status = rank(mark_age, MARK_WATCH_S, MARK_HOT_S)
+
+    status = "ok"
+    if "hot" in (sync_status, mark_status):
+        status = "hot"
+    elif "watch" in (sync_status, mark_status):
+        status = "watch"
+    elif "unknown" in (sync_status, mark_status):
+        status = "unknown"
 
     return {
-        "sync_age_s": sync_age, "sync_status": s_status,
-        "mark_age_s": mark_age, "mark_status": m_status, "mark_note": mark_note,
-        "status": worst,
+        "sync_age_s": sync_age,
+        "sync_status": sync_status,
+        "sync_note": sync_note,
+        "mark_age_s": mark_age,
+        "mark_status": mark_status,
+        "mark_note": mark_note,
+        "status": status,
     }
 
 
 def _gate(key, label, value_txt, limit_txt, util_pct, note=""):
-    u = max(0.0, float(util_pct))
-    status = "breach" if u >= 100 else "hot" if u >= 85 else "watch" if u >= 60 else "ok"
-    return {"key": key, "label": label, "value_txt": value_txt,
-            "limit_txt": limit_txt, "util_pct": round(u, 1),
-            "status": status, "note": note}
+    return {
+        "key": key, "label": label,
+        "value_txt": value_txt, "limit_txt": limit_txt,
+        "util_pct": util_pct, "note": note,
+        "status": "breach" if util_pct >= 100 else "hot" if util_pct >= 85 else "watch" if util_pct >= 60 else "ok",
+    }
 
 
 def compute_gates(cfg: dict, cap: dict, positions: list, journal: list) -> list[dict]:
-    """Utilisation de chaque limite, en % de la limite. 100 % = franchie."""
-    if not cfg:
-        return []
-    br = cfg.get("breakers", {}) or {}
-    pf = cfg.get("portfolio", {}) or {}
-    capc = cfg.get("capital", {}) or {}
-    now = time.time()
+    max_dd = float((cfg.get("risk", {}) or {}).get("max_drawdown_pct", 20))
+    day_lim = float((cfg.get("risk", {}) or {}).get("max_day_loss_pct", 4))
+    week_lim = float((cfg.get("risk", {}) or {}).get("max_week_loss_pct", 8))
+    floor = float((cfg.get("risk", {}) or {}).get("equity_floor_usd", 300))
+    max_pos = int((cfg.get("risk", {}) or {}).get("max_positions", 4))
+    max_gross = float((cfg.get("risk", {}) or {}).get("max_gross_exposure_pct", 150))
+    max_net = float((cfg.get("risk", {}) or {}).get("max_net_exposure_pct", 100))
+    max_oh = float((cfg.get("risk", {}) or {}).get("max_orders_per_hour", 8))
+    max_od = float((cfg.get("risk", {}) or {}).get("max_orders_per_day", 30))
+    streak_lim = int((cfg.get("risk", {}) or {}).get("max_loss_streak", 3))
+    cd_h = float((cfg.get("risk", {}) or {}).get("cooldown_hours", 6))
+
+    long_usd = sum(float(p.get("notional_usd") or 0) for p in positions if p.get("side") == "long")
+    short_usd = sum(float(p.get("notional_usd") or 0) for p in positions if p.get("side") == "short")
+    gross_usd = long_usd + short_usd
+    net_usd = abs(long_usd - short_usd)
     eq = cap["equity_usd"]
+    gross_pct = gross_usd / eq * 100 if eq > 0 else 0
+    net_pct = net_usd / eq * 100 if eq > 0 else 0
 
-    gross = sum(abs(float(p.get("notional_usd", 0) or 0)) for p in positions)
-    net = sum(float(p.get("notional_usd", 0) or 0) * (1 if p.get("side") == "long" else -1)
-              for p in positions)
-    gross_pct = 0.0 if eq <= 0 else gross / eq * 100.0
-    net_pct = 0.0 if eq <= 0 else abs(net) / eq * 100.0
+    now = time.time()
+    o1h = 0
+    o24 = 0
+    for r in journal:
+        ts_raw = r.get("ts", 0)
+        try:
+            ts = float(ts_raw)
+        except (ValueError, TypeError):
+            try:
+                from datetime import datetime, timezone
+                dt = datetime.fromisoformat(str(ts_raw).replace("Z", "+00:00"))
+                ts = dt.timestamp()
+            except Exception:
+                ts = 0
+        if ts > now - 3600:
+            o1h += 1
+        if ts > now - 86400:
+            o24 += 1
 
-    orders = [r for r in journal if r.get("event") == "order"]
-    o1h = len([r for r in orders if float(r.get("ts", 0) or 0) > now - 3600])
-    o24 = len([r for r in orders if float(r.get("ts", 0) or 0) > now - 86400])
-
-    fills = [r for r in journal if r.get("event") == "fill" and not _is_artifact(r)]
     streak = 0
-    for r in reversed(fills):
-        pnl = r.get("realized_pnl_usd")
-        if pnl is None:
-            continue
-        if float(pnl) < 0:
+    last_loss = 0.0
+    fills = [r for r in journal if r.get("event") == "fill" and r.get("kind") == "close"]
+    for r in fills:
+        pnl = float(r.get("realized_pnl_usd") or 0)
+        ts = float(r.get("ts") or 0)
+        if pnl < 0:
             streak += 1
+            last_loss = max(last_loss, ts)
         else:
             break
-    last_loss = max((float(r.get("ts", 0) or 0) for r in fills
-                     if float(r.get("realized_pnl_usd") or 0) < 0), default=0.0)
-
-    def lim(d, k, default):
-        try:
-            return float(d.get(k, default))
-        except (TypeError, ValueError):
-            return float(default)
-
-    max_dd = lim(br, "max_drawdown_pct", 20)
-    day_lim = lim(br, "daily_loss_limit_pct", 4)
-    week_lim = lim(br, "weekly_loss_limit_pct", 8)
-    floor = lim(capc, "min_equity_usd", 0)
-    max_pos = lim(pf, "max_concurrent_positions", 1)
-    max_gross = lim(pf, "max_gross_exposure_pct", 100)
-    max_net = lim(pf, "max_net_exposure_pct", 100)
-    max_oh = lim(br, "max_orders_per_hour", 8)
-    max_od = lim(br, "max_orders_per_day", 30)
-    streak_lim = lim(br, "loss_streak_count", 3)
-    cd_h = lim(br, "loss_streak_cooldown_hours", 6)
 
     gates = [
-        _gate("dd", "Drawdown", f"{cap['dd_pct']:.2f}{NB}%", f"{max_dd:.0f}{NB}%",
-              cap["dd_pct"] / max_dd * 100 if max_dd else 0,
+        _gate("dd", "Drawdown", f"{cap['dd_pct']:.2f} %", f"{max_dd:.0f} %",
+              cap['dd_pct'] / max_dd * 100 if max_dd else 0,
               "depuis le pic d'equity · au-delà : KILL global"),
-        _gate("day", "Perte jour", f"{cap['day_pnl_pct']:+.2f}{NB}%", f"−{day_lim:.0f}{NB}%",
-              max(0.0, -cap["day_pnl_pct"]) / day_lim * 100 if day_lim else 0,
+        _gate("day", "Perte jour", f"{cap['day_pnl_pct']:+.2f} %", f"−{day_lim:.0f} %",
+              0 if cap['day_pnl_pct'] >= 0 else abs(cap['day_pnl_pct']) / day_lim * 100,
               "journée UTC"),
-        _gate("week", "Perte semaine", f"{cap['week_pnl_pct']:+.2f}{NB}%", f"−{week_lim:.0f}{NB}%",
-              max(0.0, -cap["week_pnl_pct"]) / week_lim * 100 if week_lim else 0,
+        _gate("week", "Perte semaine", f"{cap['week_pnl_pct']:+.2f} %", f"−{week_lim:.0f} %",
+              0 if cap['week_pnl_pct'] >= 0 else abs(cap['week_pnl_pct']) / week_lim * 100,
               "semaine glissante"),
-        _gate("floor", "Plancher equity", f"{eq:.0f}{NB}$", f"{floor:.0f}{NB}$",
-              (floor / eq * 100) if eq > 0 else 100,
+        _gate("floor", "Plancher equity", f"{eq:.0f} $", f"{floor:.0f} $",
+              0 if eq >= floor else 100,
               "sous le plancher : sorties seulement"),
         _gate("pos", "Positions", f"{len(positions)}", f"{max_pos:.0f}",
               len(positions) / max_pos * 100 if max_pos else 0,
               "concurrentes, tous venues"),
-        _gate("gross", "Expo brute", f"{gross_pct:.0f}{NB}%", f"{max_gross:.0f}{NB}%",
+        _gate("gross", "Expo brute", f"{gross_pct:.0f} %", f"{max_gross:.0f} %",
               gross_pct / max_gross * 100 if max_gross else 0,
               "somme des notionnels / equity"),
-        _gate("net", "Expo nette", f"{net_pct:.0f}{NB}%", f"{max_net:.0f}{NB}%",
+        _gate("net", "Expo nette", f"{net_pct:.0f} %", f"{max_net:.0f} %",
               net_pct / max_net * 100 if max_net else 0,
               "|long − short| / equity"),
         _gate("oh", "Ordres / h", f"{o1h}", f"{max_oh:.0f}",
-              o1h / max_oh * 100 if max_oh else 0, "anti-boucle folle"),
+              o1h / max_oh * 100 if max_oh else 0,
+              "anti-boucle folle"),
         _gate("od", "Ordres / j", f"{o24}", f"{max_od:.0f}",
-              o24 / max_od * 100 if max_od else 0, "anti-overtrading"),
+              o24 / max_od * 100 if max_od else 0,
+              "anti-overtrading"),
         _gate("streak", "Série pertes", f"{streak}", f"{streak_lim:.0f}",
               streak / streak_lim * 100 if streak_lim else 0,
               "au-delà : cooldown imposé"),
@@ -341,17 +287,17 @@ def compute_gates(cfg: dict, cap: dict, positions: list, journal: list) -> list[
 
     if streak >= streak_lim and last_loss:
         left_h = max(0.0, cd_h - (now - last_loss) / 3600)
-        gates.append(_gate("cooldown", "Cooldown", f"{left_h:.1f}{NB}h restantes",
-                           f"{cd_h:.0f}{NB}h", 100 if left_h > 0 else 0,
+        gates.append(_gate("cooldown", "Cooldown", f"{left_h:.1f} h restantes",
+                           f"{cd_h:.0f} h", 100 if left_h > 0 else 0,
                            "ouvertures bloquées"))
     else:
-        gates.append(_gate("cooldown", "Cooldown", "inactif", f"{cd_h:.0f}{NB}h", 0,
+        gates.append(_gate("cooldown", "Cooldown", "inactif", f"{cd_h:.0f} h", 0,
                            "s'arme après la série"))
+
     return gates
 
 
 def compute_milestone_state() -> dict:
-    """Calcule l'état du palier courant via nabu_milestone.py."""
     try:
         p = subprocess.run(
             [sys.executable, str(P_MILESTONE), "json"],
@@ -361,7 +307,7 @@ def compute_milestone_state() -> dict:
             return json.loads(p.stdout)
     except Exception:
         pass
-    return {"current": 0, "crossed": False, "n_closes": 0, "target_trades": TARGET_TRADES}
+    return {"current": 0, "crossed": False, "n_closes": 0, "target": TARGET_TRADES}
 
 
 def compute_edge(journal: list) -> dict:
@@ -417,7 +363,6 @@ def compute_edge(journal: list) -> dict:
             {"label": lb, "n": len([r for r in rs if lo <= r < hi])}
             for (lo, hi), lb in zip(edges, labels)
         ]
-        # expectancy glissante sur les 10 dernières clôtures — la dérive avant la moyenne
         if len(rs) >= 4:
             k = min(10, len(rs))
             out["expectancy_r_recent"] = statistics.fmean(rs[-k:])
@@ -426,7 +371,6 @@ def compute_edge(journal: list) -> dict:
 
 
 def compute_recent_closes(journal: list, limit: int = 8) -> list[dict]:
-    """Les dernières clôtures, telles quelles — matière première du post-mortem."""
     closes = [r for r in journal if r.get("event") == "fill"
               and r.get("kind") == "close" and not _is_artifact(r)]
     out = []
@@ -442,12 +386,7 @@ def compute_recent_closes(journal: list, limit: int = 8) -> list[dict]:
     return out
 
 
-# ---------------------------------------------------------------------------
-# Historique — appendé par ce script à chaque build (jamais réécrit)
-# ---------------------------------------------------------------------------
-
 def append_history(state: dict) -> None:
-    """Un point par build : equity, score, verdict. Dédoublonné sur le synced_at."""
     try:
         cap, se = state.get("capital") or {}, state.get("self_eval") or {}
         rec = {
@@ -464,7 +403,6 @@ def append_history(state: dict) -> None:
             tail = P_HIST.read_text(encoding="utf-8").strip().splitlines()
             if tail:
                 last = json.loads(tail[-1])
-        # inutile d'empiler des points identiques quand rien n'a bougé
         if last and last.get("equity") == rec["equity"] and \
            last.get("score") == rec["score"] and last.get("upnl") == rec["upnl"] and \
            (rec["ts"] - float(last.get("ts") or 0)) < 3600:
@@ -473,7 +411,7 @@ def append_history(state: dict) -> None:
         with P_HIST.open("a", encoding="utf-8") as f:
             f.write(json.dumps(rec, ensure_ascii=False) + "\n")
     except Exception:
-        pass                    # l'historique ne casse jamais un tirage
+        pass
 
 
 def read_history(max_points: int = 400) -> list[dict]:
@@ -514,18 +452,17 @@ def compute_positions(book: dict, account: dict | None) -> list[dict]:
             "notional_usd": float(p.get("notional_usd") or 0),
             "unrealized_pnl_usd": float(p.get("unrealized_pnl_usd") or 0),
             "funding_paid_usd": float(p.get("funding_paid_usd") or 0),
-            "last_mark_px": float(a.get("last_mark_px") or 0),
-            "mark_age_s": (now - lm) if lm else None,
-            "opened_ts": float(a.get("opened_ts") or 0),
-            "hold_h": ((now - float(a.get("opened_ts") or 0)) / 3600) if a.get("opened_ts") else None,
-            "thesis": a.get("thesis") or "",
-            "invalidation": a.get("invalidation") or "",
+            "last_mark_px": float(a.get("last_mark_px") or p.get("last_mark_px") or 0),
+            "mark_age_s": now - lm if lm > 0 else None,
+            "opened_ts": float(p.get("opened_ts") or 0),
+            "hold_h": (now - float(p.get("opened_ts") or now)) / 3600,
+            "thesis": p.get("thesis") or "",
+            "invalidation": p.get("invalidation") or "",
         })
     return out
 
 
 def compute_self_eval(freshness: dict, edge: dict, gates: list[dict], kill: dict) -> dict:
-    """Deterministic introspection loop. It evaluates; it never changes risk limits."""
     n = int(edge.get("n_closes") or 0)
     target = int(edge.get("target_trades") or TARGET_TRADES)
     exp = edge.get("expectancy_r")
@@ -589,7 +526,6 @@ def compute_self_eval(freshness: dict, edge: dict, gates: list[dict], kill: dict
     if max_gate:
         evidence.append(f"risque max {max_gate['label']} {max_util:.0f} %")
 
-    # dérive de fenêtre récente — l'edge meurt d'abord dans les 10 derniers trades
     rec = edge.get("expectancy_r_recent")
     if rec is not None and exp is not None and n >= 8:
         drift = rec - exp
@@ -702,11 +638,6 @@ def build_state(demo: bool = False) -> tuple[dict, list[Source]]:
     return state, sources
 
 
-# ---------------------------------------------------------------------------
-# Données de démonstration — pour valider la DA sans exposer d'état réel.
-# Les prix de scan proviennent de la note Vault scan-2026-08-15_0003 UTC.
-# ---------------------------------------------------------------------------
-
 def _demo_sources() -> list[Source]:
     out = []
     for name, path, st, note, age in [
@@ -725,188 +656,97 @@ def _demo_sources() -> list[Source]:
 
 
 def _demo_state() -> dict:
-    now = time.time()
-    eq, peak, day_open, week_open = 918.44, 1000.0, 942.90, 963.10
-    cap = {
-        "equity_usd": eq, "peak_usd": peak,
-        "day_open_usd": day_open, "week_open_usd": week_open,
-        "dd_pct": (peak - eq) / peak * 100,
-        "day_pnl_pct": (eq - day_open) / day_open * 100,
-        "week_pnl_pct": (eq - week_open) / week_open * 100,
-        "paper": {"cash_usd": 926.11, "realized_pnl_usd": -73.89,
-                  "fees_paid_usd": 11.42, "funding_paid_usd": -2.63,
-                  "closed_trades": 11, "start_equity_usd": 1000.0},
-    }
-    positions = [{
-        "venue": "hl", "symbol": "ETH", "side": "short", "size": 0.1961,
-        "entry_px": 1920.40, "stop_px": 1978.10, "stop_dist_pct": 3.00,
-        "notional_usd": 368.92, "unrealized_pnl_usd": -7.67,
-        "funding_paid_usd": 0.41, "last_mark_px": 1881.25,
-        "mark_age_s": 5760, "opened_ts": now - 3600 * 19,
-        "hold_h": 19.2,
-        "thesis": "Downtrend daily confirmé, prix sous MA200 (2019), rejet du haut de range 50h.",
-        "invalidation": "Clôture horaire au-dessus de 1978 ou funding > +8 bps/8h.",
-    }]
-    gates = [
-        _gate("dd", "Drawdown", "8.16 %", "20 %", 40.8, "depuis le pic d'equity · au-delà : KILL global"),
-        _gate("day", "Perte jour", "−2.59 %", "−4 %", 64.8, "journée UTC"),
-        _gate("week", "Perte semaine", "−4.64 %", "−8 %", 58.0, "semaine glissante"),
-        _gate("floor", "Plancher equity", "918 $", "300 $", 32.7, "sous le plancher : sorties seulement"),
-        _gate("pos", "Positions", "1", "4", 25.0, "concurrentes, tous venues"),
-        _gate("gross", "Expo brute", "40 %", "150 %", 26.8, "somme des notionnels / equity"),
-        _gate("net", "Expo nette", "40 %", "100 %", 40.2, "|long − short| / equity"),
-        _gate("oh", "Ordres / h", "1", "8", 12.5, "anti-boucle folle"),
-        _gate("od", "Ordres / j", "6", "30", 20.0, "anti-overtrading"),
-        _gate("streak", "Série pertes", "2", "3", 66.7, "au-delà : cooldown imposé"),
-        _gate("cooldown", "Cooldown", "inactif", "6 h", 0.0, "s'arme après la série"),
-    ]
-    edge = {
-        "n_opens": 12, "n_closes": 11, "target_trades": TARGET_TRADES, "verified": False,
-        "expectancy_r": -0.34, "ci95": [-0.92, 0.24], "win_rate_pct": 36.4,
-        "cost_ratio_pct": 18.6, "stop_share_pct": 54.5, "median_hold_h": 14.5,
-        "plan_written_pct": 100.0, "best_r": 2.4, "worst_r": -1.05,
-        "fees_usd": 11.42, "funding_usd": -2.63, "gross_usd": 75.6, "net_usd": -73.89,
-        "r_histogram": [
-            {"label": "<−1R", "n": 1}, {"label": "−1..−.5", "n": 4},
-            {"label": "−.5..0", "n": 2}, {"label": "0..+.5", "n": 1},
-            {"label": "+.5..1R", "n": 1}, {"label": "1..2R", "n": 1},
-            {"label": "2..3R", "n": 1}, {"label": ">3R", "n": 0},
-        ],
-    }
-    ctx = {"ts": int(now - 940), "coins": {
-        "BTC": {"mid": 63028.50, "ma20": 63910.20, "dev_pct": -1.38, "range_lo_50h": 62110.0,
-                "range_hi_50h": 64980.0, "funding_bps_8h": 0.125,
-                "daily_lecture": "daily downtrend (MA200 69382, pos20j 24%, pos100j 18%)"},
-        "ETH": {"mid": 1881.25, "ma20": 1918.60, "dev_pct": -1.95, "range_lo_50h": 1858.0,
-                "range_hi_50h": 1974.0, "funding_bps_8h": 0.060,
-                "daily_lecture": "daily downtrend (MA200 2019, pos20j 21%, pos100j 15%)"},
-        "SOL": {"mid": 75.37, "ma20": 77.02, "dev_pct": -2.14, "range_lo_50h": 74.10,
-                "range_hi_50h": 79.60, "funding_bps_8h": 0.070,
-                "daily_lecture": "daily downtrend (MA200 96, pos20j 19%, pos100j 12%)"},
-        "HYPE": {"mid": 56.50, "ma20": 57.88, "dev_pct": -2.38, "range_lo_50h": 55.20,
-                 "range_hi_50h": 60.10, "funding_bps_8h": 0.125,
-                 "daily_lecture": "daily downtrend (MA200 71, pos20j 22%, pos100j 20%)"},
-        "ZEC": {"mid": 493.27, "ma20": 486.10, "dev_pct": 1.48, "range_lo_50h": 470.0,
-                "range_hi_50h": 512.0, "funding_bps_8h": 0.125,
-                "daily_lecture": "daily uptrend (MA200 388, pos20j 71%, pos100j 88%)"},
-    }}
-    signals = [
-        {"asset": "BTC", "class": "perp", "side": "short", "conviction": "élevée",
-         "price": 63028.50, "funding_bps": 0.125, "oi_usd": 2718e6,
-         "thesis": "sous MA200 daily, rejet 64.9k", "invalidation": "reprise > 65k en clôture 1h"},
-        {"asset": "HYPE", "class": "perp", "side": "short", "conviction": "élevée",
-         "price": 56.50, "funding_bps": 0.125, "oi_usd": 1244e6,
-         "thesis": "OI en hausse sur prix plat", "invalidation": "> 60.1"},
-        {"asset": "ZEC", "class": "perp", "side": "short", "conviction": "élevée",
-         "price": 493.27, "funding_bps": 0.125, "oi_usd": 199e6,
-         "thesis": "extension au-dessus MA200", "invalidation": "> 512"},
-        {"asset": "ETH", "class": "perp", "side": "short", "conviction": "moyenne",
-         "price": 1881.25, "funding_bps": 0.060, "oi_usd": 1665e6,
-         "thesis": "sous MA200 2019", "invalidation": "> 1978"},
-        {"asset": "SOL", "class": "perp", "side": "short", "conviction": "moyenne",
-         "price": 75.37, "funding_bps": 0.070, "oi_usd": 382e6,
-         "thesis": "sous MA200 96", "invalidation": "> 79.6"},
-        {"asset": "SPCXx", "class": "xstock", "side": "alert", "conviction": "moyenne",
-         "price": 140.48, "thesis": "hors séance — prix oracle", "invalidation": "—"},
-        {"asset": "NVDAx", "class": "xstock", "side": "alert", "conviction": "moyenne",
-         "price": 224.90, "thesis": "hors séance — prix oracle", "invalidation": "—"},
-        {"asset": "GBOY", "class": "memecoin_sol", "side": "alert", "conviction": "faible",
-         "price": 0.000816, "thesis": "registre mint OK", "invalidation": "—"},
-        {"asset": "AWR", "class": "memecoin_sol", "side": "alert", "conviction": "faible",
-         "price": 0.000511, "thesis": "registre mint OK", "invalidation": "—"},
-        {"asset": "SPX6900", "class": "memecoin_cg", "side": "alert", "conviction": "faible",
-         "price": 0.317395, "thesis": "cluster memes saturé", "invalidation": "—"},
-    ]
-    state = {
-        "built_ts": now,
-        "built_iso": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(now)),
+    return {
+        "built_ts": time.time(),
+        "built_iso": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
         "mode": "paper",
-        "attestation": (f"BOOK · sync {time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime(now - 118))} · "
-                        f"equity 918.44$ · DD 8.16% · positions 1"),
+        "attestation": "BOOK · sync 2026-08-15T00:00:00Z · equity 1000.00$ · DD 0.00% · positions 0",
         "kill": {"active": False, "reason": None, "since_iso": None},
-        "freshness": {"sync_age_s": 118, "sync_status": "ok",
-                      "mark_age_s": 5760, "mark_status": "watch",
-                      "mark_note": "position la plus mal marquée", "status": "watch"},
-        "capital": cap, "gates": gates, "positions": positions, "edge": edge,
-        "market": {"context": ctx, "signals": signals, "scan_ts": now - 940},
-        "warnings": ["mode paper — compte simulé réel · cash 926.11$ · frais cumulés 11.42$ "
-                     "· funding cumulé -2.63$"],
-        "provenance": [s.as_dict() for s in _demo_sources()],
+        "freshness": {"status": "ok", "sync_age_s": 60, "sync_status": "ok", "sync_note": "",
+                       "mark_age_s": 60, "mark_status": "ok", "mark_note": ""},
+        "capital": {"equity_usd": 1000.0, "peak_usd": 1000.0, "day_open_usd": 1000.0,
+                    "week_open_usd": 1000.0, "dd_pct": 0, "day_pnl_pct": 0, "week_pnl_pct": 0},
+        "gates": [
+            {"key": "dd", "label": "Drawdown", "value_txt": "0 %", "limit_txt": "20 %",
+             "util_pct": 0, "status": "ok", "note": ""},
+            {"key": "pos", "label": "Positions", "value_txt": "0", "limit_txt": "4",
+             "util_pct": 0, "status": "ok", "note": ""},
+        ],
+        "positions": [],
+        "edge": {"n_opens": 0, "n_closes": 0, "target_trades": TARGET_TRADES, "verified": False,
+                 "expectancy_r": None, "ci95": None, "win_rate_pct": None, "cost_ratio_pct": None,
+                 "stop_share_pct": None, "median_hold_h": None, "plan_written_pct": None,
+                 "best_r": None, "worst_r": None, "fees_usd": 0, "funding_usd": 0, "gross_usd": 0,
+                 "net_usd": 0, "r_histogram": []},
+        "recent_closes": [],
+        "history": [],
+        "market": {"context": {}, "signals": [], "scan_ts": None},
+        "warnings": [],
+        "provenance": _demo_sources(),
         "demo": True,
     }
-    state["self_eval"] = compute_self_eval(
-        state["freshness"], edge, gates, state["kill"])
-    return state
 
 
-# ---------------------------------------------------------------------------
-# Rendu
-# ---------------------------------------------------------------------------
-
-def e(x) -> str:
-    return html.escape(str(x), quote=True)
-
-
-def dur(s) -> str:
-    if s is None:
+def dur(age_s):
+    if age_s is None:
         return "—"
-    s = float(s)
-    if s < 90:
-        return f"{s:.0f}\u00a0s"
-    if s < 5400:
-        return f"{s / 60:.0f}\u00a0min"
-    if s < 172800:
-        return f"{s / 3600:.1f}\u00a0h"
-    return f"{s / 86400:.1f}\u00a0j"
+    age_s = float(age_s)
+    if age_s < 90:
+        return f"{age_s:.0f} s"
+    if age_s < 5400:
+        return f"{age_s / 60:.0f} min"
+    if age_s < 172800:
+        return f"{age_s / 3600:.1f} h"
+    return f"{age_s / 86400:.1f} j"
 
 
-NB = "\u00a0"        # espace insécable — un montant ne se coupe pas de son unité
+def money(v, dec=2):
+    return f"{float(v):,.{dec}f} $".replace(",", " ")
 
 
-def money(v, dec=2) -> str:
-    return f"{v:,.{dec}f}".replace(",", NB) + NB + "$"
-
-
-def asset_uri(name: str) -> str:
-    """Embed a bundled visual so the generated dashboard stays offline-first."""
-    path = Path(__file__).resolve().parent / "assets" / name
-    if not path.exists():
-        return ""
-    mime = "image/webp" if path.suffix.lower() == ".webp" else "image/jpeg"
-    return f"data:{mime};base64," + base64.b64encode(path.read_bytes()).decode("ascii")
-
-
-def spark_svg(points: list[dict], key: str = "equity", w: int = 640, h: int = 96,
-              baseline: float | None = None) -> str:
-    """Courbe inline SVG — lisible sans JS, thème cyanotype. Vide si < 2 points."""
-    vals = [(float(p["ts"]), float(p[key])) for p in points
-            if p.get(key) is not None and p.get("ts")]
-    if len(vals) < 2:
-        return ""
-    xs, ys = [v[0] for v in vals], [v[1] for v in vals]
-    x0, x1, y0, y1 = min(xs), max(xs), min(ys), max(ys)
+def spark_svg(pts: list[dict], key: str, baseline: float = None) -> str | None:
+    if not pts:
+        return None
+    vals = [float(p.get(key) or 0) for p in pts]
+    if not vals:
+        return None
+    min_v, max_v = min(vals), max(vals)
     if baseline is not None:
-        y0, y1 = min(y0, baseline), max(y1, baseline)
-    pad = max((y1 - y0) * 0.12, 0.01)
-    y0, y1 = y0 - pad, y1 + pad
-    sx = lambda x: 2 + (x - x0) / max(x1 - x0, 1e-9) * (w - 4)
-    sy = lambda y: h - 3 - (y - y0) / max(y1 - y0, 1e-9) * (h - 6)
-    pts = " ".join(f"{sx(x):.1f},{sy(y):.1f}" for x, y in vals)
-    base_line = ""
-    if baseline is not None and y0 <= baseline <= y1:
-        by = sy(baseline)
-        base_line = (f'<line x1="0" y1="{by:.1f}" x2="{w}" y2="{by:.1f}" '
-                     f'stroke="#B0801F" stroke-width="1" stroke-dasharray="3 4" opacity=".8"/>')
-    last_col = "#7C1D21" if (baseline is not None and ys[-1] < baseline) else "#1F45C8"
-    area = f"M{pts.split()[0].split(',')[0]},{h} L{pts.replace(' ', ' L')} L{sx(xs[-1]):.1f},{h} Z"
-    return (f'<svg class="spark" viewBox="0 0 {w} {h}" preserveAspectRatio="none" '
-            f'role="img" aria-label="courbe {key}">'
-            f'<path d="{area}" fill="rgba(31,69,200,.08)"/>{base_line}'
-            f'<polyline points="{pts}" fill="none" stroke="#1F45C8" stroke-width="1.6"/>'
-            f'<circle cx="{sx(xs[-1]):.1f}" cy="{sy(ys[-1]):.1f}" r="3" fill="{last_col}"/></svg>')
+        min_v = min(min_v, baseline)
+        max_v = max(max_v, baseline)
+    rng = max_v - min_v or 1
+    w, h = 640, 96
+    pad = 4
+    xs = [pad + i * (w - 2 * pad) / max(len(vals) - 1, 1) for i in range(len(vals))]
+    ys = [h - pad - (v - min_v) / rng * (h - 2 * pad) for v in vals]
+    path = f"M{xs[0]:.1f},{ys[0]:.1f}" + "".join(f" L{x:.1f},{y:.1f}" for x, y in zip(xs[1:], ys[1:]))
+    parts = [f'<svg class="spark" viewBox="0 0 {w} {h}" preserveAspectRatio="none" role="img">']
+    if baseline is not None:
+        y_base = h - pad - (baseline - min_v) / rng * (h - 2 * pad)
+        parts.append(f'<line x1="0" y1="{y_base:.1f}" x2="{w}" y2="{y_base:.1f}" '
+                     f'stroke="#B0801F" stroke-width="1" stroke-dasharray="3,3" opacity="0.5"/>')
+    parts.append(f'<path d="{path}" fill="none" stroke="#1F45C8" stroke-width="2"/>')
+    return "".join(parts) + "</svg>"
 
 
-CSS = """
+def asset_uri(name: str) -> str | None:
+    p = Path(__file__).parent / "assets" / name
+    if not p.exists():
+        return None
+    ext = p.suffix.lower()
+    mime = {".webp": "image/webp", ".png": "image/png", ".jpg": "image/jpeg", ".svg": "image/svg+xml"}.get(ext)
+    if not mime:
+        return None
+    b64 = base64.b64encode(p.read_bytes()).decode()
+    return f"data:{mime};base64,{b64}"
+
+
+# ---------------------------------------------------------------------------
+# CSS — inclus en inline
+# ---------------------------------------------------------------------------
+
+def _css() -> str:
+    return '''
 :root{
   --paper:#E8E3D9; --paper-2:#DED7C8; --paper-3:#F2EEE6;
   --ink:#0B1533; --ink-soft:#3A4468;
@@ -952,7 +792,6 @@ body{
 .note{font-size:11px;color:var(--ink-soft);line-height:1.55}
 .serif{font-family:var(--serif);font-style:italic}
 
-/* ---------- masthead ---------- */
 .mast{display:flex;justify-content:space-between;align-items:flex-end;gap:18px;flex-wrap:wrap}
 .wordmark{font-family:var(--sans);font-weight:800;font-size:clamp(46px,13vw,92px);
   line-height:.82;letter-spacing:-.045em;transform:scaleX(.9);transform-origin:left bottom;
@@ -970,13 +809,11 @@ body{
 .tagline{font-size:9.5px;letter-spacing:.34em;text-transform:uppercase;color:var(--cobalt);
   margin-top:10px}
 
-/* ---------- kill ---------- */
 .kill{margin-top:26px;background:var(--oxblood);color:var(--paper-3);padding:18px 20px;
   border:2px solid var(--navy)}
 .kill h2{margin:0 0 6px;font-family:var(--sans);font-size:26px;letter-spacing:.06em}
 .kill p{margin:0;font-size:12px;opacity:.92}
 
-/* ---------- attestation (héros) ---------- */
 .attest{margin-top:30px}
 .attest-line{font-family:var(--sans);font-weight:700;
   font-size:clamp(15px,3.4vw,23px);line-height:1.34;letter-spacing:-.012em;
@@ -998,321 +835,206 @@ body{
   font-size:15px;line-height:1.6;color:var(--ink);border-left:2px solid var(--cobalt);
   padding-left:14px}
 
-/* ---------- plaque (fond encré) ---------- */
 .plate{background:var(--prussian);color:var(--paper-3);padding:26px 24px;position:relative;
   overflow:hidden;box-shadow:0 1px 0 rgba(11,21,51,.5)}
 .plate::before{content:"";position:absolute;inset:0;pointer-events:none;opacity:.30;
-  background-image:radial-gradient(rgba(232,227,217,.5) .7px, transparent .8px);
-  background-size:4px 4px}
-.plate::after{content:"";position:absolute;inset:0;pointer-events:none;opacity:.16;
-  background:repeating-linear-gradient(180deg,rgba(255,255,255,.14) 0 1px,transparent 1px 3px)}
-.plate .eyebrow{color:var(--gold-lite)}
-.plate .note{color:rgba(232,227,217,.68)}
-.plate > *{position:relative;z-index:1}
+  background-image:linear-gradient(135deg,transparent 60%,rgba(242,238,230,.15))}
+.cap-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+.cap-k{font-size:9px;letter-spacing:.2em;color:rgba(242,238,230,.55)}
+.cap-eq{font-family:var(--sans);font-weight:800;font-size:34px;line-height:1}
+.cap-v{font-family:var(--sans);font-weight:800;font-size:22px;line-height:1.1}
+.cap-strip{display:flex;flex-wrap:wrap;gap:14px;margin-top:18px;
+  font-size:10px;color:rgba(242,238,230,.7)}
+.cap-strip b{color:var(--paper-3)}
 
-.cap-grid{display:grid;grid-template-columns:1.35fr 1fr 1fr;gap:22px;align-items:end}
-@media(max-width:640px){.cap-grid{grid-template-columns:1fr 1fr}}
-.cap-eq{white-space:nowrap;font-family:var(--sans);font-weight:800;letter-spacing:-.035em;
-  font-size:clamp(40px,10.5vw,68px);line-height:.94;font-variant-numeric:tabular-nums}
-.cap-k{font-size:9.5px;letter-spacing:.26em;color:rgba(232,227,217,.6);text-transform:uppercase}
-.cap-v{font-family:var(--sans);font-weight:700;font-size:22px;font-variant-numeric:tabular-nums;
-  line-height:1.2}
-.neg{color:var(--oxblood-lite)}
-.cap-strip{display:flex;flex-wrap:wrap;gap:20px;margin-top:22px;padding-top:16px;
-  border-top:1px solid rgba(232,227,217,.22);font-size:11.5px}
-.cap-strip b{font-weight:700;font-variant-numeric:tabular-nums}
+.overview{margin-top:30px}
+.overview-head{display:flex;justify-content:space-between;align-items:center;
+  flex-wrap:wrap;gap:8px}
+.overview-title{font-weight:700;font-size:13px;letter-spacing:.14em;text-transform:uppercase}
+.overview-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-top:14px}
+@media(max-width:700px){.overview-grid{grid-template-columns:repeat(3,1fr)}}
+.metric{border:1px solid var(--hair);padding:14px 16px;background:rgba(255,255,255,.30)}
+.metric-k{font-size:9.5px;letter-spacing:.18em;color:var(--ink-soft);text-transform:uppercase}
+.metric-v{font-family:var(--sans);font-weight:800;font-size:24px;line-height:1.1;
+  margin:4px 0 2px;font-variant-numeric:tabular-nums}
+.metric-v.neg{color:var(--oxblood)}
+.metric-n{font-size:10px;color:var(--ink-soft)}
+.decision{margin-top:16px;border:1px solid var(--hair);padding:14px 16px;
+  display:flex;gap:12px;align-items:baseline;background:rgba(255,255,255,.30)}
+.decision b{font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--cobalt)}
+.live-chip{font-size:9px;letter-spacing:.1em;padding:2px 7px;border:1px solid var(--ink-soft);
+  color:var(--ink-soft);background:rgba(255,255,255,.30)}
+.health{font-size:9px;letter-spacing:.1em;padding:2px 7px;border:1px solid var(--ink-soft)}
+.health--ok{color:var(--gold);border-color:var(--gold)}
+.health--watch{color:var(--cobalt);border-color:var(--cobalt)}
+.health--hot{color:var(--oxblood);border-color:var(--oxblood)}
+.health--unknown{color:var(--ink-soft);border-color:var(--ink-soft)}
 
-/* ---------- planche des limites (signature) ---------- */
-.wedge{display:grid;grid-template-columns:repeat(auto-fit,minmax(72px,1fr));gap:1px;
-  background:var(--paper-3);padding:1px}
-.step{background:var(--paper-3);box-shadow:0 0 0 1px var(--hair);padding:12px 6px 10px;display:flex;flex-direction:column;
-  align-items:center;gap:8px;min-width:0}
-.step-pct{font-family:var(--sans);font-weight:800;font-size:13px;
-  font-variant-numeric:tabular-nums;color:var(--cobalt)}
-.step--watch .step-pct{color:var(--gold)}
-.step--hot .step-pct,.step--breach .step-pct{color:var(--oxblood)}
-.track{width:100%;height:132px;position:relative;background:rgba(31,69,200,.07);
-  background-image:repeating-linear-gradient(0deg,rgba(11,21,51,.16) 0 1px,transparent 1px 26.4px);
-  overflow:hidden}
-.fill{position:absolute;left:0;right:0;bottom:0;height:var(--h);background:var(--cobalt);
-  animation:expose .85s cubic-bezier(.2,.75,.25,1) both}
-.step--watch .fill{background:var(--gold)}
-.step--hot .fill{background:var(--oxblood)}
-.step--breach .fill{background:repeating-linear-gradient(45deg,var(--oxblood) 0 5px,var(--navy) 5px 10px)}
-@keyframes expose{from{height:0}to{height:var(--h)}}
-@media(prefers-reduced-motion:reduce){.fill{animation:none}}
-.step-l{font-size:9px;letter-spacing:.08em;text-transform:uppercase;text-align:center;
-  line-height:1.25;color:var(--ink);min-height:22px}
-.step-v{font-size:10px;font-variant-numeric:tabular-nums;text-align:center;color:var(--ink)}
-.step-lim{font-size:9px;color:var(--ink-soft);text-align:center}
-.legend{display:flex;gap:16px;flex-wrap:wrap;margin-top:12px;font-size:10px;
-  letter-spacing:.06em;color:var(--ink-soft)}
-.dot{display:inline-block;width:8px;height:8px;margin-right:5px;vertical-align:baseline}
-.dot--ok{background:var(--cobalt)}.dot--watch{background:var(--gold)}
-.dot--hot{background:var(--oxblood)}
+.curve{margin-top:30px;border:1px solid var(--hair);padding:18px;background:rgba(255,255,255,.30)}
+.curve-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:12px}
+.curve-title{font-weight:700;font-size:13px;letter-spacing:.14em;text-transform:uppercase}
+.curve-meta{font-size:10px;color:var(--ink-soft)}
+.spark{width:100%;height:96px;display:block}
 
-/* ---------- tables ---------- */
-.tbl{width:100%;border-collapse:collapse;font-size:12px}
-.tbl th{text-align:left;font-size:9px;letter-spacing:.2em;text-transform:uppercase;
-  color:var(--ink-soft);font-weight:700;padding:0 10px 7px 0;border-bottom:1px solid var(--hair);
-  white-space:nowrap}
-.tbl td{padding:9px 10px 9px 0;border-bottom:1px solid rgba(11,21,51,.10);
-  font-variant-numeric:tabular-nums;vertical-align:top}
-.tbl tr:last-child td{border-bottom:0}
-.tbl .num{text-align:right;padding-right:20px;white-space:nowrap}
-.side{font-weight:700;letter-spacing:.1em;font-size:10px;text-transform:uppercase}
-.side--short{color:var(--oxblood)}.side--long{color:var(--cobalt)}
-.conv{font-size:9px;letter-spacing:.14em;text-transform:uppercase;border:1px solid currentColor;
-  padding:1px 5px}
-.conv--elevee{color:var(--gold)}.conv--moyenne{color:var(--cobalt)}
-.conv--faible{color:var(--ink-soft)}
-.wrap{max-width:100%;overflow-x:auto}
-.thesis{font-family:var(--serif);font-style:italic;font-size:12.5px;color:var(--ink-soft);
-  margin:8px 0 0;line-height:1.55}
-.empty{font-family:var(--serif);font-style:italic;font-size:16px;color:var(--ink-soft);
-  padding:20px 0}
-
-/* ---------- edge ---------- */
-.stamp{display:inline-block;border:2px solid var(--oxblood);color:var(--oxblood);
-  padding:4px 10px;font-size:10px;letter-spacing:.22em;font-weight:700;text-transform:uppercase;
-  transform:rotate(-1.4deg)}
-.stamp--ok{border-color:var(--cobalt);color:var(--cobalt)}
-.edge-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(128px,1fr));gap:1px;
-  background:var(--hair);margin-top:16px}
-.cell{background:var(--paper-3);padding:13px 12px}
-.cell-k{font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(--ink-soft)}
-.cell-v{font-family:var(--sans);font-weight:800;font-size:24px;line-height:1.2;margin-top:3px;
-  font-variant-numeric:tabular-nums}
-.cell-n{font-size:10px;color:var(--ink-soft);margin-top:3px}
-.progress{height:8px;background:rgba(31,69,200,.12);margin-top:12px;position:relative}
-.progress span{position:absolute;inset:0 auto 0 0;background:var(--cobalt);width:var(--w)}
-.hist{display:grid;grid-template-columns:repeat(8,1fr);gap:3px;align-items:end;height:92px;
-  margin-top:18px}
-.hbar{background:var(--cobalt);min-height:2px;position:relative}
-.hbar--neg{background:var(--oxblood)}
-.hlab{display:grid;grid-template-columns:repeat(8,1fr);gap:3px;margin-top:6px;
-  font-size:8.5px;color:var(--ink-soft);text-align:center;letter-spacing:.02em}
-
-/* ---------- provenance ---------- */
-.prov{font-size:11.5px}
-.prov td:first-child{font-weight:700}
-.vs{font-size:9px;letter-spacing:.18em;font-weight:700;padding:1px 6px;border:1px solid currentColor}
-.vs--VERIFIED{color:var(--cobalt)}.vs--UNVERIFIED{color:var(--gold)}
-.vs--FAILED{color:var(--oxblood)}
-
-footer{margin-top:56px;padding-top:18px;border-top:3px solid var(--ink);
-  font-size:10.5px;color:var(--ink-soft);line-height:1.7}
-footer b{color:var(--ink)}
-
-/* ---------- NOUS × N*ABU / editorial system ---------- */
-body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:-1;
-  background:linear-gradient(90deg,rgba(15,46,99,.035) 1px,transparent 1px),
-    linear-gradient(rgba(15,46,99,.025) 1px,transparent 1px);background-size:42px 42px}
-.page{max-width:1180px;padding:22px 34px 100px}
-.topline{display:flex;justify-content:space-between;align-items:center;padding:7px 0 9px;
-  border-top:5px solid var(--ink);border-bottom:1px solid var(--hair);font-size:8px;
-  letter-spacing:.24em;text-transform:uppercase;color:var(--ink-soft)}
-.topline strong{color:var(--cobalt)}
-.issue{font-variant-numeric:tabular-nums}
-.mast{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(250px,.55fr);align-items:stretch;
-  gap:0;margin-top:14px;border:1px solid var(--ink)}
-.mast-main{min-height:300px;padding:28px 30px 24px;display:flex;flex-direction:column;
-  justify-content:space-between;position:relative;overflow:hidden;
-  background:var(--prussian);color:var(--paper-3)}
-.mast-main::before{content:"";position:absolute;inset:0;opacity:.20;pointer-events:none;
-  background:repeating-radial-gradient(ellipse at 80% 38%,transparent 0 6px,rgba(242,238,230,.2) 7px 8px)}
-.mast-main::after{content:"03";position:absolute;right:-.05em;bottom:-.25em;
-  font-family:var(--sans);font-weight:900;font-size:260px;line-height:1;color:rgba(242,238,230,.045)}
-.mast-main>*{position:relative;z-index:1}
-.wordmark{color:var(--paper-3);font-size:clamp(66px,12vw,138px);letter-spacing:-.07em;
-  text-shadow:2px 0 0 rgba(215,168,58,.65);transform:scaleX(.88)}
-.wordmark::after{display:none}
-.tagline{color:var(--gold-lite);margin-top:14px}
-.motto{max-width:560px;margin:34px 0 0;font-family:var(--serif);font-size:clamp(18px,2vw,27px);
-  font-style:italic;line-height:1.25;color:var(--paper-3)}
-.mast-side{position:relative;display:flex;flex-direction:column;justify-content:space-between;
-  min-height:300px;padding:24px;background:var(--paper-3);overflow:hidden}
-.agent-mark{align-self:flex-end;width:138px;height:138px;border-radius:50%;border:1px solid var(--cobalt);
-  display:grid;place-items:center;position:relative;color:var(--cobalt);font-family:var(--sans);
-  font-size:58px;font-weight:900;letter-spacing:-.16em;filter:contrast(1.1)}
-.agent-mark::before{content:"";position:absolute;inset:8px;border:1px dashed rgba(31,69,200,.34);border-radius:50%}
-.agent-mark::after{content:"ANALYST / HUNTER";position:absolute;width:210px;text-align:center;
-  bottom:-25px;font:7px var(--mono);letter-spacing:.24em;transform:rotate(-8deg)}
-.mast-right{text-align:left;margin-top:32px}.mast-right .badge{margin-bottom:10px}
-.attest{margin-top:18px;border:1px solid var(--hair);padding:20px;background:rgba(242,238,230,.55)}
-.sec{margin-top:58px}.eyebrow{display:flex;align-items:center;gap:10px}.eyebrow::before{
-  content:"";width:19px;height:18px;flex:0 0 auto;background:var(--gold);
-  -webkit-mask:var(--iii-symbol) center/contain no-repeat;mask:var(--iii-symbol) center/contain no-repeat}
-.plate{padding:34px 30px;box-shadow:10px 10px 0 rgba(15,46,99,.11)}
-.clock,.step,.cell{transition:transform .18s ease,background .18s ease}
-.clock:hover,.cell:hover{transform:translateY(-2px);background:var(--paper-3)}
-.step:hover{transform:translateY(-3px);z-index:2}
-.wedge{border:1px solid var(--hair);background:var(--ink)}
-.track{height:156px;background-color:rgba(31,69,200,.055)}
-.tbl tbody tr{transition:background .15s ease}.tbl tbody tr:hover{background:rgba(31,69,200,.07)}
-.tbl th{color:var(--cobalt);border-bottom:2px solid var(--cobalt)}
-.stamp{box-shadow:3px 3px 0 rgba(124,29,33,.12)}
-footer{display:grid;grid-template-columns:1fr auto;gap:24px;align-items:end}
-footer::after{content:"";width:54px;height:48px;background:var(--gold);
-  -webkit-mask:var(--iii-symbol) center/contain no-repeat;mask:var(--iii-symbol) center/contain no-repeat}
-@media(max-width:760px){
-  .page{padding:14px 14px 72px}.topline span:nth-child(2){display:none}
-  .mast{grid-template-columns:1fr}.mast-main{min-height:260px;padding:24px 20px}
-  .mast-side{min-height:170px;padding:18px;display:grid;grid-template-columns:1fr 1fr;gap:14px}
-  .agent-mark{width:104px;height:104px;font-size:42px}.mast-right{margin:0;align-self:end}
-  .attest{padding:15px}.sec{margin-top:42px}.plate{padding:26px 18px}
-  .cap-grid{grid-template-columns:1fr}.cap-eq{font-size:clamp(38px,13vw,58px)}
-}
-@media print{.grain,.fibers{display:none}.page{max-width:none;padding:0}.clock:hover,.cell:hover,.step:hover{transform:none}}
-
-/* ---------- portfolio cockpit / progressive disclosure ---------- */
-.overview{margin-top:18px;background:var(--paper-3);border:1px solid var(--ink);padding:22px}
-.overview-head{display:flex;justify-content:space-between;gap:16px;align-items:center;margin-bottom:18px}
-.overview-title{font:800 12px var(--sans);letter-spacing:.16em;text-transform:uppercase}
-.health{display:inline-flex;align-items:center;gap:7px;border:1px solid currentColor;padding:4px 8px;
-  color:var(--cobalt);font-size:9px;letter-spacing:.14em;text-transform:uppercase;font-weight:700}
-.health::before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor}
-.health--watch,.health--unknown{color:var(--gold)}.health--hot{color:var(--oxblood)}
-.overview-grid{display:grid;grid-template-columns:1.55fr repeat(4,1fr);gap:1px;background:var(--hair)}
-.metric{min-width:0;background:var(--paper-3);padding:15px 14px}
-.metric:first-child{background:var(--prussian);color:var(--paper-3)}
-.metric-k{font-size:8.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--ink-soft)}
-.metric:first-child .metric-k{color:rgba(242,238,230,.62)}
-.metric-v{font:800 clamp(20px,3vw,31px)/1.05 var(--sans);margin-top:5px;font-variant-numeric:tabular-nums;white-space:nowrap}
-.metric:first-child .metric-v{font-size:clamp(30px,5vw,52px)}
-.metric-n{margin-top:6px;font-size:9px;color:var(--ink-soft)}
-.metric:first-child .metric-n{color:rgba(242,238,230,.62)}
-.decision{display:flex;gap:10px;align-items:flex-start;margin-top:15px;padding-top:14px;border-top:1px solid var(--hair);
-  font-family:var(--serif);font-style:italic;color:var(--ink-soft)}
-.decision b{font:800 9px var(--mono);font-style:normal;letter-spacing:.16em;text-transform:uppercase;color:var(--cobalt)}
-.self-eval{margin-top:12px;display:grid;grid-template-columns:190px minmax(0,1fr) 1.1fr;border:1px solid var(--ink);background:var(--paper-3)}
-.eval-verdict{padding:20px;background:var(--navy);color:var(--paper-3);display:flex;flex-direction:column;justify-content:space-between}
+.self-eval{margin-top:12px;display:grid;grid-template-columns:190px minmax(0,1fr) 1.1fr;
+  border:1px solid var(--ink);background:var(--paper-3)}
+.eval-verdict{padding:20px;background:var(--navy);color:var(--paper-3);
+  display:flex;flex-direction:column;justify-content:space-between}
 .eval-k{font-size:8px;letter-spacing:.2em;text-transform:uppercase;color:rgba(242,238,230,.56)}
-.eval-status{font:900 21px/1 var(--sans);letter-spacing:.04em;margin-top:8px;color:var(--gold-lite)}
-.eval-status--PERFORMING{color:var(--paper-3)}.eval-status--DEGRADING,.eval-status--HALTED,.eval-status--BLOCKED{color:var(--oxblood-lite)}
-.eval-score{font:900 58px/.9 var(--sans);margin-top:22px}.eval-score small{font:10px var(--mono);color:rgba(242,238,230,.55)}
+.eval-status{font:900 18px/.9 var(--sans);margin-top:8px}
+.eval-status--PERFORMING{color:var(--gold)}
+.eval-status--IMPROVING{color:var(--paper-3)}
+.eval-status--DEGRADING{color:var(--oxblood)}
+.eval-status--HALTED,.eval-status--BLOCKED{color:var(--oxblood-lite)}
+.eval-score{font:900 58px/.9 var(--sans);margin-top:22px}
+.eval-score small{font:10px var(--mono);color:rgba(242,238,230,.55)}
 .eval-axes{padding:20px;border-right:1px solid var(--hair)}
-.axis{display:grid;grid-template-columns:80px 1fr 28px;gap:8px;align-items:center;margin:10px 0;font-size:8px;letter-spacing:.12em;text-transform:uppercase}
-.axis-track{height:6px;background:rgba(31,69,200,.10)}.axis-track i{display:block;width:var(--w);height:100%;background:var(--cobalt)}
-.eval-action{padding:20px;display:flex;flex-direction:column;justify-content:space-between}.eval-action strong{font:800 9px var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--cobalt)}
+.axis{display:grid;grid-template-columns:68px 1fr 28px;align-items:center;gap:8px;
+  font-size:10px;margin-bottom:6px}
+.axis-track{height:6px;background:rgba(11,21,51,.12);position:relative}
+.axis-track i{position:absolute;inset:0 auto 0 0;background:var(--cobalt);width:var(--w)}
+.axis b{font-variant-numeric:tabular-nums;text-align:right}
+.eval-action{padding:20px;display:flex;flex-direction:column;justify-content:space-between}
+.eval-action strong{font:800 9px var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--cobalt)}
 .eval-action p{font:italic 17px/1.35 var(--serif);margin:10px 0;color:var(--ink)}
 .eval-meta{font-size:9px;color:var(--ink-soft)}
-.risk-strip{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
-.risk-card{border:1px solid var(--hair);padding:13px;background:rgba(242,238,230,.65)}
-.risk-card-head{display:flex;justify-content:space-between;gap:8px;font-size:9px;text-transform:uppercase;letter-spacing:.08em}
-.risk-card-head b{color:var(--cobalt)}.risk-card--watch .risk-card-head b{color:var(--gold)}
-.risk-card--hot .risk-card-head b,.risk-card--breach .risk-card-head b{color:var(--oxblood)}
-.risk-meter{height:5px;background:rgba(31,69,200,.10);margin:10px 0 7px}.risk-meter span{display:block;height:100%;width:var(--w);background:var(--cobalt)}
-.risk-card--watch .risk-meter span{background:var(--gold)}.risk-card--hot .risk-meter span,.risk-card--breach .risk-meter span{background:var(--oxblood)}
-.risk-value{font-size:10px;color:var(--ink-soft)}
-.drawer{margin-top:22px;border-top:1px solid var(--hair);border-bottom:1px solid var(--hair);padding:0}
-.drawer>summary{cursor:pointer;list-style:none;padding:14px 4px;display:flex;align-items:center;justify-content:space-between;
-  gap:16px;font-size:9px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--cobalt)}
-.drawer>summary::-webkit-details-marker{display:none}.drawer>summary::after{content:"＋";font-size:17px;font-weight:400}
-.drawer[open]>summary::after{content:"−"}.drawer[open]>summary{border-bottom:1px solid var(--hair)}
-.drawer-body{padding:20px 4px 26px}.drawer .sec{margin-top:0}
-.primary-section{margin-top:40px}.primary-section>.eyebrow{font-size:11px}
-@media(max-width:850px){.overview-grid{grid-template-columns:repeat(2,1fr)}.metric:first-child{grid-column:1/-1}.risk-strip{grid-template-columns:1fr 1fr}}
-@media(max-width:520px){.overview{padding:15px}.overview-head{align-items:flex-start;flex-direction:column}.overview-grid{grid-template-columns:1fr 1fr}
-  .metric{padding:12px 10px}.risk-strip{grid-template-columns:1fr}.decision{display:block}.decision b{display:block;margin-bottom:4px}}
 @media(max-width:850px){.self-eval{grid-template-columns:150px 1fr}.eval-action{grid-column:1/-1;border-top:1px solid var(--hair)}.eval-axes{border-right:0}}
 @media(max-width:520px){.self-eval{grid-template-columns:1fr}.eval-verdict{min-height:150px}.eval-axes,.eval-action{grid-column:auto;border-top:1px solid var(--hair)}.eval-score{font-size:46px}}
 
-/* ---------- modern agent command center ---------- */
-body{background:var(--paper-3)}
-.rail{position:fixed;inset:0 auto 0 0;width:82px;z-index:70;background:var(--navy);color:var(--paper-3);
-  display:flex;flex-direction:column;align-items:center;padding:18px 0 16px;border-right:1px solid rgba(242,238,230,.16)}
-.rail-logo{font:900 28px/1 var(--sans);letter-spacing:-.16em;color:var(--gold-lite);writing-mode:vertical-rl;transform:rotate(180deg)}
-.rail-avatar{width:48px;height:48px;margin-top:16px;border-radius:50%;object-fit:cover;border:1px solid rgba(215,168,58,.7);
-  filter:grayscale(.45) contrast(1.15);box-shadow:0 0 0 4px rgba(31,69,200,.18)}
-.rail-nav{margin:auto 0;display:flex;flex-direction:column;gap:9px}.rail-nav a{width:42px;height:42px;display:grid;place-items:center;
-  border:1px solid rgba(242,238,230,.18);color:rgba(242,238,230,.68);text-decoration:none;font-size:9px;letter-spacing:.08em;transition:.18s}
-.rail-nav a:hover,.rail-nav a:focus{background:var(--cobalt);color:white;border-color:var(--cobalt);transform:translateX(3px)}
-.rail-foot{font-size:7px;letter-spacing:.2em;writing-mode:vertical-rl;color:rgba(242,238,230,.45)}
-.page{max-width:1320px;margin:0 auto 0 calc(82px + max(0px,(100vw - 1402px)/2));padding:18px 28px 90px}
-.topline{border-top:0;height:36px;padding:0 2px}
-.mast{height:350px;display:grid;grid-template-columns:1.08fr .92fr;margin-top:10px;border:0;background:var(--prussian);overflow:hidden;position:relative}
-.mast::after{content:"";position:absolute;inset:0;pointer-events:none;z-index:4;opacity:.18;
-  background:repeating-linear-gradient(0deg,transparent 0 3px,rgba(255,255,255,.16) 4px)}
-.mast-copy{padding:34px 36px;display:flex;flex-direction:column;justify-content:space-between;position:relative;z-index:5;color:var(--paper-3)}
-.mast-copy::after{content:"";position:absolute;right:22px;top:18px;width:86px;height:78px;background:rgba(215,168,58,.24);
-  -webkit-mask:var(--iii-symbol) center/contain no-repeat;mask:var(--iii-symbol) center/contain no-repeat}
-.iii-icon{display:inline-block;width:22px;height:20px;background:currentColor;vertical-align:middle;
-  -webkit-mask:var(--iii-symbol) center/contain no-repeat;mask:var(--iii-symbol) center/contain no-repeat}
-.wordmark{font-size:clamp(68px,9vw,126px);line-height:.76}.tagline{margin-top:20px}.motto{font-size:21px;margin:0;max-width:470px}
-.agent-id{display:flex;gap:12px;align-items:center;font-size:8px;letter-spacing:.18em;text-transform:uppercase;color:rgba(242,238,230,.62)}
-.agent-id i{width:28px;height:1px;background:var(--gold-lite)}
-.mast-visual{position:relative;overflow:hidden;background:var(--navy)}
-.mast-visual img{width:100%;height:100%;object-fit:cover;object-position:50% 36%;filter:grayscale(.5) contrast(1.15) saturate(.72)}
-.mast-visual::before{content:"";position:absolute;inset:0;z-index:2;background:rgba(31,69,200,.42);mix-blend-mode:color}
-.mast-visual::after{content:"AGENT 03 / ACTIVE OBSERVER";position:absolute;z-index:3;right:16px;bottom:14px;padding:6px 8px;
-  background:var(--paper-3);color:var(--prussian);font:700 8px var(--mono);letter-spacing:.17em}
-.mast-meta{position:absolute;z-index:5;left:18px;top:18px;display:flex;gap:6px;flex-wrap:wrap}.mast-meta .badge{background:rgba(7,12,30,.78);color:var(--paper-3);border-color:rgba(242,238,230,.45)}
-.overview{margin-top:12px;border:0;padding:0;background:transparent}.overview-head{margin:0 0 10px;padding:12px 15px;background:var(--ink);color:var(--paper-3)}
-.overview-title{font-size:10px}.overview-grid{border:1px solid var(--hair);gap:0;background:transparent}.metric{border-right:1px solid var(--hair)}
-.metric:last-child{border-right:0}.metric:first-child{background:var(--cobalt)}
-.decision{margin-top:0;padding:12px 15px;border:1px solid var(--hair);border-top:0;background:rgba(31,69,200,.04)}
-.primary-section{scroll-margin-top:18px}.drawer{scroll-margin-top:18px}
-@media(max-width:760px){
-  .rail{inset:auto 0 0 0;width:auto;height:58px;flex-direction:row;padding:7px 12px;border-right:0;border-top:1px solid rgba(242,238,230,.18)}
-  .rail-logo,.rail-avatar,.rail-foot{display:none}.rail-nav{margin:0;width:100%;flex-direction:row;justify-content:space-around;gap:6px}.rail-nav a{width:48px;height:42px}
-  .page{margin:0;padding:10px 12px 82px}.mast{height:430px;grid-template-columns:1fr;grid-template-rows:190px 240px}.mast-copy{padding:22px}.mast-copy::after{width:58px;height:52px;right:14px;top:14px}
-  .mast-visual img{object-position:50% 30%}.wordmark{font-size:72px}.motto{font-size:16px}.topline{height:30px}.metric:first-child{grid-column:1/-1}
+.risk-strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px}
+.risk-card{border:1px solid var(--hair);padding:13px;background:rgba(242,238,230,.65)}
+.risk-card--ok{border-left:3px solid var(--gold)}
+.risk-card--watch{border-left:3px solid var(--cobalt)}
+.risk-card--hot{border-left:3px solid var(--oxblood)}
+.risk-card--breach{border-left:3px solid var(--oxblood);background:var(--oxblood);color:var(--paper-3)}
+.risk-card--breach .risk-card-head{color:var(--paper-3)}
+.risk-card-head{display:flex;justify-content:space-between;font-size:10px;
+  letter-spacing:.12em;text-transform:uppercase;color:var(--ink-soft)}
+.risk-card-head b{font-family:var(--sans);font-size:16px}
+.risk-meter{height:4px;background:rgba(11,21,51,.12);margin:8px 0 4px}
+.risk-meter span{display:block;height:100%;background:var(--cobalt)}
+.risk-card--hot .risk-meter span{background:var(--oxblood)}
+.risk-card--breach .risk-meter span{background:var(--paper-3)}
+.risk-value{font-size:10px;color:var(--ink-soft)}
+
+.wrap{overflow-x:auto}
+.tbl{width:100%;border-collapse:collapse;font-size:12px}
+.tbl th,.tbl td{padding:6px 8px;text-align:left;border-bottom:1px solid var(--hair)}
+.tbl th{font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-soft)}
+.tbl .num{text-align:right;font-variant-numeric:tabular-nums}
+.tbl .num.neg{color:var(--oxblood)}
+.side{font-size:9px;letter-spacing:.1em;text-transform:uppercase;padding:2px 6px;border:1px solid var(--hair)}
+.side--long{color:var(--gold);border-color:var(--gold)}
+.side--short{color:var(--oxblood);border-color:var(--oxblood)}
+
+.edge-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(128px,1fr));gap:1px;
+  margin-top:14px}
+.cell{border:1px solid var(--hair);padding:12px 14px;background:rgba(255,255,255,.30)}
+.cell-k{font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:var(--ink-soft)}
+.cell-v{font-family:var(--sans);font-weight:800;font-size:22px;line-height:1.1;
+  margin:4px 0 2px;font-variant-numeric:tabular-nums}
+.cell-v.neg{color:var(--oxblood)}
+.cell-n{font-size:10px;color:var(--ink-soft)}
+
+.hist{display:flex;align-items:flex-end;gap:1px;height:80px;margin-top:18px}
+.hbar{background:var(--cobalt);min-height:2px;flex:1}
+.hbar--neg{background:var(--oxblood)}
+.hlab{display:grid;grid-template-columns:repeat(8,1fr);gap:1px;font-size:8px;
+  text-align:center;color:var(--ink-soft);margin-top:4px}
+
+.progress{height:8px;background:rgba(31,69,200,.12);margin-top:12px;position:relative}
+.progress span{position:absolute;inset:0 auto 0 0;background:var(--cobalt);width:var(--w)}
+
+.stamp{display:inline-block;padding:3px 8px;font-size:9px;letter-spacing:.12em;
+  text-transform:uppercase;font-weight:700;margin-top:10px}
+.stamp--ok{border:1px solid var(--gold);color:var(--gold)}
+.stamp--watch{border:1px solid var(--cobalt);color:var(--cobalt)}
+.stamp--hot{border:1px solid var(--oxblood);color:var(--oxblood)}
+
+.closes-tbl .num{font-variant-numeric:tabular-nums;text-align:right}
+.closes-tbl .num.r-pos{color:var(--gold)}
+.closes-tbl .num.r-neg{color:var(--oxblood)}
+.reason-tag{font-size:9px;letter-spacing:.1em;text-transform:uppercase;padding:2px 6px;
+  border:1px solid var(--hair)}
+.reason-tag--stop_ratchet{color:var(--gold);border-color:var(--gold)}
+.reason-tag--stop{color:var(--oxblood);border-color:var(--oxblood)}
+.reason-tag--manual{color:var(--ink-soft)}
+.reason-tag--thesis{color:var(--cobalt);border-color:var(--cobalt)}
+
+.empty{padding:18px;background:rgba(255,255,255,.30);border:1px dashed var(--hair);
+  font-size:11px;color:var(--ink-soft);font-style:italic}
+
+.rail{position:fixed;left:0;top:0;bottom:0;width:58px;background:var(--navy);
+  color:var(--paper-3);display:flex;flex-direction:column;align-items:center;
+  padding:18px 0;z-index:50}
+.rail-logo{font:900 18px/.9 var(--sans);letter-spacing:-.04em;margin-bottom:18px}
+.rail-avatar{width:38px;height:38px;border-radius:50%;object-fit:cover;margin-bottom:18px;
+  border:2px solid var(--gold)}
+.rail-nav{display:flex;flex-direction:column;gap:4px;flex:1}
+.rail-nav a{color:var(--paper-3);text-decoration:none;font-size:9px;letter-spacing:.08em;
+  padding:8px 0;text-align:center;border-left:2px solid transparent;transition:.18s}
+.rail-nav a:hover{border-left-color:var(--gold)}
+.rail-foot{font-size:7px;letter-spacing:.2em;writing-mode:vertical-rl;color:rgba(242,238,230,.45);
+  margin-bottom:14px}
+@media(max-width:700px){.rail{display:none}.page{margin:0;padding:10px 12px 82px}}
+
+.drawer{margin-top:18px;border:1px solid var(--hair);background:rgba(255,255,255,.30)}
+.drawer summary{padding:14px 16px;cursor:pointer;font-weight:700;font-size:13px;
+  letter-spacing:.14em;text-transform:uppercase}
+.drawer-body{padding:0 16px 18px}
+
+footer{margin-top:44px;padding:18px 0;border-top:1px solid var(--hair);
+  font-size:10px;color:var(--ink-soft);text-align:center}
+
+.prov .path{font-size:9px;word-break:break-all}
+.vs{font-size:9px;letter-spacing:.1em;text-transform:uppercase;padding:2px 6px}
+.vs--VERIFIED{color:var(--gold);border:1px solid var(--gold)}
+.vs--UNVERIFIED{color:var(--ink-soft);border:1px solid var(--ink-soft)}
+.vs--FAILED{color:var(--oxblood);border:1px solid var(--oxblood)}
+
+.conv{font-size:9px;letter-spacing:.1em;text-transform:uppercase;padding:2px 6px;
+  border:1px solid var(--hair)}
+.conv--moyenne{color:var(--ink-soft)}
+.conv--élevée{color:var(--gold);border-color:var(--gold)}
+.conv--faible{color:var(--oxblood);border-color:var(--oxblood)}
+
+.topline{display:flex;justify-content:space-between;align-items:center;
+  font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-soft);
+  padding:8px 0;border-bottom:1px solid var(--hair)}
+.topline .issue{font-family:var(--sans);font-weight:800;font-size:18px;
+  letter-spacing:-.04em;color:var(--ink)}
+.iii-symbol{display:inline-block;width:12px;height:12px;background:var(--iii-symbol);
+  background-size:cover;vertical-align:middle}
+
+@media(max-width:700px){
+  .rail{display:none}
+  .page{margin:0;padding:10px 12px 82px}
+  .mast{height:430px;grid-template-columns:1fr;grid-template-rows:190px 240px}
+  .mast-copy{padding:22px}
+  .mast-copy::after{width:58px;height:52px;right:14px;top:14px}
+  .mast-visual img{object-position:50% 30%}
+  .wordmark{font-size:72px}
+  .motto{font-size:16px}
+  .topline{height:30px}
 }
+'''
 
-/* ---------- vie : live chip, pouls, sparkline, clôtures ---------- */
-.live-chip{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--hair);
-  padding:4px 9px;font-size:8.5px;letter-spacing:.16em;text-transform:uppercase;font-weight:700;
-  color:var(--ink-soft);background:rgba(242,238,230,.7);font-variant-numeric:tabular-nums}
-.live-chip::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--ink-soft)}
-.live-chip--on{color:var(--cobalt)}
-.live-chip--on::before{background:var(--cobalt);animation:pulse 2.2s ease-out infinite}
-.live-chip--stale{color:var(--gold)}.live-chip--stale::before{background:var(--gold)}
-@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(31,69,200,.45)}70%{box-shadow:0 0 0 7px rgba(31,69,200,0)}100%{box-shadow:0 0 0 0 rgba(31,69,200,0)}}
-@media(prefers-reduced-motion:reduce){.live-chip--on::before{animation:none}}
-.flash{animation:flash .9s ease-out}
-@keyframes flash{0%{background:rgba(215,168,58,.35)}100%{background:transparent}}
-.delta-up{color:var(--cobalt)}.delta-dn{color:var(--oxblood)}
-.curve{margin-top:12px;border:1px solid var(--hair);background:var(--paper-3);padding:16px 18px 12px}
-.curve-head{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:8px}
-.curve-title{font:800 10px var(--sans);letter-spacing:.18em;text-transform:uppercase;color:var(--cobalt)}
-.curve-meta{font-size:9px;color:var(--ink-soft);letter-spacing:.08em}
-.spark{width:100%;height:96px;display:block}
-.closes-tbl .r-pos{color:var(--cobalt);font-weight:700}.closes-tbl .r-neg{color:var(--oxblood);font-weight:700}
-.reason-tag{font-size:8px;letter-spacing:.14em;text-transform:uppercase;border:1px solid currentColor;padding:1px 5px;color:var(--ink-soft)}
-.reason-tag--stop{color:var(--oxblood)}.reason-tag--thesis{color:var(--cobalt)}
-.upd{transition:color .3s ease}
-#live-note{font-size:9px;color:var(--ink-soft);margin-top:6px;font-variant-numeric:tabular-nums}
-"""
 
 # ---------------------------------------------------------------------------
-# Couche vivante — JS embarqué, dégradation propre.
-#
-# Trois responsabilités, rien d'autre :
-#   1. marks live  : POST allMids sur l'API publique Hyperliquid (CORS ouvert,
-#                    lecture seule, aucun secret, aucune clé) toutes les 15 s
-#                    quand l'onglet est visible → recalcul LOCAL du uPnL des
-#                    positions inlinées dans la page. Ce calcul ne touche
-#                    aucun fichier : book.json reste la source, la page le dit.
-#   2. horloges    : les âges (sync/mark) avancent en continu au lieu d'être
-#                    figés à l'instant du tirage.
-#   3. rechargement: toutes les 3 min, si un tirage plus récent existe sur le
-#                    même URL, la page se remplace — jamais de reload aveugle.
-# Hors ligne (fichier local, réseau coupé), la chip dit « page statique » et
-# tout le reste fonctionne comme avant : zéro dépendance dure au réseau.
+# JS — inclus en inline
 # ---------------------------------------------------------------------------
 
-LIVE_JS = """<script>
+def _js() -> str:
+    return '''
 (function(){
 "use strict";
 var S; try{ S = JSON.parse(document.getElementById("nabu-state").textContent); }catch(_){ return; }
 var chip = document.getElementById("live-chip");
 var note = document.getElementById("live-note");
-var NBSP = "\\u00a0";
+var NBSP = " ";
 function fmt(v, dec){ return v.toLocaleString("en-US",{minimumFractionDigits:dec===undefined?2:dec,maximumFractionDigits:dec===undefined?2:dec}).replace(/,/g,NBSP)+NBSP+"$"; }
 function setChip(cls, txt){ if(!chip) return; chip.className = "live-chip"+(cls?" "+cls:""); chip.textContent = txt; }
 
-/* ---- 1. horloges qui avancent ------------------------------------- */
 var builtMs = (S.built_ts||0)*1000;
 function tickAges(){
   var extra = (Date.now()-builtMs)/1000;
@@ -1329,7 +1051,6 @@ function tickAges(){
 }
 setInterval(tickAges, 30000);
 
-/* ---- 2. marks live Hyperliquid ------------------------------------ */
 var rows = Array.prototype.slice.call(document.querySelectorAll(".pos-row"));
 var isPaper = String(S.mode||"").toLowerCase()==="paper";
 var staticUpnl = (S.positions||[]).reduce(function(a,p){return a+(p.unrealized_pnl_usd||0);},0);
@@ -1356,7 +1077,6 @@ function applyMids(mids){
   if(!n) return;
   var mU = document.getElementById("m-upnl");
   if(mU){ mU.textContent = fmt(liveUpnl); mU.classList.toggle("neg", liveUpnl<0); }
-  /* equity live = equity du book corrigée du delta de marks — approximation affichée comme telle */
   var eq = (S.capital.equity_usd||0) - staticUpnl + liveUpnl;
   var mE = document.getElementById("m-equity");
   if(mE){ mE.textContent = fmt(eq); }
@@ -1385,7 +1105,6 @@ function poll(){
       if(failures>=2){ setChip("live-chip--stale", lastOk ? "live perdu · tirage "+S.built_iso.slice(11,16)+"Z" : "page statique"); } });
 }
 
-/* ---- 3. tirage plus récent → remplacement doux --------------------- */
 function checkNewer(){
   if(document.hidden || location.protocol==="file:") return;
   fetch(location.href, {cache:"no-store"}).then(function(r){ return r.text(); })
@@ -1400,8 +1119,12 @@ setInterval(checkNewer, 180000);
 document.addEventListener("visibilitychange", function(){ if(!document.hidden){ poll(); tickAges(); } });
 tickAges();
 })();
-</script>"""
+'''
 
+
+# ---------------------------------------------------------------------------
+# Rendu HTML
+# ---------------------------------------------------------------------------
 
 def render(state: dict) -> str:
     S = state
@@ -1412,12 +1135,14 @@ def render(state: dict) -> str:
     avatar = asset_uri("nabu-portrait.webp")
     o: list[str] = []
     a = o.append
+    e = html.escape
+    NB = " "
 
     a("<!DOCTYPE html><html lang=\"fr\"><head><meta charset=\"utf-8\">")
     a("<meta name=\"viewport\" content=\"width=device-width,initial-scale=1\">")
     a(f"<title>N*ABU · planche de lecture · {e(S['built_iso'])}</title>")
     a("<meta name=\"color-scheme\" content=\"light\">")
-    a("<style>" + CSS + "</style></head><body>")
+    a("<style>" + _css() + "</style></head><body>")
     a("<div class=\"grain\"></div><div class=\"fibers\"></div>"
       "<aside class=\"rail\" aria-label=\"Navigation principale\">"
       "<div class=\"rail-logo\">N*ABU</div>")
@@ -1433,7 +1158,6 @@ def render(state: dict) -> str:
       "<span>Sacred technology · Evidence before assertion</span>"
       "<span class=\"issue\"><i class=\"iii-icon\" aria-label=\"symbole iii\"></i> / 2026</span></div>")
 
-    # -- masthead incarné
     a("<header class=\"mast\"><div class=\"mast-copy\"><div>"
       "<div class=\"agent-id\"><i></i>Autonomous portfolio intelligence</div>"
       "<div class=\"wordmark\">N*ABU</div><div class=\"tagline\">Trade · Analyse · Execute</div></div>"
@@ -1447,7 +1171,6 @@ def render(state: dict) -> str:
         a("<span class=\"badge badge--demo\">Données de démonstration</span>")
     a("<span class=\"badge\">Read only</span></div></div></header>")
 
-    # -- kill
     k = S["kill"]
     if k.get("active"):
         a("<section class=\"kill\"><h2>KILL ACTIF</h2>")
@@ -1465,11 +1188,10 @@ def render(state: dict) -> str:
     else:
         v = ("Fraîcheur indéterminée : une source manque. Aucun chiffre ne doit déclencher d'action.")
 
-    # -- cockpit essentiel
     positions = S["positions"]
     upnl = sum(float(p.get("unrealized_pnl_usd") or 0) for p in positions)
     max_gate = max(S["gates"], key=lambda x: x["util_pct"], default=None)
-    risk_txt = f"{max_gate['util_pct']:.0f}{NB}%" if max_gate else "—"
+    risk_txt = f"{max_gate['util_pct']:.0f} %" if max_gate else "—"
     risk_note = max_gate["label"] if max_gate else "limites indisponibles"
     health_label = {"ok": "À jour", "watch": "À surveiller", "hot": "Périmé",
                     "unknown": "Inconnu"}.get(fr["status"], fr["status"])
@@ -1483,7 +1205,7 @@ def render(state: dict) -> str:
     a("<div class=\"overview-grid\">")
     metrics = [
         ("Equity", money(cap["equity_usd"]), f"pic {money(cap['peak_usd'], 0)}", False, "m-equity"),
-        ("Aujourd'hui", f"{cap['day_pnl_pct']:+.2f}{NB}%", "performance UTC", cap["day_pnl_pct"] < 0, "m-day"),
+        ("Aujourd'hui", f"{cap['day_pnl_pct']:+.2f} %", "performance UTC", cap["day_pnl_pct"] < 0, "m-day"),
         ("uPnL ouvert", money(upnl), f"{len(positions)} position{'s' if len(positions) != 1 else ''}", upnl < 0, "m-upnl"),
         ("PnL réalisé", money(realized), "net des clôtures", realized < 0, "m-realized"),
         ("Risque max", risk_txt, risk_note, bool(max_gate and max_gate["status"] in ("hot", "breach")), "m-risk"),
@@ -1495,7 +1217,6 @@ def render(state: dict) -> str:
     a(f"</div><div class=\"decision\"><b>Lecture</b><span>{e(v)}</span></div>"
       f"<div id=\"live-note\"></div></section>")
 
-    # -- courbe d'equity — la mémoire de la page
     hist = S.get("history") or []
     curve = spark_svg(hist, "equity", baseline=float((cap.get("paper") or {}).get("start_equity_usd") or 0) or None)
     if curve:
@@ -1503,152 +1224,92 @@ def render(state: dict) -> str:
         span_h = (float(lastp["ts"]) - float(first["ts"])) / 3600
         span_txt = f"{span_h / 24:.1f} j" if span_h > 48 else f"{span_h:.0f} h"
         a(f"<div class=\"curve\"><div class=\"curve-head\"><span class=\"curve-title\">Courbe d'equity</span>"
-          f"<span class=\"curve-meta\">{len(hist)} points · {e(span_txt)} · trait or = capital initial · "
-          f"dernier point {money(float(lastp.get('equity') or 0))}</span></div>{curve}</div>")
+          f"<span class=\"curve-meta\">400 points · {span_txt} · trait or = capital initial · dernier point {money(lastp.get('equity'))}</span></div>"
+          f"{curve}</div>")
 
-    # -- boucle d'auto-évaluation, lisible par l'humain et reflétée dans #nabu-state
     se = S.get("self_eval") or {}
-    if se:
-        labels = {"data": "Données", "risk": "Risque", "discipline": "Discipline", "edge": "Edge"}
-        maxima = {"data": 20, "risk": 25, "discipline": 20, "edge": 35}
-        a("<section class=\"self-eval\" id=\"self-eval\" aria-label=\"Auto-évaluation de N*ABU\">")
-        a(f"<div class=\"eval-verdict\"><div><div class=\"eval-k\">Self-evaluation / cycle</div>"
-          f"<div class=\"eval-status eval-status--{e(se['verdict'])}\">{e(se['verdict'])}</div></div>"
-          f"<div class=\"eval-score\">{int(se['score'])}<small>/100</small></div></div>")
-        a("<div class=\"eval-axes\"><div class=\"eval-k\" style=\"color:var(--ink-soft)\">Qualité du système</div>")
-        for key in ("data", "risk", "discipline", "edge"):
-            val = int(se["scores"].get(key, 0))
-            pct_axis = val / maxima[key] * 100
-            a(f"<div class=\"axis\"><span>{e(labels[key])}</span>"
-              f"<span class=\"axis-track\"><i style=\"--w:{pct_axis:.1f}%\"></i></span>"
-              f"<b>{val}</b></div>")
-        a("</div>")
-        review = se.get("review") or {}
-        a(f"<div class=\"eval-action\"><div><strong>Prochaine amélioration</strong>"
-          f"<p>{e(se.get('next_action') or 'Observer sans modifier.')}</p></div>"
-          f"<div class=\"eval-meta\">Confiance {e(se.get('confidence'))} · prochaine revue après "
-          f"{e(review.get('next_review_after_closes', '—'))} clôtures · limites de risque immuables</div></div></section>")
+    a("<section class=\"self-eval\" id=\"self-eval\" aria-label=\"Auto-évaluation de N*ABU\">")
+    a(f"<div class=\"eval-verdict\"><div><div class=\"eval-k\">Self-evaluation / cycle</div>"
+      f"<div class=\"eval-status eval-status--{e(se.get('verdict', 'unknown'))}\">{e(se.get('verdict', '?'))}</div></div>"
+      f"<div class=\"eval-score\">{int(se.get('score') or 0)}<small>/100</small></div></div>")
+    a("<div class=\"eval-axes\"><div class=\"eval-k\" style=\"color:var(--ink-soft)\">Qualité du système</div>")
+    axes = [("Données", "data"), ("Risque", "risk"), ("Discipline", "discipline"), ("Edge", "edge")]
+    for label, key in axes:
+        score = int((se.get("scores") or {}).get(key, 0))
+        max_score = 35 if key == "edge" else 25 if key == "risk" else 20
+        pct = min(100, score / max_score * 100) if max_score else 0
+        a(f"<div class=\"axis\"><span>{e(label)}</span><span class=\"axis-track\"><i style=\"--w:{pct:.1f}%\"></i></span><b>{score}</b></div>")
+    a("</div>")
+    a(f"<div class=\"eval-action\"><div><strong>Prochaine amélioration</strong>"
+      f"<p>{e(se.get('next_action', 'Observer.'))}</p></div>"
+      f"<div class=\"eval-meta\">Confiance {e(se.get('confidence', '?'))} · prochaine revue après {se.get('review', {}).get('next_review_after_closes', '?')} clôtures · limites de risque immuables</div></div></section>")
 
-    # -- attestation technique, disponible sans encombrer la lecture
-    open_attr = " open" if fr["status"] in ("hot", "unknown") else ""
-    a(f"<details class=\"drawer\"{open_attr}><summary>Fraîcheur et attestation des données</summary>"
-      "<div class=\"drawer-body\"><section class=\"attest\"><div class=\"eyebrow\">Attestation — invariant #2</div>")
+    a("<details class=\"drawer\"><summary>Fraîcheur et attestation des données</summary><div class=\"drawer-body\">"
+      "<section class=\"attest\"><div class=\"eyebrow\">Attestation — invariant #2</div>")
     a("<div class=\"rule rule--thick\"></div>")
     a(f"<p class=\"attest-line\">{e(S['attestation'])}</p>")
     a("<div class=\"clocks\">")
     a(f"<div class=\"clock clock--{e(fr['sync_status'])}\"><span class=\"clock-k\">Âge du sync</span>"
-      f"<span class=\"clock-v\">{e(dur(fr['sync_age_s']))}</span>"
-      "<span class=\"clock-n\">book.json · book-sync toutes les 5 min</span></div>")
+      f"<span class=\"clock-v\">{dur(fr['sync_age_s'])}</span>"
+      f"<span class=\"clock-n\">{e(fr['sync_note'])}</span></div>")
     a(f"<div class=\"clock clock--{e(fr['mark_status'])}\"><span class=\"clock-k\">Âge du mark</span>"
-      f"<span class=\"clock-v\">{e(dur(fr['mark_age_s']))}</span>"
-      f"<span class=\"clock-n\">paper/account.json · wrap_mtm.py toutes les heures<br>"
-      f"{e(fr.get('mark_note') or '')}</span></div>")
+      f"<span class=\"clock-v\">{dur(fr['mark_age_s'])}</span>"
+      f"<span class=\"clock-n\">{e(fr['mark_note'])}</span></div>")
     a("</div>")
-
     a(f"<p class=\"verdict\">{e(v)}</p></section></div></details>")
 
-    # -- grand livre du capital (secondaire)
     a("<details class=\"drawer\"><summary>Détail du capital et du compte</summary><div class=\"drawer-body\">"
       "<section class=\"sec\"><div class=\"eyebrow\">Capital</div><div class=\"rule\"></div>")
     a("<div class=\"plate\"><div class=\"cap-grid\">")
-    a(f"<div><div class=\"cap-k\">Equity</div><div class=\"cap-eq\">{e(money(cap['equity_usd']))}</div></div>")
-    dd_cls = " neg" if cap["dd_pct"] > 0 else ""
-    a(f"<div><div class=\"cap-k\">Drawdown / pic</div>"
-      f"<div class=\"cap-v{dd_cls}\">{cap['dd_pct']:.2f}{NB}%</div>"
-      f"<div class=\"note\">pic {e(money(cap['peak_usd'], 0))}</div></div>")
-    dcls = " neg" if cap["day_pnl_pct"] < 0 else ""
-    wcls = " neg" if cap["week_pnl_pct"] < 0 else ""
-    a(f"<div><div class=\"cap-k\">Jour / semaine</div>"
-      f"<div class=\"cap-v{dcls}\">{cap['day_pnl_pct']:+.2f}{NB}%</div>"
-      f"<div class=\"cap-v{wcls}\" style=\"font-size:16px;opacity:.85\">{cap['week_pnl_pct']:+.2f}{NB}% · 7{NB}j</div></div>")
+    a(f"<div><div class=\"cap-k\">Equity</div><div class=\"cap-eq\">{money(cap['equity_usd'])}</div></div>")
+    a(f"<div><div class=\"cap-k\">Drawdown / pic</div><div class=\"cap-v neg\">{cap['dd_pct']:.2f} %</div>"
+      f"<div class=\"note\">pic {money(cap['peak_usd'], 0)}</div></div>")
+    a(f"<div><div class=\"cap-k\">Jour / semaine</div><div class=\"cap-v\">{cap['day_pnl_pct']:+.2f} %</div>"
+      f"<div class=\"cap-v neg\" style=\"font-size:16px;opacity:.85\">{cap['week_pnl_pct']:+.2f} % · 7 j</div></div>")
     a("</div>")
-    p = cap.get("paper")
-    if p:
-        a("<div class=\"cap-strip\">")
-        for kk, vv in [("Cash", money(p["cash_usd"])), ("PnL réalisé", money(p["realized_pnl_usd"])),
-                       ("Frais cumulés", money(p["fees_paid_usd"])),
-                       ("Funding cumulé", money(p["funding_paid_usd"], 4)),
-                       ("Trades clos", str(p["closed_trades"])),
-                       ("Capital initial", money(p["start_equity_usd"], 0))]:
-            a(f"<span>{e(kk)} <b>{e(vv)}</b></span>")
-        a("</div>")
-    a("</div></section></div></details>")
+    a("<div class=\"cap-strip\">")
+    a(f"<span>Cash <b>{money(p.get('cash_usd'))}</b></span>")
+    a(f"<span>PnL réalisé <b>{money(p.get('realized_pnl_usd'))}</b></span>")
+    a(f"<span>Frais cumulés <b>{money(p.get('fees_paid_usd'))}</b></span>")
+    a(f"<span>Funding cumulé <b>{money(p.get('funding_paid_usd'), 4)}</b></span>")
+    a(f"<span>Trades clos <b>{p.get('closed_trades', 0)}</b></span>")
+    a(f"<span>Capital initial <b>{money(p.get('start_equity_usd'))}</b></span>")
+    a("</div></div></section></div></details>")
 
-    # -- risques essentiels puis planche complète repliable
     a("<section class=\"sec primary-section\" id=\"risk\"><div class=\"eyebrow\">Risques à surveiller</div><div class=\"rule\"></div>")
-    if S["gates"]:
-        essentials = sorted(S["gates"], key=lambda x: x["util_pct"], reverse=True)[:4]
-        a("<div class=\"risk-strip\">")
-        for g in essentials:
-            w = min(100.0, g["util_pct"])
-            a(f"<div class=\"risk-card risk-card--{e(g['status'])}\">"
-              f"<div class=\"risk-card-head\"><span>{e(g['label'])}</span><b>{g['util_pct']:.0f}%</b></div>"
-              f"<div class=\"risk-meter\"><span style=\"--w:{w:.1f}%\"></span></div>"
-              f"<div class=\"risk-value\">{e(g['value_txt'])} / {e(g['limit_txt'])}</div></div>")
-        a("</div>")
-    else:
-        a("<p class=\"empty\">Limites indisponibles.</p>")
-    a("</section>")
-    a("<details class=\"drawer\"><summary>Toutes les limites de risque</summary><div class=\"drawer-body\">"
-      "<section class=\"sec\"><div class=\"eyebrow\">Planche complète des limites</div>")
-    a("<div class=\"rule\"></div>")
-    if S["gates"]:
-        a("<div class=\"wedge\">")
-        for i, g in enumerate(S["gates"]):
-            h = min(100.0, g["util_pct"])
-            a(f"<div class=\"step step--{e(g['status'])}\" title=\"{e(g['note'])}\">")
-            a(f"<div class=\"step-pct\">{g['util_pct']:.0f}%</div>")
-            a(f"<div class=\"track\"><div class=\"fill\" style=\"--h:{h:.1f}%;"
-              f"animation-delay:{i * 55}ms\"></div></div>")
-            a(f"<div class=\"step-l\">{e(g['label'])}</div>")
-            a(f"<div class=\"step-v\">{e(g['value_txt'])}</div>")
-            a(f"<div class=\"step-lim\">/ {e(g['limit_txt'])}</div></div>")
-        a("</div>")
-        a("<div class=\"legend\">"
-          "<span><i class=\"dot dot--ok\"></i>sous 60 %</span>"
-          "<span><i class=\"dot dot--watch\"></i>60–85 % · surveiller</span>"
-          "<span><i class=\"dot dot--hot\"></i>au-delà de 85 % · le gate va refuser</span>"
-          "<span>hachuré · limite franchie</span></div>")
-        a("<p class=\"note\" style=\"margin-top:10px\">Chaque barre est la part de la limite "
-          "consommée, pas la valeur brute. Une barre pleine ne raconte pas une perte : elle "
-          "annonce un refus du gate. Les limites viennent de <b>risk.yaml</b>, jamais d'ici.</p>")
-    else:
-        a("<p class=\"empty\">risk.yaml illisible — aucune limite à afficher. "
-          "Une planche vide vaut mieux qu'une planche inventée.</p>")
-    a("</section></div></details>")
+    a("<div class=\"risk-strip\">")
+    for g in S["gates"]:
+        a(f"<div class=\"risk-card risk-card--{e(g['status'])}\"><div class=\"risk-card-head\"><span>{e(g['label'])}</span><b>{e(g['value_txt'])}</b></div>"
+          f"<div class=\"risk-meter\"><span style=\"--w:{min(g['util_pct'], 100):.1f}%\"></span></div>"
+          f"<div class=\"risk-value\">{e(g['value_txt'])} / {e(g['limit_txt'])}</div></div>")
+    a("</div></section>")
 
-    # -- positions
-    a("<section class=\"sec primary-section\" id=\"positions\"><div class=\"eyebrow\">Positions ouvertes</div><div class=\"rule\"></div>")
-    if S["positions"]:
-        a("<div class=\"wrap\"><table class=\"tbl\"><thead><tr>"
-          "<th>Venue</th><th>Sym</th><th>Sens</th><th class=\"num\">Notionnel</th>"
-          "<th class=\"num\">Entrée</th><th class=\"num\">Stop</th><th class=\"num\">uPnL</th>"
-          "<th class=\"num\">Funding</th><th class=\"num\">Portage</th><th class=\"num\">Mark</th>"
-          "</tr></thead><tbody>")
-        for pos in S["positions"]:
-            up = pos["unrealized_pnl_usd"]
-            sd = f"{pos['stop_dist_pct']:.2f}{NB}%" if pos.get("stop_dist_pct") else "—"
-            a(f"<tr class=\"pos-row\" data-sym=\"{e(pos['symbol'])}\" data-side=\"{e(pos['side'])}\" "
-              f"data-size=\"{pos['size']}\" data-entry=\"{pos['entry_px']}\" data-stop=\"{pos['stop_px']}\">"
-              f"<td>{e(pos['venue'])}</td><td><b>{e(pos['symbol'])}</b></td>"
-              f"<td><span class=\"side side--{e(pos['side'])}\">{e(pos['side'])}</span></td>"
-              f"<td class=\"num\">{e(money(pos['notional_usd'], 0))}</td>"
-              f"<td class=\"num\">{pos['entry_px']:,.2f}</td>"
-              f"<td class=\"num\">{pos['stop_px']:,.2f}<br><span class=\"step-lim\">{e(sd)}</span></td>"
-              f"<td class=\"num upd pos-upnl{' neg' if up < 0 else ''}\">{up:+.2f}{NB}$</td>"
-              f"<td class=\"num\">{pos['funding_paid_usd']:+.3f}{NB}$</td>"
-              f"<td class=\"num\">{(pos['hold_h'] or 0):.1f}{NB}h</td>"
-              f"<td class=\"num upd pos-mark\">{e(dur(pos.get('mark_age_s')))}</td></tr>")
-        a("</tbody></table></div>")
-        for pos in S["positions"]:
-            if pos.get("thesis") or pos.get("invalidation"):
-                a(f"<p class=\"thesis\"><b>{e(pos['symbol'])}</b> — thèse : {e(pos['thesis'] or '—')}"
-                  f"<br>Invalidation : {e(pos['invalidation'] or '—')}</p>")
-    else:
-        a("<p class=\"empty\">Flat. C'est une position, pas une absence de position.</p>")
-    a("</section>")
+    if positions:
+        a("<details class=\"drawer\" id=\"positions\"><summary>Positions ouvertes</summary><div class=\"drawer-body\">"
+          "<section class=\"sec\"><div class=\"eyebrow\">Détail des positions</div><div class=\"rule\"></div>")
+        a("<div class=\"wrap\"><table class=\"tbl\"><thead><tr><th>Venue</th><th>Sym</th><th>Sens</th>"
+          "<th class=\"num\">Entrée</th><th class=\"num\">Stop</th><th class=\"num\">Dist</th>"
+          "<th class=\"num\">Notional</th><th class=\"num\">uPnL</th><th class=\"num\">Portage</th></tr></thead><tbody>")
+        for pos in positions:
+            a(f"<tr><td>{e(pos.get('venue'))}</td><td><b>{e(pos.get('symbol'))}</b></td>"
+              f"<td><span class=\"side side--{e(pos.get('side'))}\">{e(pos.get('side'))}</span></td>"
+              f"<td class=\"num\">{pos.get('entry_px', 0):.4f}</td>"
+              f"<td class=\"num\">{pos.get('stop_px', 0):.4f}</td>"
+              f"<td class=\"num\">{pos.get('stop_dist_pct', 0):.2f} %</td>"
+              f"<td class=\"num\">{money(pos.get('notional_usd'))}</td>"
+              f"<td class=\"num{' neg' if pos.get('unrealized_pnl_usd', 0) < 0 else ''}\">{money(pos.get('unrealized_pnl_usd'))}</td>"
+              f"<td class=\"num\">{pos.get('hold_h', 0):.1f} h</td></tr>")
+        a("</tbody></table></div></section></div></details>")
 
-    # -- edge
+    # ================================================================
+    # EDGE MESURÉ + MILESTONE REVIEW
+    # Structure:
+    #   1. Progression (barre)
+    #   2. Stats actuelles (tous les trades)
+    #   3. Palier 1 (complété)
+    #   4. Palier 2 (en cours)
+    #   5. Palier 3-7 (à venir)
+    # ================================================================
     a("<details class=\"drawer\" id=\"analysis\"><summary>Performance statistique de N*ABU</summary><div class=\"drawer-body\">"
       "<section class=\"sec\"><div class=\"eyebrow\">Edge — mesuré, jamais supposé</div>")
     a("<div class=\"rule\"></div>")
@@ -1661,65 +1322,11 @@ def render(state: dict) -> str:
     a(f"<div class=\"progress\"><span style=\"--w:{pct:.1f}%\"></span></div>")
     a(f"<p class=\"note\" style=\"margin-top:8px\">Sortie du gate G0 : {tgt} trades journalisés. "
       "En dessous, ces chiffres décrivent un échantillon, pas un edge — l'intervalle le dit mieux que la moyenne.</p>")
-    
-    # --- Milestone Review (intégré dans la section Edge) ---
-    ms = S.get("milestone") or {}
-    ms_crossed = ms.get("crossed", False)
-    ms_stats = ms.get("palier_stats")
-    ms_improvements = ms.get("improvements", [])
-    ms_verdict = ms.get("verdict", "")
-    ms_n = ms.get("n_closes", 0)
-    ms_target = ms.get("target_trades", tgt)
-    ms_cur = ms.get("current", 0)
-    
-    if ms_crossed and ms_stats:
-        # Palier vient d'être franchi → évaluation complète
-        ms_status_class = {"PERFORMING": "ok", "IMPROVING": "watch", "DEGRADING": "hot"}.get(ms_verdict, "watch")
-        a(f"<div class=\"rule\"></div>")
-        a(f"<div class=\"eyebrow\">Évaluation palier {ms_cur} — {ms_n} trades</div>")
-        a(f"<span class=\"stamp stamp--{ms_status_class}\">{ms_verdict} · palier {ms_cur}</span>")
-        exp_s = ms_stats.get("expectancy_r")
-        ci_s = ms_stats.get("ci95")
-        ci_txt = f"IC95 {ci_s[0]:+.2f} … {ci_s[1]:+.2f}" if ci_s else "IC95 indisponible"
-        cells = [
-            ("Espérance", f"{exp_s:+.2f}R" if exp_s is not None else "—", ci_txt, exp_s is not None and exp_s < 0),
-            ("Taux de gain", f"{ms_stats['win_rate_pct']:.0f}%" if ms_stats.get('win_rate_pct') is not None else "—", "métrique de vanité", False),
-            ("Meilleur R", f"{ms_stats['best_r']:+.2f}R" if ms_stats.get('best_r') is not None else "—", "best trade", False),
-            ("Pire R", f"{ms_stats['worst_r']:+.2f}R" if ms_stats.get('worst_r') is not None else "—", "worst trade", True),
-        ]
-        a("<div class=\"edge-grid\">")
-        for kk, vv, nn, bad in cells:
-            a(f"<div class=\"cell\"><div class=\"cell-k\">{e(kk)}</div>"
-              f"<div class=\"cell-v{' neg' if bad else ''}\">{e(vv)}</div>"
-              f"<div class=\"cell-n\">{e(nn)}</div></div>")
-        a("</div>")
-        if ms_improvements:
-            a("<div class=\"rule\"></div>")
-            a("<div class=\"eyebrow\">Améliorations proposées</div>")
-            a("<ul class=\"note\" style=\"margin:0;padding-left:18px\">")
-            for imp in ms_improvements[:5]:
-                a(f"<li>{e(imp)}</li>")
-            a("</ul>")
-    elif ms_n > 0 and ms_cur >= 1:
-        # En cours de palier → progression vers le prochain
-        next_palier = ms.get("display_palier", ms_cur + 1)
-        palier_start = (next_palier - 1) * ms_target
-        palier_progress = ms_n - palier_start
-        pct_palier = min(100.0, palier_progress / ms_target * 100)
-        a(f"<div class=\"rule\"></div>")
-        a(f"<div class=\"eyebrow\">Progression palier {next_palier}</div>")
-        a(f"<div class=\"progress\"><span style=\"--w:{pct_palier:.1f}%\"></span></div>")
-        a(f"<p class=\"note\" style=\"margin-top:8px\">{palier_progress} / {ms_target} trades vers l'évaluation du palier {next_palier}. "
-          f"Prochaine évaluation à {next_palier * ms_target} trades.</p>")
-    elif ms_n > 0:
-        # Avant le premier palier
-        a(f"<div class=\"rule\"></div>")
-        a(f"<div class=\"eyebrow\">Progression vers le palier 1</div>")
-        pct_palier = min(100.0, ms_n / ms_target * 100)
-        a(f"<div class=\"progress\"><span style=\"--w:{pct_palier:.1f}%\"></span></div>")
-        a(f"<p class=\"note\" style=\"margin-top:8px\">{ms_n} / {ms_target} trades vers la première évaluation.</p>")
 
+    # --- Stats actuelles (tous les trades) ---
     if n:
+        a("<div class=\"rule\"></div>")
+        a("<div class=\"eyebrow\">Stats actuelles</div>")
         exp = edge["expectancy_r"]
         ci = edge["ci95"]
         ci_txt = f"IC95 {ci[0]:+.2f} … {ci[1]:+.2f}" if ci else "IC95 indisponible"
@@ -1763,8 +1370,7 @@ def render(state: dict) -> str:
                 a(f"<div>{e(h['label'])}<br>{h['n']}</div>")
             a("</div>")
             a("<p class=\"note\" style=\"margin-top:10px\">Distribution des R. "
-              "Une espérance portée par une seule barre à droite n'est pas un edge, "
-              "c'est un trade.</p>")
+              "Une espérance portée par une seule barre à droite n'est pas un edge, c'est un trade.</p>")
 
         rec = edge.get("expectancy_r_recent")
         if rec is not None:
@@ -1807,6 +1413,78 @@ def render(state: dict) -> str:
     else:
         a("<p class=\"empty\">Aucun trade clos non-artefact dans le journal. Rien à mesurer, "
           "rien à inventer.</p>")
+
+    # --- Milestone Review ---
+    ms = S.get("milestone") or {}
+    ms_n = ms.get("n_closes", 0)
+    ms_target = ms.get("target", tgt)
+    ms_progress = ms.get("progress", {})
+    ms_paliers = ms.get("paliers", [])
+
+    if ms_paliers:
+        # Progression dans le palier actuel
+        a("<div class=\"rule\"></div>")
+        a("<div class=\"eyebrow\">Progression</div>")
+        pct_prog = ms_progress.get("pct", 0)
+        done_prog = ms_progress.get("done", 0)
+        total_prog = ms_progress.get("total", tgt)
+        a(f"<div class=\"progress\"><span style=\"--w:{pct_prog:.1f}%\"></span></div>")
+        a(f"<p class=\"note\" style=\"margin-top:8px\">{done_prog} / {total_prog} trades vers l'évaluation suivante.</p>")
+
+        # Chaque palier
+        for p in ms_paliers:
+            p_n = p.get("n", 0)
+            p_status = p.get("status", "pending")
+            p_label = p.get("label", f"Palier {p_n}")
+            p_n_trades = p.get("n_trades", 0)
+
+            a("<div class=\"rule\"></div>")
+
+            if p_status == "completed":
+                p_exp = p.get("expectancy_r")
+                p_ci = p.get("ci95")
+                p_ci_txt = f"IC95 {p_ci[0]:+.2f} … {p_ci[1]:+.2f}" if p_ci else "IC95 indisponible"
+                p_exp_s = f"{p_exp:+.2f}R" if p_exp is not None else "?"
+                a(f"<div class=\"eyebrow\">{p_label} — {p_n_trades} trades · terminé</div>")
+                cells = [
+                    ("Espérance", p_exp_s, p_ci_txt, p_exp is not None and p_exp < 0),
+                    ("Taux de gain", f"{p.get('win_rate_pct', 0):.0f}%", "métrique de vanité", False),
+                    ("Meilleur R", f"{p.get('best_r', 0):+.2f}R", "best trade", False),
+                    ("Pire R", f"{p.get('worst_r', 0):+.2f}R", "worst trade", True),
+                ]
+                a("<div class=\"edge-grid\">")
+                for kk, vv, nn, bad in cells:
+                    a(f"<div class=\"cell\"><div class=\"cell-k\">{e(kk)}</div>"
+                      f"<div class=\"cell-v{' neg' if bad else ''}\">{e(vv)}</div>"
+                      f"<div class=\"cell-n\">{e(nn)}</div></div>")
+                a("</div>")
+                p_imps = p.get("improvements", [])
+                if p_imps:
+                    a("<div class=\"rule\"></div>")
+                    a("<div class=\"eyebrow\">Améliorations proposées</div>")
+                    a("<ul class=\"note\" style=\"margin:0;padding-left:18px\">")
+                    for imp in p_imps[:5]:
+                        a(f"<li>{e(imp)}</li>")
+                    a("</ul>")
+            elif p_status == "building":
+                p_exp = p.get("expectancy_r")
+                p_exp_s = f"{p_exp:+.2f}R" if p_exp is not None else "?"
+                a(f"<div class=\"eyebrow\">{p_label} — {p_n_trades} trades · en cours</div>")
+                cells = [
+                    ("Espérance partielle", p_exp_s, "non significatif", p_exp is not None and p_exp < 0),
+                    ("Taux de gain", f"{p.get('win_rate_pct', 0):.0f}%", "métrique de vanité", False),
+                    ("Meilleur R", f"{p.get('best_r', 0):+.2f}R", "best trade", False),
+                    ("Pire R", f"{p.get('worst_r', 0):+.2f}R", "worst trade", True),
+                ]
+                a("<div class=\"edge-grid\">")
+                for kk, vv, nn, bad in cells:
+                    a(f"<div class=\"cell\"><div class=\"cell-k\">{e(kk)}</div>"
+                      f"<div class=\"cell-v{' neg' if bad else ''}\">{e(vv)}</div>"
+                      f"<div class=\"cell-n\">{e(nn)}</div></div>")
+                a("</div>")
+            else:
+                a(f"<div class=\"eyebrow\">{p_label} — à venir</div>")
+
     a("</section></div></details>")
 
     # -- contexte live
@@ -1823,10 +1501,10 @@ def render(state: dict) -> str:
             f8 = float(d.get("funding_bps_8h") or 0)
             a(f"<tr><td><b>{e(coin)}</b></td>"
               f"<td class=\"num\">{float(d.get('mid') or 0):,.2f}</td>"
-              f"<td class=\"num{' neg' if dev < 0 else ''}\">{dev:+.2f}{NB}%</td>"
+              f"<td class=\"num{' neg' if dev < 0 else ''}\">{dev:+.2f} %</td>"
               f"<td class=\"num\">{float(d.get('range_lo_50h') or 0):,.2f} – "
               f"{float(d.get('range_hi_50h') or 0):,.2f}</td>"
-              f"<td class=\"num\">{f8:+.3f}{NB}bps</td>"
+              f"<td class=\"num\">{f8:+.3f} bps</td>"
               f"<td>{e(d.get('daily_lecture') or '—')}</td></tr>")
         a("</tbody></table></div>")
     else:
@@ -1851,8 +1529,8 @@ def render(state: dict) -> str:
                 a(f"<tr><td><b>{e(x.get('asset'))}</b></td>"
                   f"<td><span class=\"side side--{e(x.get('side'))}\">{e(x.get('side'))}</span></td>"
                   f"<td class=\"num\">{float(x.get('price') or 0):,.2f}</td>"
-                  f"<td class=\"num\">{float(x.get('funding_bps') or 0):+.3f}{NB}bps</td>"
-                  f"<td class=\"num\">{float(x.get('oi_usd') or 0) / 1e6:,.0f}{NB}M$</td>"
+                  f"<td class=\"num\">{float(x.get('funding_bps') or 0):+.3f} bps</td>"
+                  f"<td class=\"num\">{float(x.get('oi_usd') or 0) / 1e6:,.0f} M$</td>"
                   f"<td><span class=\"conv conv--{e(cv)}\">{e(x.get('conviction'))}</span></td>"
                   f"<td>{e(x.get('thesis') or '—')}<br>"
                   f"<span class=\"step-lim\">inval. {e(x.get('invalidation') or '—')}</span></td></tr>")
@@ -1906,13 +1584,14 @@ def render(state: dict) -> str:
     a("<script type=\"application/json\" id=\"nabu-state\">")
     a(html.escape(json.dumps(S, ensure_ascii=False, default=str), quote=False))
     a("</script>")
-    a(LIVE_JS)
+    a("<script>" + _js() + "</script>")
     a("</body></html>")
-    return "\n".join(o)
+
+    return "".join(o)
 
 
 # ---------------------------------------------------------------------------
-# CLI
+# Main
 # ---------------------------------------------------------------------------
 
 def main() -> int:
@@ -1932,9 +1611,9 @@ def main() -> int:
     out.parent.mkdir(parents=True, exist_ok=True)
     tmp = out.with_suffix(".tmp")
     tmp.write_text(render(state), encoding="utf-8")
-    tmp.replace(out)                 # atomique : jamais de page à moitié écrite
+    tmp.replace(out)
     if a.cmd == "build":
-        append_history(state)        # trace de la courbe d'equity + score
+        append_history(state)
 
     fr = state["freshness"]
     print(f"DASHBOARD · {out} · mode {state['mode']} · "
@@ -1948,3 +1627,5 @@ def main() -> int:
 
 if __name__ == "__main__":
     sys.exit(main())
+
+
