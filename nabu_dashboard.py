@@ -1664,42 +1664,74 @@ def render(state: dict) -> str:
     
     # --- Milestone Review (intégré dans la section Edge) ---
     ms = S.get("milestone") or {}
-    ms_crossed = ms.get("crossed", False)
-    ms_stats = ms.get("palier_stats")
-    ms_improvements = ms.get("improvements", [])
-    ms_verdict = ms.get("verdict", "")
     ms_n = ms.get("n_closes", 0)
-    ms_target = ms.get("target_trades", tgt)
-    ms_cur = ms.get("current", 0)
+    ms_target = ms.get("target", tgt)
+    ms_progress = ms.get("progress", {})
+    ms_paliers = ms.get("paliers", [])
     
-    if ms_crossed and ms_stats:
-        # Palier vient d'être franchi → évaluation complète
-        ms_status_class = {"PERFORMING": "ok", "IMPROVING": "watch", "DEGRADING": "hot"}.get(ms_verdict, "watch")
-        a(f"<div class=\"rule\"></div>")
-        a(f"<div class=\"eyebrow\">Évaluation palier {ms_cur} — {ms_n} trades</div>")
-        a(f"<span class=\"stamp stamp--{ms_status_class}\">{ms_verdict} · palier {ms_cur}</span>")
-        exp_s = ms_stats.get("expectancy_r")
-        ci_s = ms_stats.get("ci95")
-        ci_txt = f"IC95 {ci_s[0]:+.2f} … {ci_s[1]:+.2f}" if ci_s else "IC95 indisponible"
-        cells = [
-            ("Espérance", f"{exp_s:+.2f}R" if exp_s is not None else "—", ci_txt, exp_s is not None and exp_s < 0),
-            ("Taux de gain", f"{ms_stats['win_rate_pct']:.0f}%" if ms_stats.get('win_rate_pct') is not None else "—", "métrique de vanité", False),
-            ("Meilleur R", f"{ms_stats['best_r']:+.2f}R" if ms_stats.get('best_r') is not None else "—", "best trade", False),
-            ("Pire R", f"{ms_stats['worst_r']:+.2f}R" if ms_stats.get('worst_r') is not None else "—", "worst trade", True),
-        ]
-        a("<div class=\"edge-grid\">")
-        for kk, vv, nn, bad in cells:
-            a(f"<div class=\"cell\"><div class=\"cell-k\">{e(kk)}</div>"
-              f"<div class=\"cell-v{' neg' if bad else ''}\">{e(vv)}</div>"
-              f"<div class=\"cell-n\">{e(nn)}</div></div>")
-        a("</div>")
-        if ms_improvements:
+    if ms_paliers:
+        # Progression dans le palier actuel
+        a("<div class=\"rule\"></div>")
+        a("<div class=\"eyebrow\">Progression</div>")
+        pct_prog = ms_progress.get("pct", 0)
+        done_prog = ms_progress.get("done", 0)
+        total_prog = ms_progress.get("total", tgt)
+        a(f"<div class=\"progress\"><span style=\"--w:{pct_prog:.1f}%\"></span></div>")
+        a(f"<p class=\"note\" style=\"margin-top:8px\">{done_prog} / {total_prog} trades vers l'évaluation suivante.</p>")
+        
+        # Chaque palier
+        for p in ms_paliers:
+            p_n = p.get("n", 0)
+            p_status = p.get("status", "pending")
+            p_label = p.get("label", f"Palier {p_n}")
+            p_n_trades = p.get("n_trades", 0)
+            
             a("<div class=\"rule\"></div>")
-            a("<div class=\"eyebrow\">Améliorations proposées</div>")
-            a("<ul class=\"note\" style=\"margin:0;padding-left:18px\">")
-            for imp in ms_improvements[:5]:
-                a(f"<li>{e(imp)}</li>")
-            a("</ul>")
+            
+            if p_status == "completed":
+                p_exp = p.get("expectancy_r")
+                p_ci = p.get("ci95")
+                p_ci_txt = f"IC95 {p_ci[0]:+.2f} … {p_ci[1]:+.2f}" if p_ci else "IC95 indisponible"
+                p_exp_s = f"{p_exp:+.2f}R" if p_exp is not None else "?"
+                a(f"<div class=\"eyebrow\">{p_label} — {p_n_trades} trades · terminé</div>")
+                cells = [
+                    ("Espérance", p_exp_s, p_ci_txt, p_exp is not None and p_exp < 0),
+                    ("Taux de gain", f"{p.get('win_rate_pct', 0):.0f}%", "métrique de vanité", False),
+                    ("Meilleur R", f"{p.get('best_r', 0):+.2f}R", "best trade", False),
+                    ("Pire R", f"{p.get('worst_r', 0):+.2f}R", "worst trade", True),
+                ]
+                a("<div class=\"edge-grid\">")
+                for kk, vv, nn, bad in cells:
+                    a(f"<div class=\"cell\"><div class=\"cell-k\">{e(kk)}</div>"
+                      f"<div class=\"cell-v{' neg' if bad else ''}\">{e(vv)}</div>"
+                      f"<div class=\"cell-n\">{e(nn)}</div></div>")
+                a("</div>")
+                p_imps = p.get("improvements", [])
+                if p_imps:
+                    a("<div class=\"rule\"></div>")
+                    a("<div class=\"eyebrow\">Améliorations proposées</div>")
+                    a("<ul class=\"note\" style=\"margin:0;padding-left:18px\">")
+                    for imp in p_imps[:5]:
+                        a(f"<li>{e(imp)}</li>")
+                    a("</ul>")
+            elif p_status == "building":
+                p_exp = p.get("expectancy_r")
+                p_exp_s = f"{p_exp:+.2f}R" if p_exp is not None else "?"
+                a(f"<div class=\"eyebrow\">{p_label} — {p_n_trades} trades · en cours</div>")
+                cells = [
+                    ("Espérance partielle", p_exp_s, "non significatif", p_exp is not None and p_exp < 0),
+                    ("Taux de gain", f"{p.get('win_rate_pct', 0):.0f}%", "métrique de vanité", False),
+                    ("Meilleur R", f"{p.get('best_r', 0):+.2f}R", "best trade", False),
+                    ("Pire R", f"{p.get('worst_r', 0):+.2f}R", "worst trade", True),
+                ]
+                a("<div class=\"edge-grid\">")
+                for kk, vv, nn, bad in cells:
+                    a(f"<div class=\"cell\"><div class=\"cell-k\">{e(kk)}</div>"
+                      f"<div class=\"cell-v{' neg' if bad else ''}\">{e(vv)}</div>"
+                      f"<div class=\"cell-n\">{e(nn)}</div></div>")
+                a("</div>")
+            else:
+                a(f"<div class=\"eyebrow\">{p_label} — à venir</div>")
     elif ms_n > 0 and ms_cur >= 1:
         # En cours de palier → progression vers le prochain
         next_palier = ms.get("display_palier", ms_cur + 1)
