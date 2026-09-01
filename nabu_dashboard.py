@@ -616,6 +616,7 @@ def compute_positions(book: dict, account: dict | None) -> list[dict]:
             "hold_h": ((now - float(a.get("opened_ts") or 0)) / 3600) if a.get("opened_ts") else None,
             "thesis": a.get("thesis") or "",
             "invalidation": a.get("invalidation") or "",
+            "stop_px_initial": float(a.get("stop_px_initial") or stop),
         })
     # uPnL recalculé depuis last_mark_px (account) pour être cohérent avec le R
     # (les deux utilisent la même source de marks — pas de mismatch book vs account)
@@ -1565,7 +1566,8 @@ function applyMids(mids){
     var sym = r.dataset.sym, mid = parseFloat(mids[sym]);
     if(!mid || !isFinite(mid)) return;
     var size = parseFloat(r.dataset.size), entry = parseFloat(r.dataset.entry),
-        stop = parseFloat(r.dataset.stop), short = r.dataset.side==="short",
+        stop = parseFloat(r.dataset.stopInitial || r.dataset.stop),
+        short = r.dataset.side==="short",
         risk = Math.abs(entry-stop);
     var pnl = (short ? (entry-mid) : (mid-entry)) * size;
     var rr  = risk>0 ? (short ? (entry-mid) : (mid-entry))/risk : 0;
@@ -1765,7 +1767,11 @@ def render(state: dict) -> str:
     realized = float(p.get("realized_pnl_usd") or 0)
 
     def _pos_r(q):
-        risk = abs(float(q["entry_px"]) - float(q["stop_px"]))
+        # Utilise stop_px_initial (le vrai risque initial) — pas stop_px courant
+        # qui peut avoir été ramené à l'entrée par le breakeven/ratchet.
+        # Sans ça, un trade après breakeven affiche R=0 (risk=0 division).
+        stop = float(q.get("stop_px_initial") or q["stop_px"])
+        risk = abs(float(q["entry_px"]) - stop)
         if not risk:
             return 0.0
         mk = float(q.get("last_mark_px") or q["entry_px"])
@@ -1947,7 +1953,8 @@ def render(state: dict) -> str:
             sd = f"{pos['stop_dist_pct']:.2f}{NB}%" if pos.get("stop_dist_pct") else "—"
             rp = _pos_r(pos)
             a(f"<tr class=\"pos-row\" data-sym=\"{e(pos['symbol'])}\" data-side=\"{e(pos['side'])}\" "
-              f"data-size=\"{pos['size']}\" data-entry=\"{pos['entry_px']}\" data-stop=\"{pos['stop_px']}\">"
+              f"data-size=\"{pos['size']}\" data-entry=\"{pos['entry_px']}\" data-stop=\"{pos['stop_px']}\" "
+              f"data-stop-initial=\"{pos.get('stop_px_initial', pos['stop_px'])}\">"
               f"<td>{e(pos['venue'])}</td><td><b>{e(pos['symbol'])}</b></td>"
               f"<td><span class=\"side side--{e(pos['side'])}\">{e(pos['side'])}</span></td>"
               f"<td class=\"num pos-r{' neg' if rp < 0 else ''}\"><b>{rp:+.2f}{NB}R</b></td>"
