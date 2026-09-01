@@ -609,7 +609,6 @@ def compute_positions(book: dict, account: dict | None) -> list[dict]:
             "size": float(p.get("size") or 0),
             "entry_px": entry, "stop_px": stop, "stop_dist_pct": stop_dist,
             "notional_usd": float(p.get("notional_usd") or 0),
-            "unrealized_pnl_usd": float(p.get("unrealized_pnl_usd") or 0),
             "funding_paid_usd": float(p.get("funding_paid_usd") or 0),
             "last_mark_px": float(a.get("last_mark_px") or 0),
             "mark_age_s": (now - lm) if lm else None,
@@ -618,6 +617,21 @@ def compute_positions(book: dict, account: dict | None) -> list[dict]:
             "thesis": a.get("thesis") or "",
             "invalidation": a.get("invalidation") or "",
         })
+    # uPnL recalculé depuis last_mark_px (account) pour être cohérent avec le R
+    # (les deux utilisent la même source de marks — pas de mismatch book vs account)
+    for pt in out:
+        mk = pt["last_mark_px"]
+        if mk > 0:
+            pt["unrealized_pnl_usd"] = (
+                (float(pt["entry_px"]) - mk) if pt["side"] == "short"
+                else (mk - float(pt["entry_px"]))
+            ) * float(pt["size"])
+        else:
+            pt["unrealized_pnl_usd"] = float(
+                next((bp.get("unrealized_pnl_usd", 0)
+                      for bp in book.get("positions", [])
+                      if str(bp.get("symbol", "")).upper() == pt["symbol"]),
+                0) or 0)
     return out
 
 
@@ -1578,6 +1592,10 @@ function applyMids(mids){
     var mk = r.querySelector(".pos-mark");
     if(mk){ mk.textContent = "live"; mk.classList.add("delta-up"); }
   });
+  // Ne pas écraser le header avec des valeurs PARTIELLES :
+  // si une position n'est pas résolue dans allMids, on ne met pas à jour le header.
+  // Les positions non résolues gardent leur valeur statique du build.
+  if(n !== rows.length) return;
   if(!n) return;
   lastOk = Date.now();
 
