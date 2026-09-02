@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 108" role="img" aria-labelledby="title desc">
+  <title id="title">Symbole iii canonique</title>
+  <desc id="desc">Trois disques distincts au-dessus de trois piliers distincts, les piliers extérieurs s'ouvrant vers l'extérieur.</desc>
+  <g fill="currentColor">
+    <circle cx="20" cy="25" r="16"/>
+    <circle cx="60" cy="19" r="18"/>
+    <circle cx="100" cy="25" r="16"/>
+    <path d="M7 50L35 45L41 103L3 106Z"/>
+    <path d="M46 43H74L78 104H42Z"/>
+    <path d="M85 45L113 50L117 106L79 103Z"/>
+  </g>
+</svg>
