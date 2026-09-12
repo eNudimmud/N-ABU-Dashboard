@@ -198,6 +198,17 @@ class AdditiveHook(unittest.TestCase):
         self.assertIn("nabu-world-lockup", js)
         self.assertIn("nabu-world-orb", js)
         self.assertIn("Completed", js)
+        self.assertIn("normalizeSnapshot", js)
+        self.assertIn("capacity.A_open", js)
+        self.assertIn("closeWorld", js)
+        self.assertIn("stopChimeLoop(false)", js)
+        self.assertIn('href !== "#world"', js)
+        toast_block = css.split("#nabu-world-toast{", 1)[1].split("}", 1)[0]
+        self.assertIn("82px", toast_block)
+        self.assertIn("z-index:64", toast_block)
+        banner_block = css.split("#nabu-world-banner{", 1)[1].split("}", 1)[0]
+        self.assertIn("z-index:60", banner_block)
+        self.assertIn("left:82px", banner_block)
 
     def test_openable_geofence_url_contract(self):
         js = (ROOT / "assets" / "world-tab.js").read_text(encoding="utf-8")
@@ -236,6 +247,15 @@ def _eval_gate(expr: str):
         "isAlertablePending",
         "livePending",
         "alertablePending",
+        "numish",
+        "copyOwn",
+        "asRowList",
+        "normalizeTrackCap",
+        "normalizePositions",
+        "noteText",
+        "normalizeAutonomy",
+        "normalizeCashflow",
+        "normalizeSnapshot",
     ]
     bundle = "\n".join(_extract_js_function(js, n) for n in names)
     script = bundle + f";\nconsole.log(JSON.stringify({expr}));"
@@ -326,6 +346,103 @@ class AlertGating(unittest.TestCase):
         self.assertTrue(_eval_gate(
             "isOpenableGeofenceUrl('data:text/html,<p>ok</p>')"
         ))
+
+
+class LegacyScoreSchema(unittest.TestCase):
+    """world-tab.js maps live-score capacity/open onto caps/positions."""
+
+    SCORE = {
+        "updated_at": "2026-09-12T22:17:32.039+02:00",
+        "mode": "LIVE_ONLY",
+        "usdc": 21.47,
+        "total_usd": 47.47,
+        "capacity": {
+            "A_open": 10.0,
+            "A_cap": 10.0,
+            "A_remaining": 0.0,
+            "B_open": 15.0,
+            "B_cap": 15.0,
+            "B_remaining": 0.0,
+            "ticket": 5.0,
+            "bankroll_usd": 47.47,
+        },
+        "positions": [{
+            "market": "Arsenal",
+            "track": "A",
+            "side": "YES",
+            "size_usd": 5.0,
+            "mark_usd": 6.3959,
+        }],
+        "last_eval": {
+            "id": "20260912-2217-LIVE",
+            "note": "SKIP_no_capacity + Arsenal mark +61.4%",
+        },
+        "pending_geofence": None,
+        "awaiting_region_check": False,
+    }
+
+    def test_capacity_maps_to_caps(self):
+        got = _eval_gate("normalizeSnapshot(" + json.dumps(self.SCORE) + ")")
+        self.assertEqual(got["caps"]["A"]["open_usd"], 10.0)
+        self.assertEqual(got["caps"]["A"]["max_usd"], 10.0)
+        self.assertEqual(got["caps"]["B"]["open_usd"], 15.0)
+        self.assertEqual(got["caps"]["B"]["max_usd"], 15.0)
+        self.assertEqual(got["generated_at"], self.SCORE["updated_at"])
+        self.assertEqual(got["ticket_usd"], 5.0)
+        self.assertEqual(got["positions"][0]["mark"], 6.3959)
+        self.assertEqual(got["cashflow"]["usdc"], 21.47)
+        self.assertEqual(got["autonomy"]["note"], "SKIP_no_capacity + Arsenal mark +61.4%")
+
+    def test_open_alias_becomes_positions(self):
+        raw = {
+            "capacity": {"A_open": 5, "A_cap": 10, "B_open": 0, "B_cap": 15},
+            "open": [{"market": "Foo", "track": "A", "size_usd": 5, "mark_usd": 1.2}],
+        }
+        got = _eval_gate("normalizeSnapshot(" + json.dumps(raw) + ")")
+        self.assertEqual(len(got["positions"]), 1)
+        self.assertEqual(got["positions"][0]["market"], "Foo")
+        self.assertEqual(got["positions"][0]["mark"], 1.2)
+        self.assertEqual(got["caps"]["A"]["open_usd"], 5)
+        self.assertEqual(got["caps"]["A"]["max_usd"], 10)
+
+    def test_canonical_caps_not_overwritten_by_empty_capacity(self):
+        raw = {
+            "generated_at": "2026-09-12T16:40:00Z",
+            "caps": {"A": {"open_usd": 5, "max_usd": 10}, "B": {"open_usd": 10, "max_usd": 15}},
+            "positions": [{"market": "Keep", "track": "B", "mark": 0.4}],
+        }
+        got = _eval_gate("normalizeSnapshot(" + json.dumps(raw) + ")")
+        self.assertEqual(got["caps"]["A"]["open_usd"], 5)
+        self.assertEqual(got["positions"][0]["mark"], 0.4)
+        self.assertEqual(got["generated_at"], "2026-09-12T16:40:00Z")
+
+    def test_garbage_input_never_throws(self):
+        for raw in (None, 1, "x", [], {"capacity": "nope", "open": 1, "autonomy": {"note": {"note": "ok"}}}):
+            got = _eval_gate("normalizeSnapshot(" + json.dumps(raw) + ")")
+            self.assertIsInstance(got, dict)
+        nested = _eval_gate('normalizeSnapshot({"autonomy":{"note":{"note":"ok"}}}).autonomy.note')
+        self.assertEqual(nested, "ok")
+
+
+class PagesRoot(unittest.TestCase):
+    def test_index_redirects_to_dashboard(self):
+        html = (ROOT / "index.html").read_text(encoding="utf-8")
+        self.assertIn("dashboard.html", html)
+        self.assertIn('http-equiv="refresh"', html)
+        self.assertIn("location.replace", html)
+        self.assertTrue((ROOT / ".nojekyll").exists())
+
+
+class OverlayClose(unittest.TestCase):
+    def test_close_world_hides_toast_and_stops_chimes(self):
+        js = (ROOT / "assets" / "world-tab.js").read_text(encoding="utf-8")
+        body = js.split("function closeWorld", 1)[1].split("function syncHash", 1)[0]
+        self.assertIn("hideToast()", body)
+        self.assertIn("stopChimeLoop(false)", body)
+        self.assertIn("setWorldChrome(root, false)", body)
+        alert = js.split("function alertNewPending", 1)[1].split("function tickExpiry", 1)[0]
+        self.assertIn("worldOpen()", alert)
+        self.assertIn("hideToast()", alert)
 
 
 if __name__ == "__main__":

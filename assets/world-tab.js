@@ -2,8 +2,8 @@
 (function () {
   "use strict";
 
-  var SNAPSHOT_URL = "assets/world-live.json";
-  var CSS_URL = "assets/world-tab.css?v=alerts1";
+  var SNAPSHOT_URLS = ["assets/world-live.json", "world-live.json"];
+  var CSS_URL = "assets/world-tab.css?v=hotfix1";
   var WALLET_FALLBACK = "27bcZ8xT8qWzkmdyjKy7mRXKqRAR9KBphZt3BMyjmac3";
   var POLL_MS = 8000;
   var SEEN_KEY = "nabu-world-seen-geofence";
@@ -81,6 +81,172 @@
       if (!isBlank(obj[keys[i]])) return obj[keys[i]];
     }
     return fallback;
+  }
+
+  function numish(v) {
+    if (isBlank(v)) return null;
+    var n = Number(v);
+    return isFinite(n) ? n : null;
+  }
+
+  function copyOwn(src) {
+    var out = {};
+    if (!src || typeof src !== "object" || Array.isArray(src)) return out;
+    for (var k in src) {
+      if (Object.prototype.hasOwnProperty.call(src, k)) out[k] = src[k];
+    }
+    return out;
+  }
+
+  function asRowList(v) {
+    if (!v) return [];
+    if (Array.isArray(v)) {
+      var rows = [];
+      for (var i = 0; i < v.length; i++) {
+        if (v[i] && typeof v[i] === "object" && !Array.isArray(v[i])) rows.push(v[i]);
+      }
+      return rows;
+    }
+    if (typeof v !== "object") return [];
+    if (Array.isArray(v.positions)) return asRowList(v.positions);
+    if (Array.isArray(v.open)) return asRowList(v.open);
+    if (Array.isArray(v.items)) return asRowList(v.items);
+    var keys = Object.keys(v);
+    var out = [];
+    for (var j = 0; j < keys.length; j++) {
+      var item = v[keys[j]];
+      if (Array.isArray(item)) {
+        var nested = asRowList(item);
+        for (var n = 0; n < nested.length; n++) {
+          var row = copyOwn(nested[n]);
+          if (isBlank(row.track) && /^[AB]$/i.test(keys[j])) row.track = keys[j];
+          out.push(row);
+        }
+      } else if (item && typeof item === "object") {
+        if (item.market || item.ticker || item.title || item.question || item.size_usd || item.mint) {
+          var one = copyOwn(item);
+          if (isBlank(one.track) && /^[AB]$/i.test(keys[j])) one.track = keys[j];
+          out.push(one);
+        }
+      }
+    }
+    return out;
+  }
+
+  function normalizeTrackCap(caps, capacity, key) {
+    var c = (caps && typeof caps === "object" && !Array.isArray(caps)) ? (caps[key] || {}) : {};
+    if (typeof c !== "object" || Array.isArray(c)) c = {};
+    var cap = (capacity && typeof capacity === "object" && !Array.isArray(capacity)) ? capacity : {};
+    var open = numish(c.open_usd);
+    var max = numish(c.max_usd);
+    if (open == null) open = numish(cap[key + "_open"]);
+    if (max == null) max = numish(pick(cap, [key + "_cap", key + "_max"], null));
+    var o = copyOwn(c);
+    if (open != null) o.open_usd = open;
+    if (max != null) o.max_usd = max;
+    return o;
+  }
+
+  function normalizePositions(rows) {
+    var src = asRowList(rows);
+    var out = [];
+    for (var i = 0; i < src.length; i++) {
+      var o = copyOwn(src[i]);
+      if (isBlank(o.mark)) {
+        var mk = pick(o, ["mark_usd", "mark_px", "price"], null);
+        if (!isBlank(mk)) o.mark = mk;
+      }
+      if (isBlank(o.entry)) {
+        var en = pick(o, ["entry_usd", "entry_px"], null);
+        if (!isBlank(en)) o.entry = en;
+      }
+      if (isBlank(o.size_usd)) {
+        var sz = pick(o, ["size", "notional", "ticket"], null);
+        if (!isBlank(sz)) o.size_usd = sz;
+      }
+      out.push(o);
+    }
+    return out;
+  }
+
+  function noteText(note) {
+    if (note == null || note === "") return "";
+    if (typeof note === "string") return note;
+    if (typeof note === "number" && isFinite(note)) return String(note);
+    if (typeof note === "object") {
+      var t = pick(note, ["note", "summary", "text", "last_decision"], "");
+      return t == null ? "" : String(t);
+    }
+    return String(note);
+  }
+
+  function normalizeAutonomy(auto, lastEval) {
+    var src = (auto && typeof auto === "object" && !Array.isArray(auto)) ? auto : {};
+    if ((!src.note && !src.cycle_id && !src.evaluated_at) && lastEval && typeof lastEval === "object") {
+      src = lastEval;
+    }
+    var o = copyOwn(src);
+    if (typeof lastEval === "string" && isBlank(o.note)) o.note = lastEval;
+    if (o.note && typeof o.note === "object") {
+      var nested = o.note;
+      o.note = noteText(nested);
+      if (isBlank(o.cycle_id)) o.cycle_id = pick(nested, ["id", "cycle_id", "cycle"], o.cycle_id);
+      if (isBlank(o.evaluated_at)) o.evaluated_at = pick(nested, ["evaluated_at", "ts", "iso"], o.evaluated_at);
+    } else if (o.note != null && typeof o.note !== "string") {
+      o.note = noteText(o.note);
+    }
+    if (isBlank(o.note) && lastEval && typeof lastEval === "object") {
+      o.note = noteText(lastEval);
+      if (isBlank(o.cycle_id)) o.cycle_id = pick(lastEval, ["id", "cycle_id"], o.cycle_id);
+      if (isBlank(o.evaluated_at)) o.evaluated_at = pick(lastEval, ["evaluated_at", "ts"], o.evaluated_at);
+    }
+    return o;
+  }
+
+  function normalizeCashflow(cash, data) {
+    var o = (cash && typeof cash === "object" && !Array.isArray(cash)) ? copyOwn(cash) : {};
+    if (isBlank(o.usdc) && !isBlank(data.usdc)) o.usdc = data.usdc;
+    if (isBlank(o.total_usd) && !isBlank(data.total_usd)) o.total_usd = data.total_usd;
+    if (isBlank(o.bankroll_usd)) {
+      var br = pick(data, ["bankroll_usd"], null);
+      if (isBlank(br) && data.capacity) br = pick(data.capacity, ["bankroll_usd"], null);
+      if (!isBlank(br)) o.bankroll_usd = br;
+    }
+    return o;
+  }
+
+  /* Live score writes capacity.A_open / A_cap / open / updated_at. WD reads caps / positions / generated_at. */
+  function normalizeSnapshot(raw) {
+    try {
+      if (!raw || typeof raw !== "object" || Array.isArray(raw)) return {};
+      var out = copyOwn(raw);
+      if (isBlank(out.generated_at)) {
+        out.generated_at = pick(out, ["updated_at", "generated_at_zh", "updated_zh", "ts"], null);
+      }
+      if (isBlank(out.ticket_usd) && out.capacity && typeof out.capacity === "object") {
+        out.ticket_usd = pick(out.capacity, ["ticket", "ticket_usd"], out.ticket_usd);
+      }
+      var pos = out.positions;
+      if (!Array.isArray(pos) || !pos.length) {
+        if (out.open != null) pos = out.open;
+      }
+      out.positions = normalizePositions(pos);
+      out.caps = {
+        A: normalizeTrackCap(out.caps, out.capacity, "A"),
+        B: normalizeTrackCap(out.caps, out.capacity, "B")
+      };
+      if (!Array.isArray(out.fills)) out.fills = [];
+      out.cashflow = normalizeCashflow(out.cashflow, out);
+      out.autonomy = normalizeAutonomy(out.autonomy, out.last_eval);
+      return out;
+    } catch (_) {
+      try { return (raw && typeof raw === "object") ? raw : {}; }
+      catch (__) { return {}; }
+    }
+  }
+
+  function worldOpen() {
+    return location.hash === "#world";
   }
 
   function injectCss() {
@@ -180,6 +346,8 @@
       ["unrealized_pnl_usd", "uPnL"],
       ["fees_usd", "Frais"],
       ["net_usd", "Net"],
+      ["usdc", "USDC"],
+      ["total_usd", "Total"],
       ["tickets_opened", "Tickets ouverts"],
       ["tickets_closed", "Tickets clos"],
       ["volume_usd", "Volume"]
@@ -274,8 +442,8 @@
     for (var i = 0; i < rows.length; i++) {
       var p = rows[i];
       var track = pick(p, ["track", "book"], "—");
-      var mark = isBlank(p.mark) ? null : Number(p.mark);
-      var entry = isBlank(p.entry) ? null : Number(p.entry);
+      var mark = numish(pick(p, ["mark", "mark_usd", "mark_px"], null));
+      var entry = numish(pick(p, ["entry", "entry_usd", "entry_px"], null));
       var spark = (entry != null && mark != null) ? sparkline([entry, mark]) : "";
       html += '<article class="nabu-world-pos">'
         + '<span class="nabu-world-pill nabu-world-pill--open">open</span> '
@@ -313,7 +481,7 @@
       html += "<tr>"
         + "<td>" + esc(pick(f, ["ts", "iso", "time"], "—")) + "</td>"
         + "<td>" + actionPill(pick(f, ["action", "type", "event"], "—")) + "</td>"
-        + "<td>" + esc(pick(f, ["market", "question", "title"], "—")) + "</td>"
+        + "<td>" + esc(pick(f, ["market", "question", "title", "ticker"], "—")) + "</td>"
         + '<td><span class="nabu-world-track nabu-world-track--' + esc(String(track).toLowerCase()) + '">'
         + esc(track) + "</span></td>"
         + '<td class="nabu-world-num">' + money(pick(f, ["size_usd", "size"], null)) + "</td>"
@@ -601,6 +769,10 @@
     if (!snapshot) return;
     var list = alertablePending(collectPending(snapshot), snapshot);
     updateBanner(list);
+    if (!worldOpen()) {
+      hideToast();
+      return;
+    }
     if (list[0] && toast && !toast.hidden) showToast(list[0]);
   }
 
@@ -745,8 +917,13 @@
     }
     updateBadge(list.length);
     updateBanner(list);
-    showToast(list[0]);
-    startChimeLoop(pendingKey(list[0]));
+    if (worldOpen()) {
+      showToast(list[0]);
+      startChimeLoop(pendingKey(list[0]));
+    } else {
+      hideToast();
+      stopChimeLoop(false);
+    }
     if (!fresh.length) return;
     pulseNav();
     for (var j = 0; j < fresh.length; j++) {
@@ -766,6 +943,14 @@
   }
 
   function render(data) {
+    try {
+      renderUnsafe(data);
+    } catch (_) {
+      snapshot = data || snapshot || {};
+    }
+  }
+
+  function renderUnsafe(data) {
     snapshot = data || {};
     var unverified = !!snapshot.unverified;
     var example = snapshot.example === true;
@@ -773,7 +958,7 @@
     var label = (snapshot.wallet && snapshot.wallet.label) || "PayBox";
     var mode = snapshot.mode || "LIVE_ONLY";
     var ticket = snapshot.ticket_usd;
-    var generated = snapshot.generated_at || "—";
+    var generated = snapshot.generated_at || snapshot.updated_at || "—";
     var source = snapshot.source || "assets/world-live.json";
     var pending = collectPending(snapshot);
     var alertable = alertablePending(pending, snapshot);
@@ -806,6 +991,7 @@
     }
 
     var body = $("#nabu-world-body", root);
+    if (!body) return;
     body.innerHTML =
       '<header class="nabu-world-hero">'
       + '<div class="nabu-world-lockup"><div class="nabu-world-orb" aria-hidden="true"></div>'
@@ -858,47 +1044,79 @@
   }
 
   function loadSnapshot() {
-    return fetch(SNAPSHOT_URL, { cache: "no-store" })
-      .then(function (r) {
-        if (!r.ok) throw new Error("http " + r.status);
-        return r.json();
-      })
-      .catch(function () { return unverified(); });
+    function one(i) {
+      if (i >= SNAPSHOT_URLS.length) return Promise.resolve(unverified());
+      return fetch(SNAPSHOT_URLS[i], { cache: "no-store" })
+        .then(function (r) {
+          if (!r.ok) throw new Error("http " + r.status);
+          return r.json();
+        })
+        .then(function (data) { return normalizeSnapshot(data); })
+        .catch(function () { return one(i + 1); });
+    }
+    return one(0);
   }
 
   function applySnapshot(data, fromPoll) {
-    var nextKeys = collectPending(data).map(pendingKey).sort().join("|");
-    var prevKeys = collectPending(snapshot).map(pendingKey).sort().join("|");
-    var sameBody = fromPoll && snapshot && snapshot.generated_at === data.generated_at && nextKeys === prevKeys;
-    if (sameBody) {
-      tickExpiry();
-      return;
+    try {
+      data = normalizeSnapshot(data);
+      var nextKeys = collectPending(data).map(pendingKey).sort().join("|");
+      var prevKeys = collectPending(snapshot).map(pendingKey).sort().join("|");
+      var stamp = function (d) { return d && (d.generated_at || d.updated_at || ""); };
+      var sameBody = fromPoll && snapshot && stamp(snapshot) === stamp(data) && nextKeys === prevKeys;
+      if (sameBody) {
+        tickExpiry();
+        return;
+      }
+      render(data);
+    } catch (_) {
+      try { render(unverified()); } catch (__) {}
     }
-    render(data);
     syncHash();
+  }
+
+  function setWorldChrome(el, open) {
+    if (!el) return;
+    el.hidden = !open;
+    el.setAttribute("aria-hidden", open ? "false" : "true");
+    try { el.inert = !open; } catch (_) {}
+    el.style.pointerEvents = open ? "" : "none";
   }
 
   function openWorld() {
     if (!root) return;
-    root.hidden = false;
+    setWorldChrome(root, true);
     if (navLink) navLink.classList.add("is-active");
     maybeAskNotifyOnce();
+    if (snapshot) {
+      var list = alertablePending(collectPending(snapshot), snapshot);
+      if (list.length) {
+        showToast(list[0]);
+        startChimeLoop(pendingKey(list[0]));
+      }
+    }
   }
 
   function closeWorld() {
-    if (!root) return;
-    root.hidden = true;
+    setWorldChrome(root, false);
     if (navLink) navLink.classList.remove("is-active");
+    hideToast();
+    stopChimeLoop(false);
   }
 
   function syncHash() {
-    if (location.hash === "#world") openWorld();
+    if (worldOpen()) openWorld();
     else closeWorld();
   }
 
   function onClick(ev) {
     var t = ev.target;
     if (!t || !t.closest) return;
+    var railA = t.closest(".rail-nav a");
+    if (railA) {
+      var href = railA.getAttribute("href") || "";
+      if (href !== "#world") closeWorld();
+    }
     var copy = t.closest("[data-copy]");
     if (copy) {
       var el = document.getElementById(copy.getAttribute("data-copy"));
@@ -927,7 +1145,7 @@
     if (t.closest("[data-sound]")) {
       setSound(!soundOn());
       syncSoundButtons();
-      if (soundOn() && snapshot) {
+      if (soundOn() && snapshot && worldOpen()) {
         var next = alertablePending(collectPending(snapshot), snapshot);
         if (next[0]) startChimeLoop(pendingKey(next[0]));
       } else {
@@ -942,7 +1160,8 @@
     injectPanel();
     injectBanner();
     injectToast();
-    document.addEventListener("click", onClick);
+    document.addEventListener("click", onClick, true);
+    syncHash();
     loadSnapshot().then(function (data) { applySnapshot(data, false); });
     window.addEventListener("hashchange", syncHash);
     pollTimer = setInterval(function () {
@@ -959,7 +1178,9 @@
       isAlertablePending: isAlertablePending,
       livePending: livePending,
       alertablePending: alertablePending,
-      pendingUrl: pendingUrl
+      pendingUrl: pendingUrl,
+      normalizeSnapshot: normalizeSnapshot,
+      worldOpen: worldOpen
     };
   }
 

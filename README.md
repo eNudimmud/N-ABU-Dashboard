@@ -109,10 +109,20 @@ est émise, la boucle score/autonomie **doit réécrire** `assets/world-live.jso
 pulsé, bandeau pleine largeur jusqu'à clear, toast assombri (marché + Copier /
 Ouvrir, dismissible), Notification `requireInteraction:true` si autorisée, et un
 chime Web Audio **on par défaut** (préférence `localStorage` `nabu-world-sound` :
-off = `"0"`, sinon on). Le chime se répète toutes les ~10 s (max 5) tant que le
-ticket reste pending et que l'onglet est visible, ou jusqu'à dismiss. Permission
+off = `"0"`, sinon on). Le chime se répète toutes les ~10 s (max 5) tant que WD
+est ouvert et que l'onglet est visible, ou jusqu'à dismiss / clic PF. Permission
 Notification demandée **une fois** à la première ouverture de WD ; sinon CTA
 **Autoriser les alertes**. `https://` ou `data:text/html` seulement pour Ouvrir.
+
+Le overlay World et le toast ne bloquent jamais PF / RK / PX / AN hors `#world`.
+Un clic PF ferme World et coupe les chimes. Le bandeau pending (vrai ticket)
+reste visible sans recouvrir le rail.
+
+Le JS adapte le snapshot live-score (`capacity.A_open` / `open` / `updated_at`)
+vers `caps` / `positions` / `generated_at` — aucun throw.
+
+`index.html` redirige `/` vers `dashboard.html`. `.nojekyll` empêche Pages de
+servir le README Jekyll à la racine.
 
 ```bash
 python3 scripts/refresh_world_snapshot.py \
