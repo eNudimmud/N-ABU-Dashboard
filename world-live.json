@@ -125,26 +125,8 @@
     "note": "SETTLE_Arsenal_won_cashout + PREPARE_BUY_sports_dog_CLE_Browns",
     "last_decision": "PREPARE_BUY"
   },
-  "pending_geofence": {
-    "request_id": "94345f81-7c6c-4df1-9857-d81bfd62d2ad",
-    "market": "CLE Browns YES",
-    "ticker": "WXNFL-26SEP13CLEJAC-CBRO",
-    "mint": "3msWmdeGPbenFCYTfEFiaQ4sTS2VR2o4kKYBFbSQeZKE",
-    "side": "YES",
-    "track": "B",
-    "size_usd": 5.0,
-    "family": "sports_dog",
-    "mid": 0.205,
-    "spr": 0.02,
-    "paper_rule": "sports dog mid\u2208[0.12,0.40] spr\u22640.06 (mid~0.205 spr~0.02)",
-    "status": "pending_signature",
-    "check_region_url": "https://enudimmud.github.io/N-ABU-Dashboard/assets/geofence-latest.html",
-    "geofence_url": "https://enudimmud.github.io/N-ABU-Dashboard/assets/geofence-latest.html",
-    "geofence_api": "https://api.paybox.sh/iframe/swap/94345f81-7c6c-4df1-9857-d81bfd62d2ad/geofence",
-    "token_exp_zh": "2026-09-12T23:36:48+02:00",
-    "example": false
-  },
-  "awaiting_region_check": true,
+  "pending_geofence": null,
+  "awaiting_region_check": false,
   "example": false,
   "notify": true,
   "cashflow": {
@@ -159,5 +141,5 @@
     "surplus_vs_float": 23.84,
     "abo_target_chf": 1700
   },
-  "generated_at": "2026-09-12T21:21:32Z"
+  "generated_at": "2026-09-12T21:23:53Z"
 }
