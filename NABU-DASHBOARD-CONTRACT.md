@@ -305,13 +305,13 @@ Mode : `LIVE_ONLY`. Tickets $5. Caps : A ≤ $10 open, B ≤ $15 open.
 
 ### Identité visuelle (World seulement)
 
-Le panneau **réutilise** les tokens et composants de la planche (§5, `dashboard.html`
-`:root`) : `--paper` / `--paper-3`, `--cobalt`, `--prussian`, `--navy`, `--gold`,
-`--oxblood`, `--ink`, `--mono` / `--sans` / `--serif`, plus les formes `.eyebrow`,
-`.topline`, `.mast`, `.clock`, `.cell`, `.tbl`, `.badge`. Pas de second design
-system. L'accent World (orbe iridescent, grille courbe, glow cyan→magenta,
-wordmark minuscule `world`) est cantonné au mast Prussien et au pending or —
-pas au fond de page, pas aux onglets PF / RK / PX / AN.
+Le panneau World est un overlay isolé : champ noir World (grille lat/long,
+fuites cyan / magenta, orbe, wordmark minuscule `world`) + cartes sombres type
+dashboard (caps / PnL / positions, table d'activité des fills). Pills **dans
+cet onglet seulement** : orange Pending (geofence), vert Completed (soldé),
+rouge Cancelled / expiré. Les onglets PF / RK / PX / AN et le chrome d'origine
+ne sont pas restylés — la planche §5 (ivoire / cobalt / or / oxblood, pas de
+vert) reste intacte hors `#nabu-world-root`.
 
 ### Format du snapshot
 

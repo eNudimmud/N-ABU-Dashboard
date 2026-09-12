@@ -3,7 +3,7 @@
   "use strict";
 
   var SNAPSHOT_URL = "assets/world-live.json";
-  var CSS_URL = "assets/world-tab.css?v=planche2";
+  var CSS_URL = "assets/world-tab.css?v=remix3";
   var WALLET_FALLBACK = "27bcZ8xT8qWzkmdyjKy7mRXKqRAR9KBphZt3BMyjmac3";
   var POLL_MS = 8000;
   var SEEN_KEY = "nabu-world-seen-geofence";
@@ -181,8 +181,20 @@
         var s = signedMoney(v);
         txt = s.txt; neg = s.neg;
       }
+      var spark = "";
+      if (k === "realized_pnl_usd") spark = sparkline(fillSeries(snapshot && snapshot.fills, "pnl_usd"));
+      else if (k === "unrealized_pnl_usd") {
+        var marks = [];
+        var pos = (snapshot && snapshot.positions) || [];
+        for (var pi = 0; pi < pos.length; pi++) {
+          if (!isBlank(pos[pi].entry)) marks.push(pos[pi].entry);
+          if (!isBlank(pos[pi].mark)) marks.push(pos[pi].mark);
+        }
+        spark = sparkline(marks);
+      }
       html += '<div class="nabu-world-cell"><div class="nabu-world-cell-k">' + label + '</div>'
-        + '<div class="nabu-world-cell-v' + (neg ? " nabu-world-neg" : "") + '">' + txt + '</div></div>';
+        + '<div class="nabu-world-cell-v' + (neg ? " nabu-world-neg" : "") + '">' + txt + '</div>'
+        + spark + "</div>";
     }
     html += "</div>";
     if (!any) {
@@ -191,13 +203,47 @@
     return html;
   }
 
+  function sparkline(values) {
+    var nums = [];
+    for (var i = 0; i < (values || []).length; i++) {
+      if (isBlank(values[i])) continue;
+      var n = Number(values[i]);
+      if (isFinite(n)) nums.push(n);
+    }
+    if (nums.length < 2) return "";
+    var min = Math.min.apply(null, nums), max = Math.max.apply(null, nums);
+    var span = max - min || 1;
+    var w = 120, h = 36, p = 2;
+    var d = "";
+    for (var j = 0; j < nums.length; j++) {
+      var x = p + (w - p * 2) * (j / (nums.length - 1));
+      var y = h - p - ((nums[j] - min) / span) * (h - p * 2);
+      d += (j ? "L" : "M") + x.toFixed(1) + " " + y.toFixed(1);
+    }
+    return '<svg class="nabu-world-spark" viewBox="0 0 ' + w + " " + h
+      + '" preserveAspectRatio="none" aria-hidden="true"><path d="' + d
+      + '" fill="none" stroke="#3EE0FF" stroke-width="1.6"/></svg>';
+  }
+
+  function fillSeries(fills, key) {
+    var out = [];
+    var rows = fills || [];
+    for (var i = rows.length - 1; i >= 0; i--) {
+      if (!isBlank(rows[i][key])) out.push(rows[i][key]);
+    }
+    return out;
+  }
+
   function actionPill(action) {
     var a = String(action || "").toLowerCase();
-    if (a === "close" || a === "settle" || a === "soldé") {
-      return '<span class="nabu-world-pill nabu-world-pill--ok">soldé</span>';
+    if (a === "close" || a === "settle" || a === "soldé" || a === "completed") {
+      return '<span class="nabu-world-pill nabu-world-pill--ok">Completed</span>';
+    }
+    if (a === "cancel" || a === "cancelled" || a === "canceled" || a === "expired") {
+      return '<span class="nabu-world-pill nabu-world-pill--dead">Cancelled</span>';
     }
     if (a === "open" || a === "buy") {
-      return '<span class="nabu-world-pill nabu-world-pill--ok">' + esc(action) + "</span>";
+      return '<span class="nabu-world-pill nabu-world-pill--open">' + esc(action) + "</span>";
     }
     return esc(action || "—");
   }
@@ -206,26 +252,26 @@
     if (!rows || !rows.length) {
       return '<p class="nabu-world-empty">Aucune position ouverte dans ce snapshot.</p>';
     }
-    var html = '<div class="nabu-world-tbl-wrap wrap"><table class="nabu-world-tbl"><thead><tr>'
-      + "<th>Marché</th><th>Track</th><th>Sens</th>"
-      + '<th class="nabu-world-num">Taille</th><th class="nabu-world-num">Mark</th>'
-      + "<th>Ticker</th><th>Mint</th></tr></thead><tbody>";
+    var html = '<div class="nabu-world-posgrid">';
     for (var i = 0; i < rows.length; i++) {
       var p = rows[i];
       var track = pick(p, ["track", "book"], "—");
-      var mark = isBlank(p.mark) ? "—" : Number(p.mark).toFixed(2);
-      html += "<tr>"
-        + "<td><b>" + esc(pick(p, ["market", "question", "title"], "—")) + "</b></td>"
-        + '<td><span class="nabu-world-track nabu-world-track--' + esc(String(track).toLowerCase()) + '">'
-        + esc(track) + "</span></td>"
-        + "<td>" + esc(pick(p, ["side", "outcome"], "—")) + "</td>"
-        + '<td class="nabu-world-num">' + money(pick(p, ["size_usd", "size", "notional"], null)) + "</td>"
-        + '<td class="nabu-world-num">' + esc(mark) + "</td>"
-        + "<td>" + esc(pick(p, ["ticker"], "—")) + "</td>"
-        + '<td class="nabu-world-mono">' + esc(pick(p, ["mint"], "—")) + "</td>"
-        + "</tr>";
+      var mark = isBlank(p.mark) ? null : Number(p.mark);
+      var entry = isBlank(p.entry) ? null : Number(p.entry);
+      var spark = (entry != null && mark != null) ? sparkline([entry, mark]) : "";
+      html += '<article class="nabu-world-pos">'
+        + '<span class="nabu-world-pill nabu-world-pill--open">open</span> '
+        + '<span class="nabu-world-track nabu-world-track--' + esc(String(track).toLowerCase()) + '">'
+        + esc(track) + "</span>"
+        + "<h3>" + esc(pick(p, ["market", "question", "title"], "—")) + "</h3>"
+        + '<div class="nabu-world-pos-meta">'
+        + "<span>Sens<b>" + esc(pick(p, ["side", "outcome"], "—")) + "</b></span>"
+        + "<span>Taille<b>" + money(pick(p, ["size_usd", "size", "notional"], null)) + "</b></span>"
+        + "<span>Mark<b>" + (mark == null ? "—" : mark.toFixed(2)) + "</b></span>"
+        + "<span>Ticker<b>" + esc(pick(p, ["ticker"], "—")) + "</b></span>"
+        + "</div>" + spark + "</article>";
     }
-    html += "</tbody></table></div>";
+    html += "</div>";
     return html;
   }
 
@@ -539,27 +585,17 @@
         + "Aucune valeur inventée.</p>";
     }
 
-    var ticketTxt = isBlank(ticket) ? "—" : money(ticket);
     var body = $("#nabu-world-body", root);
     body.innerHTML =
-      '<div class="nabu-world-topline"><span>N*ABU · World.xyz</span><strong>Read only</strong>'
-      + '<span class="nabu-world-issue">' + esc(generated) + "</span></div>"
-      + '<div class="nabu-world-mast">'
-      + '<div class="nabu-world-mast-copy">'
-      + '<div class="nabu-world-kicker">World.xyz · PayBox · lecture seule</div>'
-      + '<h1 class="nabu-world-title">world</h1>'
-      + '<p class="nabu-world-motto">Activité live World.xyz. La planche d\'origine (book / risk / SOUL) reste la surface paper. '
-      + "Cet onglet ne signe rien et n'appelle pas PayBox. Un ticket préparé attend le CH Check région.</p>"
-      + '<div class="nabu-world-agent-id">' + esc(mode) + "<i></i>tickets " + ticketTxt
-      + "<i></i>caps A ≤ $10 · B ≤ $15</div>"
-      + "</div>"
-      + '<div class="nabu-world-mast-visual" aria-hidden="true">'
-      + '<div class="nabu-world-grid"></div><div class="nabu-world-orb"></div>'
-      + '<div class="nabu-world-mast-meta">' + badges + "</div>"
-      + '<div class="nabu-world-mast-stamp">WORLD / ORB</div>'
-      + "</div></div>"
+      '<header class="nabu-world-hero">'
+      + '<div class="nabu-world-lockup"><div class="nabu-world-orb" aria-hidden="true"></div>'
+      + '<h1 class="nabu-world-title">world</h1></div>'
+      + '<p class="nabu-world-sub">World.xyz · PayBox · lecture seule. La planche d\'origine (book / risk / SOUL) reste inchangée. '
+      + "Cet onglet ne signe rien. Un ticket préparé attend le CH Check région.</p>"
+      + '<div class="nabu-world-badges">' + badges + "</div></header>"
       + warn
       + renderPending(pending)
+      + '<div class="nabu-world-map" aria-hidden="true"><span class="nabu-world-map-label">World field</span></div>'
       + '<div class="nabu-world-meta">'
       + '<div class="nabu-world-card"><span class="nabu-world-card-k">Portefeuille ' + esc(label) + "</span>"
       + '<span class="nabu-world-card-v"><a href="' + esc(solscanAddr(wallet)) + '" target="_blank" rel="noopener" title="'

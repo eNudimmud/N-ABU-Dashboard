@@ -164,14 +164,14 @@ class AdditiveHook(unittest.TestCase):
         self.assertIn("#nabu-world-root", css)
         self.assertNotIn("body{", css.split("#nabu-world-root", 1)[0])
         root_block = css.split("#nabu-world-root{", 1)[1].split("}", 1)[0]
-        self.assertIn("var(--nw-paper-3)", root_block)
-        self.assertNotIn("background:var(--nw-navy)", root_block)
-        self.assertIn(".nabu-world-mast{", css)
-        self.assertIn(".nabu-world-orb{", css)
-        self.assertIn("var(--cobalt", css)
+        self.assertIn("var(--nw-sky)", root_block)
         self.assertIn("#3EE0FF", css)
-        self.assertIn("nabu-world-mast", js)
+        self.assertIn(".nabu-world-orb{", css)
+        self.assertIn("nabu-world-pill--pending", css)
+        self.assertIn("nabu-world-pill--ok", css)
+        self.assertIn("nabu-world-lockup", js)
         self.assertIn("nabu-world-orb", js)
+        self.assertIn("Completed", js)
 
 
 if __name__ == "__main__":

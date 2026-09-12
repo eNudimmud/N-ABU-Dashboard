@@ -92,8 +92,9 @@ Un cinquième item de navigation (`WD`) ouvre un **panneau isolé** : mode `LIVE
 caps A ≤ $10 / B ≤ $15, positions, fills (tx Solana), cashflow, dernière note
 d'autonomie, et un bandeau **pending geofence / CH Check région** quand un ticket
 est préparé. La planche d'origine (PF / RK / PX / AN) n'est pas refactorisée.
-Visuellement : tokens N*ABU de la planche (ivoire / cobalt / or / oxblood) ;
-orbe World et glow cyan→magenta uniquement sur le mast et le pending.
+Visuellement (World seulement) : champ noir World (grille, orbe, glow
+cyan→magenta) + cartes sombres / pills Pending·Completed. PF / RK / PX / AN
+restent la planche d'origine.
 
 Les données viennent de `assets/world-live.json` — un tirage local, pas d'auth PayBox
 dans le HTML. Le fichier commité est un **exemple** qui inclut un `pending_geofence`.
