@@ -17,9 +17,9 @@ import refresh_world_snapshot as rws  # noqa: E402
 
 
 class SnapshotExample(unittest.TestCase):
-    def test_checked_in_example_is_valid(self):
+    def test_checked_in_live_snapshot_has_no_fake_pending(self):
         snap = json.loads((ROOT / "assets" / "world-live.json").read_text())
-        self.assertTrue(snap["example"])
+        self.assertFalse(snap["example"])
         self.assertEqual(snap["mode"], "LIVE_ONLY")
         self.assertEqual(snap["wallet"]["address"], rws.WALLET)
         self.assertEqual(snap["caps"]["A"]["max_usd"], 10)
@@ -28,13 +28,14 @@ class SnapshotExample(unittest.TestCase):
         self.assertGreaterEqual(len(snap["fills"]), 1)
         self.assertIn("cashflow", snap)
         self.assertTrue(snap["autonomy"]["note"])
-        pend = snap["pending_geofence"]
-        self.assertEqual(pend["status"], "awaiting_region_check")
-        self.assertEqual(pend["track"], "A")
-        self.assertEqual(pend["size_usd"], 5)
-        self.assertTrue(pend["request_id"])
-        self.assertTrue(pend["expires_at"])
-        self.assertTrue(pend["geofence_url"])
+        self.assertIsNone(snap["pending_geofence"])
+
+    def test_refresh_example_is_demo_plain_text_url(self):
+        pend = rws.EXAMPLE["pending_geofence"]
+        self.assertTrue(rws.EXAMPLE["example"])
+        self.assertTrue(pend["request_id"].startswith("ch-check-"))
+        self.assertTrue(pend["ticker"].startswith("ETH-2700-WK"))
+        self.assertTrue(pend["geofence_url"].startswith("data:text/plain"))
 
 
 class RefreshFromLedgers(unittest.TestCase):
@@ -160,6 +161,17 @@ class AdditiveHook(unittest.TestCase):
         self.assertIn("pending_geofence", js)
         self.assertIn("awaiting_region_check", js)
         self.assertIn("nabu-world-banner", js)
+        self.assertIn("isOpenableGeofenceUrl", js)
+        self.assertIn("pickOpenableGeofenceUrl", js)
+        self.assertIn("isDemoPending", js)
+        self.assertIn("livePending", js)
+        self.assertIn("data:text\\/html", js)
+        self.assertIn("ch-check-", js)
+        self.assertIn("ETH-2700-WK", js)
+        self.assertIn("EXEMPLE", js)
+        self.assertIn("DEMO / URL invalide — attendre le vrai Check région du chat", js)
+        self.assertIn("nabu-world-pending--example", js)
+        self.assertIn("alertNewPending(live)", js)
         css = (ROOT / "assets" / "world-tab.css").read_text(encoding="utf-8")
         self.assertIn("#nabu-world-root", css)
         self.assertNotIn("body{", css.split("#nabu-world-root", 1)[0])
@@ -169,9 +181,20 @@ class AdditiveHook(unittest.TestCase):
         self.assertIn(".nabu-world-orb{", css)
         self.assertIn("nabu-world-pill--pending", css)
         self.assertIn("nabu-world-pill--ok", css)
+        self.assertIn("nabu-world-pill--exemple", css)
+        self.assertIn("nabu-world-url-invalid", css)
         self.assertIn("nabu-world-lockup", js)
         self.assertIn("nabu-world-orb", js)
         self.assertIn("Completed", js)
+
+    def test_openable_geofence_url_contract(self):
+        js = (ROOT / "assets" / "world-tab.js").read_text(encoding="utf-8")
+        # https PayBox / data:text/html phone page only — not data:text/plain.
+        self.assertIn("if (/^https:\\/\\//i.test(u)) return true;", js)
+        self.assertIn("if (/^data:text\\/html(?:;|,|$)/i.test(u)) return true;", js)
+        body = js.split("function isOpenableGeofenceUrl", 1)[1].split("function pickOpenableGeofenceUrl", 1)[0]
+        self.assertNotIn("data:text/plain", body)
+        self.assertNotIn("https?:", body)
 
 
 if __name__ == "__main__":

@@ -200,6 +200,21 @@
   padding:18px 16px 16px;position:relative;overflow:hidden;
   box-shadow:0 0 28px rgba(255,159,67,.12)
 }
+.nabu-world-pending--example{
+  background:rgba(255,159,67,.05);border-style:dashed;
+  box-shadow:none
+}
+.nabu-world-pending--example::before{opacity:.28;filter:grayscale(.35)}
+.nabu-world-pill--exemple{
+  color:var(--nw-pending);background:rgba(255,159,67,.18);
+  border:1px solid rgba(255,159,67,.55);font-weight:800
+}
+.nabu-world-url-invalid{
+  margin:14px 0 0;color:var(--nw-pending);font-size:12px;font-weight:700;line-height:1.45
+}
+.nabu-world-btn:disabled,.nabu-world-btn[aria-disabled="true"]{
+  opacity:.42;cursor:not-allowed;pointer-events:none;box-shadow:none
+}
 .nabu-world-pending::before{
   content:"";position:absolute;width:54px;height:54px;right:16px;top:12px;
   border-radius:50%;pointer-events:none;

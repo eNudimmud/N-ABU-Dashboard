@@ -3,7 +3,7 @@
   "use strict";
 
   var SNAPSHOT_URL = "assets/world-live.json";
-  var CSS_URL = "assets/world-tab.css?v=remix3";
+  var CSS_URL = "assets/world-tab.css?v=geofence4";
   var WALLET_FALLBACK = "27bcZ8xT8qWzkmdyjKy7mRXKqRAR9KBphZt3BMyjmac3";
   var POLL_MS = 8000;
   var SEEN_KEY = "nabu-world-seen-geofence";
@@ -339,11 +339,32 @@
       || (pick(p, ["market", "title"], "") + "|" + pick(p, ["track"], "") + "|" + pick(p, ["prepared_at", "ts"], "")));
   }
 
-  function safeHref(url) {
-    if (!url) return "";
-    var u = String(url).trim();
-    if (/^(https?:|data:text\/|data:application\/)/i.test(u)) return u;
+  function isOpenableGeofenceUrl(url) {
+    var u = String(url || "").trim();
+    if (/^https:\/\//i.test(u)) return true;
+    if (/^data:text\/html(?:;|,|$)/i.test(u)) return true;
+    return false;
+  }
+
+  function pickOpenableGeofenceUrl(p) {
+    if (!p) return "";
+    var keys = ["geofence_url", "url", "data_url", "link", "href"];
+    for (var i = 0; i < keys.length; i++) {
+      var v = p[keys[i]];
+      if (!isBlank(v) && isOpenableGeofenceUrl(v)) return String(v).trim();
+    }
     return "";
+  }
+
+  function isDemoPending(p, snap) {
+    if (snap && snap.example === true) return true;
+    var rid = String(pick(p, ["request_id", "id", "token_id"], ""));
+    if (/^ch-check-/i.test(rid) || /^ETH-2700-WK/i.test(rid)) return true;
+    return false;
+  }
+
+  function livePending(list, snap) {
+    return (list || []).filter(function (p) { return !isDemoPending(p, snap); });
   }
 
   function parseExpiry(iso) {
@@ -363,23 +384,31 @@
     return { txt: txt + " restantes · " + iso, hot: s < 300 };
   }
 
-  function renderPending(list) {
+  function renderPending(list, snap) {
     if (!list || !list.length) return "";
+    var anyLive = list.some(function (p) { return !isDemoPending(p, snap); });
     var html = '<section class="nabu-world-sec" id="nabu-world-pending">'
-      + '<div class="nabu-world-kicker">Action en attente · CH Check région</div>'
+      + '<div class="nabu-world-kicker">'
+      + (anyLive ? "Action en attente · CH Check région" : "Exemple · pas un ticket live")
+      + "</div>"
       + '<div class="nabu-world-rule"></div>';
     for (var i = 0; i < list.length; i++) {
       var p = list[i];
+      var demo = isDemoPending(p, snap);
       var status = pick(p, ["status", "state"], "awaiting_region_check");
       var exp = expiryLabel(pick(p, ["expires_at", "token_expiry", "expiry"], ""));
-      var url = pick(p, ["geofence_url", "url", "data_url", "link", "href"], "");
-      var href = safeHref(url);
+      var href = pickOpenableGeofenceUrl(p);
       var rid = pick(p, ["request_id", "id", "token_id"], "—");
-      html += '<article class="nabu-world-pending" data-request="' + esc(rid) + '">'
+      html += '<article class="nabu-world-pending' + (demo ? " nabu-world-pending--example" : "")
+        + '" data-request="' + esc(rid) + '">'
         + '<div class="nabu-world-pending-top">'
-        + '<div><span class="nabu-world-pill nabu-world-pill--pending">Pending</span> '
-        + '<span class="nabu-world-pill ' + (exp.hot ? "nabu-world-pill--dead" : "nabu-world-pill--pending") + '">'
-        + esc(status) + "</span>"
+        + "<div>"
+        + (demo
+          ? '<span class="nabu-world-pill nabu-world-pill--exemple">EXEMPLE</span> '
+          : '<span class="nabu-world-pill nabu-world-pill--pending">Pending</span> ')
+        + '<span class="nabu-world-pill ' + (demo ? "nabu-world-pill--exemple"
+          : (exp.hot ? "nabu-world-pill--dead" : "nabu-world-pill--pending")) + '">'
+        + esc(demo ? "pas un ticket live" : status) + "</span>"
         + "<h2>" + esc(pick(p, ["market", "question", "title"], "Ticket préparé")) + "</h2></div>"
         + "</div>"
         + '<div class="nabu-world-pending-grid">'
@@ -396,17 +425,21 @@
         + esc(pick(p, ["expires_at", "token_expiry", "expiry"], "")) + '">' + exp.txt + "</span></div>"
         + "</div>"
         + (p.note ? '<p class="nabu-world-note" style="color:inherit;margin:12px 0 0">' + esc(p.note) + "</p>" : "")
-        + '<div class="nabu-world-url">'
-        + '<textarea readonly id="nabu-world-url-' + i + '">' + esc(url) + "</textarea>"
-        + '<button type="button" class="nabu-world-btn" data-copy="nabu-world-url-' + i + '">Copier l\'URL</button>'
-        + (href ? '<a class="nabu-world-btn nabu-world-btn--ghost" href="' + esc(href)
-          + '" target="_blank" rel="noopener">Ouvrir</a>' : "")
-        + "</div>"
-        + '<div class="nabu-world-actions">'
-        + '<button type="button" class="nabu-world-btn" data-notify="1">Autoriser les alertes navigateur</button>'
-        + '<button type="button" class="nabu-world-btn nabu-world-btn--ghost" data-sound="1">'
-        + (soundOn() ? "Son : on" : "Son : off") + "</button>"
-        + "</div></article>";
+        + (href
+          ? '<div class="nabu-world-url">'
+            + '<textarea readonly id="nabu-world-url-' + i + '">' + esc(href) + "</textarea>"
+            + '<button type="button" class="nabu-world-btn" data-copy="nabu-world-url-' + i + '">Copier l\'URL</button>'
+            + '<a class="nabu-world-btn nabu-world-btn--ghost" href="' + esc(href)
+            + '" target="_blank" rel="noopener">Ouvrir</a></div>'
+          : '<p class="nabu-world-url-invalid">DEMO / URL invalide — attendre le vrai Check région du chat</p>'
+            + '<div class="nabu-world-url">'
+            + '<button type="button" class="nabu-world-btn nabu-world-btn--ghost" disabled aria-disabled="true">Ouvrir</button>'
+            + "</div>")
+        + (demo ? "" : ('<div class="nabu-world-actions">'
+          + '<button type="button" class="nabu-world-btn" data-notify="1">Autoriser les alertes navigateur</button>'
+          + '<button type="button" class="nabu-world-btn nabu-world-btn--ghost" data-sound="1">'
+          + (soundOn() ? "Son : on" : "Son : off") + "</button></div>"))
+        + "</article>";
     }
     html += "</section>";
     return html;
@@ -557,11 +590,12 @@
     var generated = snapshot.generated_at || "—";
     var source = snapshot.source || "assets/world-live.json";
     var pending = collectPending(snapshot);
+    var live = livePending(pending, snapshot);
     var badges = '<span class="nabu-world-badge nabu-world-badge--mode">' + esc(mode) + "</span>"
       + '<span class="nabu-world-badge">Read only</span>';
     if (example) badges += '<span class="nabu-world-badge nabu-world-badge--ex">Exemple</span>';
     if (unverified) badges += '<span class="nabu-world-badge nabu-world-badge--fail">UNVERIFIED</span>';
-    if (pending.length) badges += '<span class="nabu-world-badge nabu-world-badge--hot">Check région</span>';
+    if (live.length) badges += '<span class="nabu-world-badge nabu-world-badge--hot">Check région</span>';
 
     var autonomy = snapshot.autonomy || {};
     var autoHtml = "";
@@ -594,7 +628,7 @@
       + "Cet onglet ne signe rien. Un ticket préparé attend le CH Check région.</p>"
       + '<div class="nabu-world-badges">' + badges + "</div></header>"
       + warn
-      + renderPending(pending)
+      + renderPending(pending, snapshot)
       + '<div class="nabu-world-map" aria-hidden="true"><span class="nabu-world-map-label">World field</span></div>'
       + '<div class="nabu-world-meta">'
       + '<div class="nabu-world-card"><span class="nabu-world-card-k">Portefeuille ' + esc(label) + "</span>"
@@ -617,7 +651,7 @@
       + '<p class="nabu-world-foot"><b>Lecture seule.</b> Source : ' + esc(source)
       + ". En cas de conflit, les ledgers world-paper et le wallet PayBox gagnent — "
       + "ce JSON n'est qu'un tirage. Voir <code>scripts/refresh_world_snapshot.py</code>.</p>";
-    alertNewPending(pending);
+    alertNewPending(live);
   }
 
   function unverified() {
