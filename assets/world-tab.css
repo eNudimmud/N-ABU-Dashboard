@@ -40,7 +40,12 @@
   -webkit-mask-image:radial-gradient(ellipse at 50% 40%, black 0 55%, transparent 88%);
   mask-image:radial-gradient(ellipse at 50% 40%, black 0 55%, transparent 88%);
 }
-#nabu-world-root[hidden]{display:none!important}
+#nabu-world-root[hidden],
+#nabu-world-root[aria-hidden="true"]{
+  display:none!important;
+  pointer-events:none!important;
+  visibility:hidden!important
+}
 #nabu-world-root *{box-sizing:border-box}
 
 .nabu-world-shell{max-width:1180px;margin:0 auto;padding:28px 28px 96px;position:relative;z-index:1}
@@ -177,23 +182,17 @@
 .nabu-world-pill--dead{color:var(--nw-dead);background:rgba(255,92,122,.12)}
 
 .nabu-world-map{
-  margin-top:22px;min-height:160px;border-radius:14px;border:1px solid var(--nw-line);
+  margin-top:22px;border-radius:14px;border:1px solid var(--nw-line);
   background:
     radial-gradient(circle at 50% 55%, rgba(62,224,255,.10), transparent 42%),
     linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.015));
-  position:relative;overflow:hidden
-}
-.nabu-world-map::before{
-  content:"";position:absolute;inset:-20%;
-  background-image:
-    repeating-radial-gradient(circle at 50% 80%, transparent 0 22px, rgba(255,255,255,.14) 23px 24px),
-    repeating-linear-gradient(25deg, transparent 0 28px, rgba(62,224,255,.10) 29px 30px);
-  opacity:.55
+  position:relative;overflow:hidden;padding:16px 16px 14px
 }
 .nabu-world-map-label{
-  position:absolute;left:16px;bottom:12px;z-index:1;
+  display:block;margin:0 0 12px;
   font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--nw-muted)
 }
+.nabu-world-runway{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(160px,1fr))}
 
 .nabu-world-pending{
   margin-top:0;background:rgba(255,159,67,.08);color:var(--nw-text);
@@ -254,15 +253,16 @@
 .nabu-world-expiry.is-hot{color:var(--nw-dead);font-weight:700}
 
 #nabu-world-banner{
-  position:fixed;z-index:80;left:0;right:0;top:0;
+  position:fixed;z-index:60;left:82px;right:0;top:0;
   background:rgba(8,4,0,.94);color:#FFF4E8;
   border:0;border-bottom:2px solid #FF9F43;
   box-shadow:0 8px 32px rgba(255,159,67,.35);
-  padding:12px 18px 12px 94px;display:flex;gap:12px;align-items:center;flex-wrap:wrap;
+  padding:12px 18px;display:flex;gap:12px;align-items:center;flex-wrap:wrap;
   font:650 14px/1.35 var(--nw-sans,ui-sans-serif,sans-serif);border-radius:0;
-  backdrop-filter:blur(12px)
+  backdrop-filter:blur(12px);
+  pointer-events:auto
 }
-#nabu-world-banner[hidden]{display:none!important}
+#nabu-world-banner[hidden]{display:none!important;pointer-events:none!important}
 #nabu-world-banner a{color:var(--nw-cyan,#3EE0FF);font-weight:700;text-decoration:none}
 #nabu-world-banner .nabu-world-banner-msg{flex:1 1 220px}
 #nabu-world-banner.is-pulse{animation:nabu-world-pulse 1.15s ease-in-out infinite}
@@ -277,12 +277,12 @@
 }
 
 #nabu-world-toast{
-  position:fixed;inset:0;z-index:90;
+  position:fixed;inset:0 0 0 82px;z-index:64;
   background:rgba(5,6,10,.78);
   display:flex;align-items:center;justify-content:center;
-  padding:24px 16px 24px 98px
+  padding:24px 16px
 }
-#nabu-world-toast[hidden]{display:none!important}
+#nabu-world-toast[hidden]{display:none!important;pointer-events:none!important;visibility:hidden!important}
 .nabu-world-toast-card{
   width:min(520px,100%);
   background:#0c0e14;color:#F4F6FB;
@@ -329,5 +329,5 @@
   .nabu-world-shell{padding:16px 12px 80px}
   .nabu-world-meta,.nabu-world-caps{grid-template-columns:1fr}
   #nabu-world-banner{left:0;right:0;top:0;padding:10px 12px}
-  #nabu-world-toast{padding:16px 12px 74px}
+  #nabu-world-toast{inset:0 0 58px 0;padding:16px 12px}
 }

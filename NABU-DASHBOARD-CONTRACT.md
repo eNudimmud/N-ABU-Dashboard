@@ -349,6 +349,19 @@ vert) reste intacte hors `#nabu-world-root`.
 }
 ```
 
+`world-tab.js` accepte aussi le schéma live-score sans lever :
+
+- `capacity.A_open` / `A_cap` → `caps.A.open_usd` / `max_usd` (idem B)
+- `open` → `positions` si `positions` est absent ou vide
+- `updated_at` / `updated_zh` → `generated_at`
+- `mark_usd` → `mark` ; `last_eval` / `autonomy.note` objet → texte
+- `usdc` / `total_usd` top-level → `cashflow` (aucun zéro inventé)
+- cashflow riche : `realized_pnl_usd`, `unrealized_pnl_usd`, `fees_usd`, `net_usd`,
+  `volume_usd`, `tickets_*`, `positions_mark_usd` — cellules vides masquées, pas de tirets
+- idle USDC (`usdc`) vs déployé (somme des `size_usd` ou `total − usdc`)
+- World field = runway (bankroll, ticket, utilisation, cible 1 700 CHF sans fx inventé)
+
+
 `Ouvrir` / `Copier` n'acceptent que `https://` (PayBox) ou `data:text/html`
 (page téléphone). `data:text/plain`, `http:` et URL absente → `DEMO / URL invalide`.
 `example: true` ou `request_id` `ch-check-…` / `ETH-2700-WK` → panneau **EXEMPLE**,
@@ -367,6 +380,10 @@ L'onglet World poll `assets/world-live.json` toutes les ~8 s. Un **vrai**
   dismiss / clear, uniquement onglet visible ;
 - permission Notification demandée une seule fois à la première ouverture WD ;
   sinon CTA **Autoriser les alertes**.
+
+Hors `#world` : `#nabu-world-root` et le toast sont fermés (`pointer-events: none`),
+le bandeau / toast ne recouvrent pas le rail PF/RK/PX/AN (z-index sous `.rail`),
+et un clic PF arrête les chimes. Le bandeau pending reste pour un **vrai** ticket.
 
 La page ne contacte pas PayBox. PF / RK / PX / AN restent la planche d'origine.
 
