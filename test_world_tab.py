@@ -229,6 +229,8 @@ class AdditiveHook(unittest.TestCase):
         self.assertIn("max_open_usd", js)
         self.assertIn("label_only", js)
         self.assertIn("function capUtil", js)
+        self.assertIn("function trackShareBasis", js)
+        self.assertIn("du pool", js)
         self.assertIn("if (skip[k] || isBlank(v)) continue;", js)
         self.assertIn("renderRunway", js)
         self.assertIn("TARGET_CHF = 1700", js)
@@ -301,6 +303,7 @@ def _eval_gate(expr: str):
         "normalizeCapacity",
         "normalizeSnapshot",
         "tracksAreLabels",
+        "trackShareBasis",
         "poolMax",
         "poolOpen",
         "capUtil",
@@ -679,12 +682,17 @@ class RunwayUtilPool(unittest.TestCase):
         }
         snap = _eval_gate("normalizeSnapshot(" + json.dumps(raw) + ")")
         self.assertTrue(_eval_gate("tracksAreLabels(" + json.dumps(snap) + ")"))
+        basis = _eval_gate("trackShareBasis(" + json.dumps(snap) + ")")
+        self.assertEqual(basis["basis"], "max_open_usd")
+        self.assertEqual(basis["max"], 40)
         html = _plain(_eval_gate(
             "renderCaps(" + json.dumps(snap["caps"]) + ", " + json.dumps(snap) + ")"
         ))
         self.assertIn("5.00", html)
         self.assertIn("30.00", html)
-        self.assertIn("open", html)
+        self.assertIn("du pool", html)
+        self.assertIn("13 %", html)  # 5/40
+        self.assertIn("75 %", html)  # 30/40
         self.assertIn("is-label", html)
         self.assertNotIn("/ 40.00", html)
         self.assertNotIn("/ 80.00", html)
@@ -706,6 +714,25 @@ class RunwayUtilPool(unittest.TestCase):
             "renderCaps(" + json.dumps(snap["caps"]) + ", " + json.dumps(snap) + ")"
         ))
         self.assertNotIn("/ 40.00", html)
+        self.assertIn("du pool", html)
+
+    def test_shared_pool_tracks_even_without_label_flag(self):
+        raw = {
+            "ticket_usd": 5,
+            "caps": {"A": {"open_usd": 5, "max_usd": 40}, "B": {"open_usd": 30, "max_usd": 40}},
+            "capacity": {"max_open_usd": 40},
+            "cashflow": {"deployed_usd": 35, "total_usd": 48.57, "bankroll_usd": 48.57},
+        }
+        snap = _eval_gate("normalizeSnapshot(" + json.dumps(raw) + ")")
+        html = _plain(_eval_gate(
+            "renderCaps(" + json.dumps(snap["caps"]) + ", " + json.dumps(snap) + ")"
+        ))
+        self.assertIn("du pool", html)
+        self.assertIn("is-label", html)
+        self.assertNotIn("/ 40.00", html)
+        self.assertNotIn("/ 80.00", html)
+        util = _eval_gate("capUtil(" + json.dumps(snap) + ")")
+        self.assertEqual(util["max"], 40)
 
     def test_prefer_deployed_cost_over_track_open_sum(self):
         raw = {
@@ -730,6 +757,15 @@ class RunwayUtilPool(unittest.TestCase):
         self.assertIn("40.00", html)
         self.assertNotIn("80.00", html)
         self.assertIn("48.57", html)
+        tracks = _plain(_eval_gate(
+            "renderCaps(normalizeSnapshot(" + json.dumps(snap) + ").caps, "
+            "normalizeSnapshot(" + json.dumps(snap) + "))"
+        ))
+        self.assertIn("du pool", tracks)
+        self.assertIn("5.00", tracks)
+        self.assertIn("30.00", tracks)
+        self.assertNotIn("/ 40.00", tracks)
+        self.assertNotIn("/ 80.00", tracks)
 
 
 class OverlayClose(unittest.TestCase):

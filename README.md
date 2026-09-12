@@ -130,7 +130,8 @@ reste visible sans recouvrir le rail.
 Le JS adapte le snapshot live-score (`capacity.A_open` / `open` / `updated_at`)
 vers `caps` / `positions` / `generated_at` — aucun throw.
 Utilisation runway = déployé / `capacity.max_open_usd` (sinon `max_open × ticket`)
-— jamais la somme des `max_usd` A+B. A/B sont des labels (`label_only`).
+— jamais la somme des `max_usd` A+B. A/B sont des labels : chaque barre affiche
+`open · % du pool` (même `max_open_usd`), pas un plafond dur par track.
 
 `index.html` redirige `/` vers `dashboard.html`. `.nojekyll` empêche Pages de
 servir le README Jekyll à la racine.

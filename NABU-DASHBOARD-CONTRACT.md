@@ -372,7 +372,11 @@ vert) reste intacte hors `#nabu-world-root`.
   `volume_usd`, `tickets_*`, `positions_mark_usd` — cellules vides masquées, pas de tirets
 - idle USDC (`idle_usd` / `idle_usdc` / `usdc`) vs déployé (`deployed_usd` / `deployed_cost_usd` / `positions_cost_usd`)
 - World field = runway (bankroll = `cashflow.total_usd` / `bankroll_usd`, ticket, utilisation = déployé / `max_open_usd`, cible 1 700 CHF sans fx inventé)
-- tracks A / B : open notional ; si `label_only` ou note « A/B labels », pas de plafond dur par track (pas de 40+40)
+- tracks A / B : labels (`label_only`). Affichage `open_usd · % du pool` — **même pool**
+  que l'utilisation (`capacity.max_open_usd`). Barre = `open / max_open_usd` (partagé),
+  jamais un plafond dur par track. Si pas de `max_open_usd` et labels : `% du bankroll`.
+  `A_cap` / `max_usd` ne sont des parts soft que s'ils existent **et** que l'util reste
+  le pool unique. Pas de 40+40.
 
 
 `Ouvrir` / `Copier` n'acceptent que `https://` (PayBox / Pages) ou `data:text/html`

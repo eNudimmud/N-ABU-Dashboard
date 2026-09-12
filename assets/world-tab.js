@@ -3,7 +3,7 @@
   "use strict";
 
   var SNAPSHOT_URLS = ["assets/world-live.json", "world-live.json"];
-  var CSS_URL = "assets/world-tab.css?v=utilpool1";
+  var CSS_URL = "assets/world-tab.css?v=utilpool2";
   var WALLET_FALLBACK = "27bcZ8xT8qWzkmdyjKy7mRXKqRAR9KBphZt3BMyjmac3";
   var POLL_MS = 8000;
   var URL_KEYS = ["check_region_url", "geofence_url", "url", "data_url", "link", "href"];
@@ -452,12 +452,47 @@
     return sumField(data.positions, ["size_usd", "size", "notional"]);
   }
 
+  /* Track bar / % : open_usd ÷ capacity.max_open_usd (same pool as utilisation).
+     Bankroll only if A/B are labels and no max_open_usd. Never A_cap + B_cap. */
+  function trackShareBasis(data) {
+    data = data || {};
+    var cap = (data.capacity && typeof data.capacity === "object" && !Array.isArray(data.capacity))
+      ? data.capacity : {};
+    var m = numish(pick(cap, ["max_open_usd"], null));
+    if (m == null) m = numish(pick(data.caps || {}, ["pool_usd"], null));
+    if (m == null) {
+      var util = (data.utilization && typeof data.utilization === "object") ? data.utilization : {};
+      m = numish(pick(util, ["max_usd", "max_open_usd"], null));
+    }
+    if (m == null) {
+      var n = numish(pick(cap, ["max_open", "max_tickets"], null));
+      var ticket = numish(data.ticket_usd);
+      if (ticket == null) ticket = numish(pick(cap, ["ticket", "ticket_usd"], null));
+      if (n != null && ticket != null && n > 0 && ticket > 0) m = n * ticket;
+    }
+    if (m != null && m > 0) return { max: m, basis: "max_open_usd" };
+    if (tracksAreLabels(data)) {
+      var cash = data.cashflow || {};
+      var bank = numish(pick(cash, ["bankroll_usd", "total_usd"], null));
+      if (bank == null) bank = numish(data.bankroll_usd);
+      if (bank == null) bank = numish(pick(cap, ["bankroll_usd"], null));
+      if (bank != null && bank > 0) return { max: bank, basis: "bankroll_usd" };
+    }
+    return null;
+  }
+
   function renderCaps(caps, data) {
     caps = caps || {};
     data = data || { caps: caps };
-    if (!data.caps) data = { caps: caps, capacity: data.capacity, cashflow: data.cashflow, ticket_usd: data.ticket_usd, utilization: data.utilization, bankroll_usd: data.bankroll_usd };
-    var labels = tracksAreLabels(data);
-    var pool = poolMax(data);
+    if (!data.caps) {
+      data = {
+        caps: caps, capacity: data.capacity, cashflow: data.cashflow,
+        ticket_usd: data.ticket_usd, utilization: data.utilization,
+        bankroll_usd: data.bankroll_usd
+      };
+    }
+    var share = trackShareBasis(data);
+    var labels = tracksAreLabels(data) || (share && share.basis === "max_open_usd");
     var tracks = ["A", "B"];
     var html = '<div class="nabu-world-caps">';
     for (var i = 0; i < tracks.length; i++) {
@@ -467,16 +502,21 @@
       var max = c.max_usd;
       var cls = "";
       var use, util, w;
-      if (labels) {
+      if (labels && share) {
         cls = "is-label";
         if (isBlank(open)) {
           use = "open UNVERIFIED";
           w = 0;
         } else {
-          use = money(open) + " open";
-          util = (pool != null && pool > 0) ? pct(open, pool) : null;
+          util = pct(open, share.max);
           w = util == null ? 0 : Math.max(0, Math.min(100, util));
+          var unit = share.basis === "bankroll_usd" ? "du bankroll" : "du pool";
+          use = money(open) + " · " + Math.round(w) + NBSP + "% " + unit;
         }
+      } else if (labels) {
+        cls = "is-label";
+        use = isBlank(open) ? "open UNVERIFIED" : money(open) + " open";
+        w = 0;
       } else {
         util = pct(open, max);
         w = util == null ? 0 : Math.max(0, Math.min(100, util));
@@ -1299,7 +1339,16 @@
       + '<span class="nabu-world-card-v">' + esc(generated) + "</span></div>"
       + "</div>"
       + '<section class="nabu-world-sec"><div class="nabu-world-kicker">'
-      + (tracksAreLabels(snapshot) ? "Tracks A / B · labels (open)" : "Caps A / B · open vs max")
+      + (function () {
+        var sh = trackShareBasis(snapshot);
+        if (sh && sh.basis === "max_open_usd") {
+          return "Tracks A / B · part du pool (max_open_usd)";
+        }
+        if (sh && sh.basis === "bankroll_usd") {
+          return "Tracks A / B · part du bankroll";
+        }
+        return tracksAreLabels(snapshot) ? "Tracks A / B · labels (open)" : "Caps A / B · open vs max";
+      }())
       + '</div>'
       + '<div class="nabu-world-rule"></div>' + renderCaps(snapshot.caps, snapshot) + "</section>"
       + '<section class="nabu-world-sec"><div class="nabu-world-kicker">Cashflow / PnL</div>'
@@ -1479,6 +1528,7 @@
       poolMax: poolMax,
       poolOpen: poolOpen,
       tracksAreLabels: tracksAreLabels,
+      trackShareBasis: trackShareBasis,
       worldOpen: worldOpen
     };
   }
