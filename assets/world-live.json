@@ -157,18 +157,8 @@
     "note": "PREPARE_BUY_sports_dog_ATL_Falcons",
     "last_decision": "PREPARE_BUY"
   },
-  "pending_geofence": {
-    "status": "awaiting_region_check",
-    "market": "TEST NOTIF \u2014 pas un vrai buy",
-    "track": "B",
-    "size_usd": 5,
-    "side": "YES",
-    "request_id": "test-notif-20260912-2304",
-    "geofence_url": "https://enudimmud.github.io/N-ABU-Dashboard/dashboard.html",
-    "token_exp": "2026-09-12T22:04:41Z",
-    "note": "Notification system test \u2014 dismiss after verifying sound/banner/toast"
-  },
-  "awaiting_region_check": true,
+  "pending_geofence": null,
+  "awaiting_region_check": false,
   "example": false,
   "notify": true,
   "cashflow": {
@@ -183,7 +173,7 @@
     "surplus_vs_float": 23.88,
     "abo_target_chf": 1700
   },
-  "generated_at": "2026-09-12T21:04:41Z",
+  "generated_at": "2026-09-12T21:08:52Z",
   "generated_at_zh": "2026-09-12T23:04:41+02:00",
   "ticket_usd": 5,
   "autonomy": {
