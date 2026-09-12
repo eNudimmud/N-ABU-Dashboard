@@ -1,9 +1,9 @@
 {
   "schema_version": 2,
   "example": false,
-  "generated_at": "2026-09-12T22:08:01Z",
-  "generated_at_zh": "2026-09-12T23:58:45+02:00",
-  "source": "score cycle \u2014 caps full 8/8 watch settles",
+  "generated_at": "2026-09-12T22:17:18Z",
+  "generated_at_zh": "2026-09-13T00:17:18+02:00",
+  "source": "after ATL+CLE+NO Saints EXIT sells",
   "venue": "world.xyz",
   "wallet": {
     "chain": "solana",
@@ -12,54 +12,40 @@
   },
   "mode": "LIVE_ONLY",
   "ticket_usd": 5.0,
-  "bankroll_usd": 49.65,
+  "bankroll_usd": 49.03,
   "caps": {
     "A": {
       "open_usd": 5.0,
       "max_usd": 40.0,
       "pool_usd": 40.0,
-      "bankroll_usd": 49.65,
-      "share_of_pool_pct": 12.5,
-      "share_of_bankroll_pct": 10.1,
-      "label_only": true
+      "bankroll_usd": 49.03,
+      "label_only": true,
+      "share_of_pool_pct": 12.5
     },
     "B": {
-      "open_usd": 35.0,
+      "open_usd": 20.0,
       "max_usd": 40.0,
       "pool_usd": 40.0,
-      "bankroll_usd": 49.65,
-      "share_of_pool_pct": 87.5,
-      "share_of_bankroll_pct": 70.5,
-      "label_only": true
+      "bankroll_usd": 49.03,
+      "label_only": true,
+      "share_of_pool_pct": 50.0
     },
     "pool_usd": 40.0,
-    "bankroll_usd": 49.65,
-    "note": "A/B labels; shared max_open_usd pool"
+    "bankroll_usd": 49.03
   },
   "capacity": {
-    "n_open": 8,
+    "n_open": 5,
     "max_open": 8,
-    "remaining_tickets": 0,
+    "remaining_tickets": 3,
     "ticket": 5.0,
     "max_open_usd": 40.0,
-    "bankroll_usd": 49.65,
+    "bankroll_usd": 49.03,
     "deploy_all_cash_ok": true,
     "A_open": 5.0,
-    "B_open": 35.0,
-    "note": "8/8 full \u2014 wait settles before new buys"
+    "B_open": 20.0,
+    "note": "3 dog exits done; TB still open WATCH; favs held"
   },
   "positions": [
-    {
-      "market": "CLE Browns YES",
-      "ticker": "WXNFL-26SEP13CLEJAC-CBRO",
-      "track": "B",
-      "side": "YES",
-      "size_usd": 5.0,
-      "mark_usd": 4.731,
-      "upnl_usd": -0.269,
-      "mint": "3msWmdeGPbenFCYTfEFiaQ4sTS2VR2o4kKYBFbSQeZKE",
-      "status": "open"
-    },
     {
       "market": "Barcelona YES",
       "ticker": "WXLIG-26SEP131615BARCLEVA-BARC",
@@ -83,24 +69,13 @@
       "status": "open"
     },
     {
-      "market": "ATL Falcons YES",
-      "ticker": "WXNFL-26SEP13ATLPIT-AFAL",
-      "track": "B",
-      "side": "YES",
-      "size_usd": 5.0,
-      "mark_usd": 4.7946,
-      "upnl_usd": -0.2054,
-      "mint": "CHJqyFNpjLgm2WvQ55tQAkB73RjAy2bsaS8SNy8xBj3",
-      "status": "open"
-    },
-    {
       "market": "Milwaukee YES",
       "ticker": "WXMLB-26SEP121810CINMIL-MBRE",
       "track": "B",
       "side": "YES",
       "size_usd": 5.0,
-      "mark_usd": 4.9834,
-      "upnl_usd": -0.0166,
+      "mark_usd": 5.0595,
+      "upnl_usd": 0.0595,
       "mint": "8yz5Yxzw9nYLnFZb27J9FCZuGmyp3J9tcL5XRyJbCHPe",
       "status": "open"
     },
@@ -125,20 +100,45 @@
       "upnl_usd": -0.1627,
       "mint": "EGDvorh9RMzfewkjFZpky7ScQUiTrwGtWxGf1ydnGPMs",
       "status": "open"
-    },
-    {
-      "market": "NO Saints YES",
-      "ticker": "WXNFL-26SEP13NODET-NSAI",
-      "track": "B",
-      "side": "YES",
-      "size_usd": 5.0,
-      "mark_usd": 4.777,
-      "upnl_usd": -0.223,
-      "mint": "8oPxy1gnH59DXQjXzAjUDwXEVf2YLCdbQARRQxGj631b",
-      "status": "open"
     }
   ],
   "fills": [
+    {
+      "ts": "2026-09-12T22:16:57.289858856Z",
+      "action": "close",
+      "market": "NO Saints YES",
+      "track": "B",
+      "side": "sell",
+      "size_usd": 5,
+      "pnl_usd": null,
+      "tx": "2ZzNSAo1TaP2B5kSVZ6LKgxAN82pgWCFUPzk2ksh8f61jhzNV2XcTVUZXED7KDQHrmasgrppe8mHaTNJm41DnfrH",
+      "ticker": "WXNFL-26SEP13NODET-NSAI",
+      "note": "exited_sold"
+    },
+    {
+      "ts": "2026-09-12T22:14:59.944776655Z",
+      "action": "close",
+      "market": "CLE Browns YES",
+      "track": "B",
+      "side": "sell",
+      "size_usd": 5,
+      "pnl_usd": null,
+      "tx": "5XkFNX7Zpr87qdhtho7z1scyQdH7PkGKPSaeZKEztBpFTYR34myF4sti8qa9WbHHmgVLcGQWybFkStR4pqh6A14U",
+      "ticker": "WXNFL-26SEP13CLEJAC-CBRO",
+      "note": "exited_sold"
+    },
+    {
+      "ts": "2026-09-12T22:11:56.880292876Z",
+      "action": "close",
+      "market": "ATL Falcons YES",
+      "track": "B",
+      "side": "sell",
+      "size_usd": 5,
+      "pnl_usd": null,
+      "tx": "5GxEiHZraK4wq2TngNoN9GhkNg34B1CXHSv2YNSqVmt8kzuH4J8vXFiXsFPdhEhC84ik7drShjEPAWQbtagcgeVE",
+      "ticker": "WXNFL-26SEP13ATLPIT-AFAL",
+      "note": "exited_sold"
+    },
     {
       "ts": "2026-09-12T21:48:52.519733890Z",
       "action": "open",
@@ -263,69 +263,63 @@
   "settled": [
     {
       "market": "Arsenal YES",
-      "ticker": "WXEPL-26SEP122000ARSESUND-ARSE",
-      "track": "A",
       "result": "won",
       "pnl_usd": 2.85,
-      "size_usd": 5.0
+      "size_usd": 5.0,
+      "track": "A"
+    },
+    {
+      "market": "ATL Falcons YES",
+      "result": "exited",
+      "size_usd": 5.0,
+      "track": "B"
+    },
+    {
+      "market": "CLE Browns YES",
+      "result": "exited",
+      "size_usd": 5.0,
+      "track": "B"
+    },
+    {
+      "market": "NO Saints YES",
+      "result": "exited",
+      "size_usd": 5.0,
+      "track": "B"
     }
   ],
   "cashflow": {
-    "usdc": 9.29,
-    "idle_usd": 9.29,
-    "idle_usdc": 9.29,
-    "deployed_usd": 40.0,
-    "deployed_cost_usd": 40.0,
-    "positions_mark_usd": 38.89,
-    "positions_cost_usd": 40.0,
-    "total_usd": 49.65,
-    "bankroll_usd": 49.65,
+    "usdc": 24.36,
+    "idle_usd": 24.36,
+    "idle_usdc": 24.36,
+    "deployed_usd": 25.0,
+    "deployed_cost_usd": 25.0,
+    "positions_mark_usd": 24.67,
+    "positions_cost_usd": 25.0,
+    "total_usd": 49.03,
+    "bankroll_usd": 49.03,
     "realized_pnl_usd": 2.85,
-    "unrealized_pnl_usd": -1.107,
+    "unrealized_pnl_usd": -0.3336,
     "fees_usd": 0.0,
-    "net_usd": 1.743,
+    "net_usd": 2.5164,
     "tickets_opened": 9,
-    "tickets_closed": 1,
+    "tickets_closed": 4,
     "volume_usd": 45.0
   },
   "autonomy": {
-    "evaluated_at": "2026-09-12T23:58:45+02:00",
-    "note": "WATCH_SETTLES \u00b7 open 8/8 FULL \u00b7 no new settle"
+    "evaluated_at": "2026-09-13T00:17:18+02:00",
+    "note": "exits ATL+CLE+NO done \u00b7 open 5/8 \u00b7 TB WATCH \u00b7 favs HOLD"
   },
-  "pending_geofence": {
-    "request_id": "97069ab2-9342-4fbc-9210-46350da9d4cf",
-    "market": "ATL Falcons YES \u00b7 EXIT",
-    "ticker": "WXNFL-26SEP13ATLPIT-AFAL",
-    "mint": "CHJqyFNpjLgm2WvQ55tQAkB73RjAy2bsaS8SNy8xBj3",
-    "side": "SELL",
-    "track": "B",
-    "action": "exit",
-    "family": "sports_exit",
-    "paper_rule": "thesis broken QB Rush",
-    "status": "pending_signature",
-    "check_region_url": "https://enudimmud.github.io/N-ABU-Dashboard/assets/geofence-latest.html",
-    "geofence_url": "https://enudimmud.github.io/N-ABU-Dashboard/assets/geofence-latest.html",
-    "geofence_api": "https://api.paybox.sh/iframe/swap/97069ab2-9342-4fbc-9210-46350da9d4cf/geofence",
-    "example": false,
-    "token_exp_zh": "2026-09-13T00:20:01+02:00"
-  },
-  "awaiting_region_check": true,
-  "sub_runway": {
-    "target_chf": 1700,
-    "bankroll_usd": 49.65,
-    "realized_pnl_usd": 2.85,
-    "surplus_vs_float": 44.65
-  },
+  "pending_geofence": null,
+  "awaiting_region_check": false,
   "utilization": {
-    "open_usd": 40.0,
+    "open_usd": 25.0,
     "max_usd": 40.0,
     "basis": "deployed_cost / max_open_usd"
   },
-  "swings": [
-    {
-      "market": "CLE Browns YES",
-      "upnl_pct": -5.38
-    }
-  ],
-  "notify": true
+  "sub_runway": {
+    "target_chf": 1700,
+    "bankroll_usd": 49.03,
+    "realized_pnl_usd": 2.85
+  },
+  "notify": false
 }
