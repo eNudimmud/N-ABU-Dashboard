@@ -1,8 +1,9 @@
 {
   "schema_version": 1,
-  "example": true,
-  "generated_at": "2026-09-12T16:40:00Z",
-  "source": "example snapshot — replace by regenerating from world-paper ledgers",
+  "example": false,
+  "generated_at": "2026-09-12T19:16:03Z",
+  "generated_at_zh": "2026-09-12T21:16:03+02:00",
+  "source": "ledger-live + world positions \u00b7 live book",
   "venue": "world.xyz",
   "wallet": {
     "chain": "solana",
@@ -13,128 +14,149 @@
   "ticket_usd": 5.0,
   "caps": {
     "A": {
-      "open_usd": 5.0,
+      "open_usd": 10.0,
       "max_usd": 10.0
     },
     "B": {
-      "open_usd": 10.0,
+      "open_usd": 15.0,
       "max_usd": 15.0
     }
   },
   "positions": [
     {
-      "market": "Will the FOMC hold rates at the September meeting?",
+      "market": "Barcelona YES",
+      "track": "B",
+      "side": "YES",
+      "size_usd": 5.0,
+      "mark_usd": 4.9366,
+      "mint": "AzYRWeHmHQbpwoDKJb4A9YgGq7tiwyfwCd4GJJWKeJb4",
+      "ticker": "WXLIG-26SEP131615BARCLEVA-BARC",
+      "status": "open"
+    },
+    {
+      "market": "Real Madrid YES",
       "track": "A",
       "side": "YES",
       "size_usd": 5.0,
-      "mark": 0.64,
-      "entry": 0.58,
-      "mint": "So1FomcSeptHoldYes111111111111111111111111",
-      "ticker": "FOMC-HOLD-SEP",
-      "opened_at": "2026-09-11T18:12:04Z"
+      "mark_usd": 4.8627,
+      "mint": "67r1PciCLNHrT5iK15jy2mj3KEByTbgGHFgqB3eNBE36",
+      "ticker": "WXLIG-26SEP152130RMADELCH-RMAD",
+      "status": "open"
     },
     {
-      "market": "BTC above $80k by month end?",
-      "track": "B",
-      "side": "NO",
+      "market": "Arsenal YES",
+      "track": "A",
+      "side": "YES",
       "size_usd": 5.0,
-      "mark": 0.47,
-      "entry": 0.51,
-      "mint": "So1Btc80kNo222222222222222222222222222222",
-      "ticker": "BTC-80K-EOM",
-      "opened_at": "2026-09-10T21:04:41Z"
+      "mark_usd": 4.5911,
+      "mint": "7m6EfZGRaD1riwQJjtvGVZH2PQ1r6W8V5HPoD52HTHE7",
+      "ticker": "WXEPL-26SEP122000ARSESUND-ARSE",
+      "status": "open"
     },
     {
-      "market": "SOL spot ETF decision published this week?",
+      "market": "PHI Eagles YES",
       "track": "B",
       "side": "YES",
       "size_usd": 5.0,
-      "mark": 0.31,
-      "entry": 0.28,
-      "mint": "So1SolEtfYes33333333333333333333333333333",
-      "ticker": "SOL-ETF-WK",
-      "opened_at": "2026-09-12T09:17:22Z"
+      "mark_usd": 4.9122,
+      "mint": "9Xop5RNLHfPZZ84dnsUjcDEBTBSYs4BqBr7QpXAFjAPb",
+      "ticker": "WXNFL-26SEP13WASPHI-PEAG",
+      "status": "open"
+    },
+    {
+      "market": "Milwaukee YES",
+      "track": "B",
+      "side": "YES",
+      "size_usd": 5.0,
+      "mark_usd": 4.8306,
+      "mint": "8yz5Yxzw9nYLnFZb27J9FCZuGmyp3J9tcL5XRyJbCHPe",
+      "ticker": "WXMLB-26SEP121810CINMIL-MBRE",
+      "status": "open"
     }
   ],
   "fills": [
     {
-      "ts": "2026-09-12T09:17:22Z",
+      "ts": "2026-09-12T16:16:12.541162187Z",
       "action": "open",
-      "market": "SOL spot ETF decision published this week?",
+      "market": "Barcelona YES",
       "track": "B",
       "side": "YES",
-      "size_usd": 5.0,
-      "price": 0.28,
+      "size_usd": 5,
       "pnl_usd": null,
-      "tx": "5vNabuExamp1eTxOpenSo1Etf111111111111111111111111111111111111",
-      "ticker": "SOL-ETF-WK",
-      "note": "$5 ticket"
+      "tx": "4DrBNGxyDx9ANAsbGRF1yRXsY2GbHNVGPQVdaXH7r6U1UJHaBMwPiKmVDiSi7LjcjdAtKr7FkseWi2eWPrQtyjM3",
+      "ticker": "WXLIG-26SEP131615BARCLEVA-BARC",
+      "note": "sports fav mid>=0.58 spr<=0.06"
     },
     {
-      "ts": "2026-09-11T18:12:04Z",
+      "ts": "2026-09-12T16:05:53.115440728Z",
       "action": "open",
-      "market": "Will the FOMC hold rates at the September meeting?",
-      "track": "A",
-      "side": "YES",
-      "size_usd": 5.0,
-      "price": 0.58,
-      "pnl_usd": null,
-      "tx": "4kNabuExamp1eTxOpenFomc222222222222222222222222222222222222",
-      "ticker": "FOMC-HOLD-SEP",
-      "note": "$5 ticket"
-    },
-    {
-      "ts": "2026-09-11T07:44:18Z",
-      "action": "close",
-      "market": "ETH above $2,600 this week?",
-      "track": "A",
-      "side": "YES",
-      "size_usd": 5.0,
-      "price": 0.71,
-      "pnl_usd": 1.15,
-      "tx": "3mNabuExamp1eTxCloseEth33333333333333333333333333333333333",
-      "ticker": "ETH-2600-WK",
-      "note": "settled / closed"
-    },
-    {
-      "ts": "2026-09-10T21:04:41Z",
-      "action": "open",
-      "market": "BTC above $80k by month end?",
+      "market": "Milwaukee YES",
       "track": "B",
-      "side": "NO",
-      "size_usd": 5.0,
-      "price": 0.51,
+      "side": "YES",
+      "size_usd": 5,
       "pnl_usd": null,
-      "tx": "2bNabuExamp1eTxOpenBtc444444444444444444444444444444444444",
-      "ticker": "BTC-80K-EOM",
-      "note": "$5 ticket"
+      "tx": "4A8TD9mKnppk8V6S53Xn7KqgT2SxqW9yufFdRRxwRCPXCTiZs3BqqpmW5aHbzmFvue4tH7T5bcQE1N8cTjs5jfr4",
+      "ticker": "WXMLB-26SEP121810CINMIL-MBRE",
+      "note": "sports fav mid>=0.58 spr<=0.06"
+    },
+    {
+      "ts": "2026-09-12T15:00:49.280847334Z",
+      "action": "open",
+      "market": "Arsenal YES",
+      "track": "A",
+      "side": "YES",
+      "size_usd": 5,
+      "pnl_usd": null,
+      "tx": "2KDYt4L1pq9Uyqth77ed9XTwrLze3B8oL1rkd1KGnxwHodrciUAp9CLjaCTmSqNMVq9LhK71RfqALFdsFp1paVFR",
+      "ticker": "WXEPL-26SEP122000ARSESUND-ARSE",
+      "note": "LIVE"
+    },
+    {
+      "ts": "2026-09-12T14:47:42.724355576Z",
+      "action": "open",
+      "market": "PHI Eagles YES",
+      "track": "B",
+      "side": "YES",
+      "size_usd": 5,
+      "pnl_usd": null,
+      "tx": "5115D3hMBcrAV7t1v7pkQegxuopzqiq5n5EDSpUGmiuf64gJsEaebbREF8zXarbtJoMocePKhcMkWTEKcJ9DtLys",
+      "ticker": "WXNFL-26SEP13WASPHI-PEAG",
+      "note": "LIVE"
+    },
+    {
+      "ts": "2026-09-12T14:40:21.362877608Z",
+      "action": "open",
+      "market": "Real Madrid YES",
+      "track": "A",
+      "side": "YES",
+      "size_usd": 5,
+      "pnl_usd": null,
+      "tx": "3dAqPKWesGg5kaSYaL1nCAgrKKDQSQ4dcLQPBtjFQPoUfEAnnmm3S3NNNjS51hGrVQRD2a3rxDuRgLBnkmAPE22X",
+      "ticker": null,
+      "note": "LIVE"
     }
   ],
   "cashflow": {
-    "realized_pnl_usd": 1.15,
-    "unrealized_pnl_usd": 0.4,
-    "fees_usd": 0.12,
-    "net_usd": 1.43,
-    "tickets_opened": 4,
-    "tickets_closed": 1,
-    "volume_usd": 20.0
+    "usdc": 21.47,
+    "total_usd": 45.6,
+    "tickets_opened": 5,
+    "tickets_closed": 0,
+    "unrealized_note": "marks from last score"
   },
   "autonomy": {
-    "cycle_id": "cycle-14",
-    "evaluated_at": "2026-09-12T16:35:00Z",
-    "note": "Ticket ETH-2700-WK prepared on A. Awaiting CH Check région / geofence before the fill. Do not let the chat URL expire."
+    "evaluated_at": "2026-09-12T21:14:47.382+02:00",
+    "note": "SKIP_no_capacity",
+    "last_decision": "SKIP_no_capacity"
   },
-  "pending_geofence": {
-    "status": "awaiting_region_check",
-    "market": "Will ETH close above $2,700 this week?",
-    "track": "A",
-    "side": "YES",
-    "size_usd": 5.0,
-    "ticker": "ETH-2700-WK",
-    "request_id": "ch-check-20260912-1844-a1",
-    "prepared_at": "2026-09-12T17:44:00Z",
-    "expires_at": "2026-09-13T18:00:00Z",
-    "geofence_url": "data:text/plain;charset=utf-8,CH%20Check%20region%0Arequest_id=ch-check-20260912-1844-a1%0Amarket=ETH-2700-WK%0Atrack=A%0Asize_usd=5%0Aopen_this_url_to_clear_geofence",
-    "note": "CH Check région — ticket prêt. Ouvrir l'URL geofence du chat avant expiry du token."
-  }
+  "pending_geofence": null,
+  "awaiting_region_check": false,
+  "mark_swings": [
+    {
+      "ticker": "WXEPL-26SEP122000ARSESUND-ARSE",
+      "from": 4.6694,
+      "to": 4.5911,
+      "d_usd": -0.0783,
+      "pct": -1.68
+    }
+  ]
 }
