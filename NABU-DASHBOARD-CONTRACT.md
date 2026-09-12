@@ -356,6 +356,10 @@ vert) reste intacte hors `#nabu-world-root`.
 - `updated_at` / `updated_zh` → `generated_at`
 - `mark_usd` → `mark` ; `last_eval` / `autonomy.note` objet → texte
 - `usdc` / `total_usd` top-level → `cashflow` (aucun zéro inventé)
+- cashflow riche : `realized_pnl_usd`, `unrealized_pnl_usd`, `fees_usd`, `net_usd`,
+  `volume_usd`, `tickets_*`, `positions_mark_usd` — cellules vides masquées, pas de tirets
+- idle USDC (`usdc`) vs déployé (somme des `size_usd` ou `total − usdc`)
+- World field = runway (bankroll, ticket, utilisation, cible 1 700 CHF sans fx inventé)
 
 
 `Ouvrir` / `Copier` n'acceptent que `https://` (PayBox) ou `data:text/html`
