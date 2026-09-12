@@ -3,7 +3,7 @@
   "use strict";
 
   var SNAPSHOT_URLS = ["assets/world-live.json", "world-live.json"];
-  var CSS_URL = "assets/world-tab.css?v=hotfix2";
+  var CSS_URL = "assets/world-tab.css?v=hotfix3";
   var WALLET_FALLBACK = "27bcZ8xT8qWzkmdyjKy7mRXKqRAR9KBphZt3BMyjmac3";
   var POLL_MS = 8000;
   var SEEN_KEY = "nabu-world-seen-geofence";
@@ -155,11 +155,15 @@
       var o = copyOwn(src[i]);
       if (isBlank(o.mark)) {
         var mk = pick(o, ["mark_usd", "mark_px", "price"], null);
-        if (!isBlank(mk)) o.mark = mk;
+        if (mk != null) o.mark = mk;
       }
       if (isBlank(o.entry)) {
         var en = pick(o, ["entry_usd", "entry_px"], null);
-        if (!isBlank(en)) o.entry = en;
+        if (en != null) o.entry = en;
+      }
+      if (isBlank(o.upnl_usd)) {
+        var up = pick(o, ["upnl_usd", "unrealized_pnl_usd", "upnl"], null);
+        if (up != null) o.upnl_usd = up;
       }
       if (isBlank(o.size_usd)) {
         var sz = pick(o, ["size", "notional", "ticket"], null);
@@ -232,12 +236,32 @@
     }
     if (isBlank(o.idle_usd) && !isBlank(o.usdc)) o.idle_usd = o.usdc;
     if (isBlank(o.deployed_usd)) {
-      var dep = sumField(data.positions, ["size_usd", "size", "notional"]);
+      var dep = numish(o.positions_cost_usd);
+      if (dep == null) dep = sumField(data.positions, ["size_usd", "size", "notional"]);
       if (dep == null && !isBlank(o.total_usd) && !isBlank(o.usdc)) {
         dep = Number(o.total_usd) - Number(o.usdc);
       }
       if (dep == null && !isBlank(o.positions_mark_usd)) dep = Number(o.positions_mark_usd);
       if (dep != null) o.deployed_usd = Math.round(dep * 10000) / 10000;
+    }
+    if (isBlank(o.unrealized_pnl_usd)) {
+      var upnl = sumField(data.positions, ["upnl_usd", "unrealized_pnl_usd", "upnl"]);
+      if (upnl == null && !isBlank(o.positions_mark_usd) && !isBlank(o.deployed_usd)) {
+        upnl = Number(o.positions_mark_usd) - Number(o.deployed_usd);
+      }
+      if (upnl != null) o.unrealized_pnl_usd = Math.round(upnl * 10000) / 10000;
+    }
+    if (isBlank(o.volume_usd)) {
+      var vol = sumField(data.fills, ["size_usd", "size"]);
+      if (vol != null) o.volume_usd = Math.round(Math.abs(vol) * 10000) / 10000;
+    }
+    if (isBlank(o.net_usd)) {
+      var real = numish(o.realized_pnl_usd);
+      var unrl = numish(o.unrealized_pnl_usd);
+      var fees = numish(o.fees_usd);
+      if (real != null || unrl != null) {
+        o.net_usd = Math.round(((real || 0) + (unrl || 0) - (fees || 0)) * 10000) / 10000;
+      }
     }
     return o;
   }
@@ -382,16 +406,23 @@
   function renderRunway(data) {
     data = data || {};
     var cash = data.cashflow || {};
+    var run = (data.sub_runway && typeof data.sub_runway === "object") ? data.sub_runway : {};
     var bank = numish(pick(cash, ["bankroll_usd", "total_usd"], null));
+    if (bank == null) bank = numish(pick(run, ["bankroll_usd"], null));
+    if (bank == null) bank = numish(data.bankroll_usd);
     var ticket = numish(data.ticket_usd);
     var idle = numish(pick(cash, ["idle_usd", "usdc"], null));
     var dep = numish(cash.deployed_usd);
     var util = capUtil(data.caps);
+    var target = numish(pick(run, ["target_chf"], TARGET_CHF)) || TARGET_CHF;
     var fx = numish(pick(data, ["usdchf", "fx_usdchf", "chf_per_usd"], null));
     if (fx == null) fx = numish(pick(cash, ["usdchf", "fx_usdchf", "chf_per_usd"], null));
-    var chf = numish(pick(cash, ["bankroll_chf", "chf", "total_chf"], null));
+    if (fx == null) fx = numish(pick(run, ["usdchf", "fx_usdchf"], null));
+    var chf = numish(pick(run, ["bankroll_chf", "chf"], null));
+    if (chf == null) chf = numish(pick(cash, ["bankroll_chf", "chf", "total_chf"], null));
     if (chf == null && bank != null && fx != null) chf = bank * fx;
-    var surplus = (chf != null) ? (TARGET_CHF - chf) : null;
+    var surplus = numish(pick(run, ["surplus_chf_est", "surplus_chf"], null));
+    if (surplus == null && chf != null) surplus = target - chf;
     var cards = [];
     if (bank != null) cards.push(["Bankroll", money(bank)]);
     if (ticket != null) cards.push(["Ticket", money(ticket)]);
@@ -404,12 +435,14 @@
         money(util.open) + " / " + money(util.max) + " · " + Math.round(util.pct) + NBSP + "%"]);
     }
     if (surplus != null) {
-      var lab = surplus > 0 ? "Reste vers 1 700 CHF" : "Au-dessus de 1 700 CHF";
-      cards.push([lab, (surplus < 0 ? "" : "") + Math.abs(surplus).toLocaleString("en-US", {
+      var lab = surplus > 0 ? ("Reste vers " + target.toLocaleString("fr-CH") + " CHF")
+        : ("Au-dessus de " + target.toLocaleString("fr-CH") + " CHF");
+      cards.push([lab, Math.abs(surplus).toLocaleString("en-US", {
         minimumFractionDigits: 2, maximumFractionDigits: 2
       }).replace(/,/g, NBSP) + NBSP + "CHF"]);
     } else {
-      cards.push(["Cible 1 700 CHF", "fx UNVERIFIED — pas de conversion inventée"]);
+      cards.push(["Cible " + target.toLocaleString("fr-CH") + " CHF",
+        "fx UNVERIFIED — pas de conversion inventée"]);
     }
     if (!cards.length) {
       return '<div class="nabu-world-map"><span class="nabu-world-map-label">World field</span>'

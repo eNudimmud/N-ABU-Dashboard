@@ -22,11 +22,18 @@ class SnapshotExample(unittest.TestCase):
         self.assertFalse(snap["example"])
         self.assertEqual(snap["mode"], "LIVE_ONLY")
         self.assertEqual(snap["wallet"]["address"], rws.WALLET)
-        self.assertEqual(snap["caps"]["A"]["max_usd"], 10)
-        self.assertEqual(snap["caps"]["B"]["max_usd"], 15)
+        self.assertEqual(snap["caps"]["A"]["open_usd"], 10)
+        self.assertEqual(snap["caps"]["A"]["max_usd"], 15)
+        self.assertEqual(snap["caps"]["B"]["open_usd"], 15)
+        self.assertEqual(snap["caps"]["B"]["max_usd"], 25)
         self.assertGreaterEqual(len(snap["positions"]), 1)
         self.assertGreaterEqual(len(snap["fills"]), 1)
         self.assertIn("cashflow", snap)
+        cash = snap["cashflow"]
+        self.assertIn("unrealized_pnl_usd", cash)
+        self.assertIn("realized_pnl_usd", cash)
+        self.assertIn("volume_usd", cash)
+        self.assertIn("positions_mark_usd", cash)
         self.assertTrue(snap["autonomy"]["note"])
         self.assertIsNone(snap["pending_geofence"])
 
@@ -454,6 +461,40 @@ class LegacyScoreSchema(unittest.TestCase):
         self.assertEqual(got["idle_usd"], 8.2)
         self.assertEqual(got["deployed_usd"], 5)
         self.assertEqual(got["positions_mark_usd"], 0.6)
+
+    def test_dynamic_caps_not_clobbered_by_legacy_capacity(self):
+        raw = {
+            "caps": {
+                "A": {"open_usd": 10, "max_usd": 15},
+                "B": {"open_usd": 15, "max_usd": 25},
+            },
+            "capacity": {
+                "A_open": 10, "A_cap": 10, "B_open": 15, "B_cap": 15, "ticket": 5,
+            },
+            "cashflow": {
+                "realized_pnl_usd": 0.0,
+                "unrealized_pnl_usd": 1.31,
+                "fees_usd": 0.0,
+                "net_usd": 1.31,
+                "volume_usd": 25.0,
+                "usdc": 21.47,
+                "positions_mark_usd": 26.31,
+                "positions_cost_usd": 25.0,
+                "total_usd": 47.78,
+                "tickets_opened": 5,
+                "tickets_closed": 0,
+            },
+            "sub_runway": {"target_chf": 1700, "surplus_chf_est": None, "bankroll_usd": 47.78},
+        }
+        got = _eval_gate("normalizeSnapshot(" + json.dumps(raw) + ")")
+        self.assertEqual(got["caps"]["A"]["max_usd"], 15)
+        self.assertEqual(got["caps"]["B"]["max_usd"], 25)
+        self.assertEqual(got["cashflow"]["realized_pnl_usd"], 0.0)
+        self.assertEqual(got["cashflow"]["unrealized_pnl_usd"], 1.31)
+        self.assertEqual(got["cashflow"]["fees_usd"], 0.0)
+        self.assertEqual(got["cashflow"]["volume_usd"], 25.0)
+        self.assertEqual(got["cashflow"]["idle_usd"], 21.47)
+        self.assertEqual(got["cashflow"]["deployed_usd"], 25.0)
 
 
 class PagesRoot(unittest.TestCase):
