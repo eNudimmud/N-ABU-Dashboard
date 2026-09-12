@@ -97,12 +97,22 @@ cyan→magenta) + cartes sombres / pills Pending·Completed. PF / RK / PX / AN
 restent la planche d'origine.
 
 Les données viennent de `assets/world-live.json` — un tirage local, pas d'auth PayBox
-dans le HTML. Le fichier commité est un **exemple** qui inclut un `pending_geofence`.
+dans le HTML. Le fichier commité est le snapshot **live** (`pending_geofence: null`).
+`--write-example` produit le mock EXEMPLE (`data:text/plain`, `request_id` `ch-check-…`).
 
 **Pipeline live :** dès qu'un buy est préparé et qu'une URL geofence / Check région
 est émise, la boucle score/autonomie **doit réécrire** `assets/world-live.json`
-(ou le chemin du snapshot). L'onglet World poll ce fichier (~8 s) et alerte
-(badge WD, bandeau, Notification API, son optionnel) pour ne pas rater le chat.
+(ou le chemin du snapshot). L'onglet World poll ce fichier (~8 s).
+
+**Alerte CH Check région (JD) — tickets réels seulement.** Un nouveau
+`pending_geofence` live (pas EXEMPLE, pas `data:text/plain`) déclenche : badge WD
+pulsé, bandeau pleine largeur jusqu'à clear, toast assombri (marché + Copier /
+Ouvrir, dismissible), Notification `requireInteraction:true` si autorisée, et un
+chime Web Audio **on par défaut** (préférence `localStorage` `nabu-world-sound` :
+off = `"0"`, sinon on). Le chime se répète toutes les ~10 s (max 5) tant que le
+ticket reste pending et que l'onglet est visible, ou jusqu'à dismiss. Permission
+Notification demandée **une fois** à la première ouverture de WD ; sinon CTA
+**Autoriser les alertes**. `https://` ou `data:text/html` seulement pour Ouvrir.
 
 ```bash
 python3 scripts/refresh_world_snapshot.py \

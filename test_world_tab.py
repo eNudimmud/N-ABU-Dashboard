@@ -161,17 +161,27 @@ class AdditiveHook(unittest.TestCase):
         self.assertIn("pending_geofence", js)
         self.assertIn("awaiting_region_check", js)
         self.assertIn("nabu-world-banner", js)
+        self.assertIn("nabu-world-toast", js)
         self.assertIn("isOpenableGeofenceUrl", js)
         self.assertIn("pickOpenableGeofenceUrl", js)
         self.assertIn("isDemoPending", js)
+        self.assertIn("isAlertablePending", js)
         self.assertIn("livePending", js)
+        self.assertIn("alertablePending", js)
         self.assertIn("data:text\\/html", js)
+        self.assertIn("data:text\\/plain", js)
         self.assertIn("ch-check-", js)
         self.assertIn("ETH-2700-WK", js)
         self.assertIn("EXEMPLE", js)
         self.assertIn("DEMO / URL invalide — attendre le vrai Check région du chat", js)
         self.assertIn("nabu-world-pending--example", js)
-        self.assertIn("alertNewPending(live)", js)
+        self.assertIn("alertNewPending(alertable)", js)
+        self.assertIn("Autoriser les alertes", js)
+        self.assertIn("maybeAskNotifyOnce", js)
+        self.assertIn("requireInteraction: true", js)
+        self.assertIn('localStorage.getItem(SOUND_KEY) !== "0"', js)
+        self.assertIn("CHIME_REPEAT_MS = 10000", js)
+        self.assertIn("CHIME_MAX = 5", js)
         css = (ROOT / "assets" / "world-tab.css").read_text(encoding="utf-8")
         self.assertIn("#nabu-world-root", css)
         self.assertNotIn("body{", css.split("#nabu-world-root", 1)[0])
@@ -183,6 +193,8 @@ class AdditiveHook(unittest.TestCase):
         self.assertIn("nabu-world-pill--ok", css)
         self.assertIn("nabu-world-pill--exemple", css)
         self.assertIn("nabu-world-url-invalid", css)
+        self.assertIn("#nabu-world-toast", css)
+        self.assertIn("nabu-world-btn--cta", css)
         self.assertIn("nabu-world-lockup", js)
         self.assertIn("nabu-world-orb", js)
         self.assertIn("Completed", js)
@@ -195,6 +207,125 @@ class AdditiveHook(unittest.TestCase):
         body = js.split("function isOpenableGeofenceUrl", 1)[1].split("function pickOpenableGeofenceUrl", 1)[0]
         self.assertNotIn("data:text/plain", body)
         self.assertNotIn("https?:", body)
+
+
+def _extract_js_function(src: str, name: str) -> str:
+    needle = f"function {name}"
+    i = src.index(needle)
+    brace = src.index("{", i)
+    depth = 0
+    for j, ch in enumerate(src[brace:], brace):
+        if ch == "{":
+            depth += 1
+        elif ch == "}":
+            depth -= 1
+            if depth == 0:
+                return src[i : j + 1]
+    raise ValueError(f"unclosed function {name}")
+
+
+def _eval_gate(expr: str):
+    js = (ROOT / "assets" / "world-tab.js").read_text(encoding="utf-8")
+    names = [
+        "isBlank",
+        "pick",
+        "isOpenableGeofenceUrl",
+        "pendingUrl",
+        "isPlainDataUrl",
+        "isDemoPending",
+        "isAlertablePending",
+        "livePending",
+        "alertablePending",
+    ]
+    bundle = "\n".join(_extract_js_function(js, n) for n in names)
+    script = bundle + f";\nconsole.log(JSON.stringify({expr}));"
+    out = subprocess.check_output(["node", "-e", script], text=True)
+    return json.loads(out)
+
+
+class AlertGating(unittest.TestCase):
+    """Real pending alerts vs EXEMPLE / data:text/plain — evaluates world-tab.js."""
+
+    LIVE = {
+        "request_id": "pbx-live-99",
+        "market": "Arsenal YES",
+        "track": "A",
+        "geofence_url": "https://paybox.example/ch/check-region",
+    }
+    EXEMPLE = rws.EXAMPLE["pending_geofence"]
+
+    def test_https_live_is_alertable(self):
+        self.assertTrue(_eval_gate(
+            "isAlertablePending(" + json.dumps(self.LIVE) + ", {example:false})"
+        ))
+
+    def test_html_data_url_live_is_alertable(self):
+        p = dict(self.LIVE, geofence_url="data:text/html,<h1>check</h1>")
+        self.assertTrue(_eval_gate(
+            "isAlertablePending(" + json.dumps(p) + ", {example:false})"
+        ))
+
+    def test_live_without_url_is_alertable(self):
+        p = {"request_id": "pbx-live-88", "market": "No url yet"}
+        self.assertTrue(_eval_gate(
+            "isAlertablePending(" + json.dumps(p) + ", {example:false})"
+        ))
+
+    def test_example_snapshot_is_not_alertable(self):
+        self.assertFalse(_eval_gate(
+            "isAlertablePending(" + json.dumps(self.EXEMPLE) + ", {example:true})"
+        ))
+
+    def test_ch_check_request_id_is_exemple(self):
+        p = dict(self.LIVE, request_id="ch-check-20260912-1844-a1")
+        self.assertTrue(_eval_gate(
+            "isDemoPending(" + json.dumps(p) + ", {example:false})"
+        ))
+        self.assertFalse(_eval_gate(
+            "isAlertablePending(" + json.dumps(p) + ", {example:false})"
+        ))
+
+    def test_plain_data_url_is_not_alertable(self):
+        p = dict(self.LIVE, geofence_url="data:text/plain,geofence-demo")
+        self.assertFalse(_eval_gate(
+            "isAlertablePending(" + json.dumps(p) + ", {example:false})"
+        ))
+        self.assertTrue(_eval_gate(
+            "isPlainDataUrl(" + json.dumps(p["geofence_url"]) + ")"
+        ))
+
+    def test_alertable_pending_filters_mixed_list(self):
+        rows = [
+            self.EXEMPLE,
+            dict(self.LIVE, geofence_url="data:text/plain,nope"),
+            self.LIVE,
+        ]
+        got = _eval_gate(
+            "alertablePending(" + json.dumps(rows) + ", {example:false}).map(p => p.request_id)"
+        )
+        self.assertEqual(got, ["pbx-live-99"])
+
+    def test_live_pending_keeps_plain_url_but_alerts_do_not(self):
+        p = dict(self.LIVE, geofence_url="data:text/plain,nope")
+        live = _eval_gate(
+            "livePending([" + json.dumps(p) + "], {example:false}).length"
+        )
+        alertable = _eval_gate(
+            "alertablePending([" + json.dumps(p) + "], {example:false}).length"
+        )
+        self.assertEqual(live, 1)
+        self.assertEqual(alertable, 0)
+
+    def test_openable_rejects_plain_accepts_https(self):
+        self.assertFalse(_eval_gate(
+            "isOpenableGeofenceUrl('data:text/plain,geofence-demo')"
+        ))
+        self.assertTrue(_eval_gate(
+            "isOpenableGeofenceUrl('https://paybox.example/ch')"
+        ))
+        self.assertTrue(_eval_gate(
+            "isOpenableGeofenceUrl('data:text/html,<p>ok</p>')"
+        ))
 
 
 if __name__ == "__main__":
