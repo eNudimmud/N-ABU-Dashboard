@@ -225,7 +225,7 @@
     "check_region_url": "https://enudimmud.github.io/N-ABU-Dashboard/assets/geofence-latest.html",
     "geofence_url": "https://enudimmud.github.io/N-ABU-Dashboard/assets/geofence-latest.html",
     "geofence_api": "https://api.paybox.sh/iframe/swap/761a151e-5ad3-4bb8-9ac1-6df6084752f5/geofence",
-    "token_exp_zh": "2026-09-13T00:01:29+02:00",
+    "token_exp_zh": "2026-09-13T00:02:35+02:00",
     "example": false
   },
   "awaiting_region_check": true,
