@@ -100,14 +100,22 @@ Les données viennent de `assets/world-live.json` — un tirage local, pas d'aut
 dans le HTML. Le fichier commité est le snapshot **live** (`pending_geofence: null`).
 `--write-example` produit le mock EXEMPLE (`data:text/plain`, `request_id` `ch-check-…`).
 
-**Pipeline live :** dès qu'un buy est préparé et qu'une URL geofence / Check région
-est émise, la boucle score/autonomie **doit réécrire** `assets/world-live.json`
-(ou le chemin du snapshot). L'onglet World poll ce fichier (~8 s).
+**Pipeline live — chaque prise de position réelle.** Dès qu'un buy est préparé,
+la boucle score/autonomie **doit** :
+
+1. écrire `assets/geofence-latest.html` depuis la page téléphone Check région ;
+2. poser `pending_geofence.check_region_url` / `geofence_url` sur le lien Pages
+   court `https://enudimmud.github.io/N-ABU-Dashboard/assets/geofence-latest.html`
+   (préféré à un gros `data:text/html`) ;
+3. pousser `assets/world-live.json` (et le miroir racine). L'onglet World poll
+   ce fichier (~8 s) et met **cette URL** dans la Notification navigateur.
 
 **Alerte CH Check région (JD) — tickets réels seulement.** Un nouveau
 `pending_geofence` live (pas EXEMPLE, pas `data:text/plain`) déclenche : badge WD
 pulsé, bandeau pleine largeur jusqu'à clear, toast assombri (marché + Copier /
-Ouvrir, dismissible), Notification `requireInteraction:true` si autorisée, et un
+Ouvrir, dismissible), Notification `requireInteraction:true` si autorisée
+(titre `Check région · {market}`, body avec l'URL `https://` courte,
+`onclick` → `window.open(url)` ou focus WD + highlight Copier), et un
 chime Web Audio **on par défaut** (préférence `localStorage` `nabu-world-sound` :
 off = `"0"`, sinon on). Le chime se répète toutes les ~10 s (max 5) tant que WD
 est ouvert et que l'onglet est visible, ou jusqu'à dismiss / clic PF. Permission

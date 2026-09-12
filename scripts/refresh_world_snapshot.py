@@ -19,9 +19,17 @@ Expected ledger files (any missing file is UNVERIFIED, never zero-filled):
     $NABU_WORLD_ROOT/positions.json      # or positions.jsonl
     $NABU_WORLD_ROOT/pending_geofence.json   # or awaiting_region_check.json
 
-The live score / autonomy pipeline MUST rewrite assets/world-live.json
-whenever a buy is prepared and a CH Check région / geofence URL is issued,
-so the World tab can raise a pending-action alert.
+The live score / autonomy pipeline MUST, on every real prepared buy:
+
+    (a) write assets/geofence-latest.html from the phone Check région page
+    (b) set pending_geofence.check_region_url / geofence_url to the short
+        Pages https link, e.g.
+        https://enudimmud.github.io/N-ABU-Dashboard/assets/geofence-latest.html
+        (prefer this over a huge data:text/html blob)
+    (c) rewrite / push assets/world-live.json so WD notifies with that URL
+
+Without this refresh, the dashboard cannot put the Check région URL inside
+the browser notification.
 
 Field aliases are accepted (ts/timestamp, tx/signature, track/book, …).
 Caps default to the JD: A max $10 open, B max $15 open, $5 tickets.
@@ -235,6 +243,8 @@ def _load_fills(root: Path) -> tuple[list[dict], str]:
 
 
 def _norm_pending(row: dict) -> dict:
+    check_url = _pick(row, ["check_region_url", "pages_url", "region_check_url"])
+    geo_url = _pick(row, ["geofence_url", "url", "data_url", "link", "href"])
     return {
         "status": _pick(row, ["status", "state"], "awaiting_region_check"),
         "market": _pick(row, ["market", "question", "title"]),
@@ -245,7 +255,8 @@ def _norm_pending(row: dict) -> dict:
         "request_id": _pick(row, ["request_id", "id", "token_id"]),
         "prepared_at": _pick(row, ["prepared_at", "ts", "iso"]),
         "expires_at": _pick(row, ["expires_at", "token_expiry", "expiry", "expires"]),
-        "geofence_url": _pick(row, ["geofence_url", "url", "data_url", "link", "href"]),
+        "geofence_url": geo_url or check_url,
+        "check_region_url": check_url,
         "note": _pick(row, ["note", "hint", "chat_hint"]),
     }
 

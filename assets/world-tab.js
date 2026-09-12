@@ -3,9 +3,11 @@
   "use strict";
 
   var SNAPSHOT_URLS = ["assets/world-live.json", "world-live.json"];
-  var CSS_URL = "assets/world-tab.css?v=hotfix3";
+  var CSS_URL = "assets/world-tab.css?v=checkurl1";
   var WALLET_FALLBACK = "27bcZ8xT8qWzkmdyjKy7mRXKqRAR9KBphZt3BMyjmac3";
   var POLL_MS = 8000;
+  var URL_KEYS = ["check_region_url", "geofence_url", "url", "data_url", "link", "href"];
+  var SHORT_HTTPS_MAX = 280;
   var SEEN_KEY = "nabu-world-seen-geofence";
   var SOUND_KEY = "nabu-world-sound";
   var NOTIFY_ASKED_KEY = "nabu-world-notify-asked";
@@ -659,14 +661,31 @@
     return false;
   }
 
-  function pickOpenableGeofenceUrl(p) {
+  function isHttpsUrl(url) {
+    return /^https:\/\//i.test(String(url || "").trim());
+  }
+
+  function isShortHttpsUrl(url) {
+    var u = String(url || "").trim();
+    return isHttpsUrl(u) && u.length <= SHORT_HTTPS_MAX;
+  }
+
+  function pickFirstUrl(p, pred) {
     if (!p) return "";
-    var keys = ["geofence_url", "url", "data_url", "link", "href"];
-    for (var i = 0; i < keys.length; i++) {
-      var v = p[keys[i]];
-      if (!isBlank(v) && isOpenableGeofenceUrl(v)) return String(v).trim();
+    for (var i = 0; i < URL_KEYS.length; i++) {
+      var v = p[URL_KEYS[i]];
+      if (!isBlank(v) && pred(String(v).trim())) return String(v).trim();
     }
     return "";
+  }
+
+  /* Prefer short https (Pages / PayBox) over a huge data:text/html phone page. */
+  function pickNotifyUrl(p) {
+    return pickFirstUrl(p, isShortHttpsUrl) || pickFirstUrl(p, isHttpsUrl);
+  }
+
+  function pickOpenableGeofenceUrl(p) {
+    return pickNotifyUrl(p) || pickFirstUrl(p, isOpenableGeofenceUrl);
   }
 
   function isDemoPending(p, snap) {
@@ -681,7 +700,7 @@
   }
 
   function pendingUrl(p) {
-    return String(pick(p, ["geofence_url", "url", "data_url", "link", "href"], "") || "");
+    return String(pick(p, URL_KEYS, "") || "");
   }
 
   function isPlainDataUrl(url) {
@@ -690,6 +709,7 @@
 
   function isAlertablePending(p, snap) {
     if (!p || isDemoPending(p, snap)) return false;
+    if (pickNotifyUrl(p)) return true;
     if (isPlainDataUrl(pendingUrl(p))) return false;
     return true;
   }
@@ -759,7 +779,7 @@
         + (href
           ? '<div class="nabu-world-url">'
             + '<textarea readonly id="nabu-world-url-' + i + '">' + esc(href) + "</textarea>"
-            + '<button type="button" class="nabu-world-btn" data-copy="nabu-world-url-' + i + '">Copier l\'URL</button>'
+            + '<button type="button" class="nabu-world-btn nabu-world-copy" data-copy="nabu-world-url-' + i + '">Copier l\'URL</button>'
             + '<a class="nabu-world-btn nabu-world-btn--ghost" href="' + esc(href)
             + '" target="_blank" rel="noopener">Ouvrir</a></div>'
           : '<p class="nabu-world-url-invalid">DEMO / URL invalide — attendre le vrai Check région du chat</p>'
@@ -923,18 +943,59 @@
     });
   }
 
+  function notifyTitle(p) {
+    return "Check région · " + pick(p, ["market", "question", "title"], "ticket");
+  }
+
+  function notifyBody(p) {
+    var body = pick(p, ["market", "title", "question"], "Ticket")
+      + " · track " + pick(p, ["track", "book"], "?")
+      + " · " + money(pick(p, ["size_usd", "size"], 5));
+    var url = pickNotifyUrl(p);
+    if (url) body += "\n" + url;
+    return body;
+  }
+
+  function highlightCopier() {
+    function pulse() {
+      var btn = document.querySelector(
+        "#nabu-world-toast [data-copy], #nabu-world-pending [data-copy], .nabu-world-copy"
+      );
+      if (!btn) return false;
+      document.querySelectorAll(".nabu-world-btn.is-highlight").forEach(function (el) {
+        el.classList.remove("is-highlight");
+      });
+      btn.classList.add("is-highlight");
+      try { btn.focus(); } catch (_) {}
+      try { btn.scrollIntoView({ block: "center" }); } catch (_) {}
+      setTimeout(function () { btn.classList.remove("is-highlight"); }, 4500);
+      return true;
+    }
+    if (pulse()) return;
+    var n = 0;
+    var t = setInterval(function () {
+      n += 1;
+      if (pulse() || n >= 12) clearInterval(t);
+    }, 50);
+  }
+
   function desktopNotify(p) {
     if (!("Notification" in window) || Notification.permission !== "granted") return;
     try {
-      var n = new Notification("World · ticket prêt — CH Check région", {
-        body: (pick(p, ["market", "title"], "Ticket") + " · track "
-          + pick(p, ["track", "book"], "?") + " · " + money(pick(p, ["size_usd", "size"], 5))),
+      var url = pickNotifyUrl(p);
+      var n = new Notification(notifyTitle(p), {
+        body: notifyBody(p),
         tag: "nabu-world-" + pendingKey(p),
         requireInteraction: true
       });
       n.onclick = function () {
+        if (url) {
+          try { window.open(url, "_blank", "noopener"); } catch (_) {}
+        }
         try { window.focus(); } catch (_) {}
         location.hash = "#world";
+        try { openWorld(); } catch (_) {}
+        highlightCopier();
         n.close();
       };
     } catch (_) {}
@@ -994,7 +1055,7 @@
       + (href
         ? '<div class="nabu-world-url">'
           + '<textarea readonly id="nabu-world-toast-url">' + esc(href) + "</textarea>"
-          + '<button type="button" class="nabu-world-btn" data-copy="nabu-world-toast-url">Copier</button>'
+          + '<button type="button" class="nabu-world-btn nabu-world-copy" data-copy="nabu-world-toast-url">Copier</button>'
           + '<a class="nabu-world-btn nabu-world-btn--ghost" href="' + esc(href)
           + '" target="_blank" rel="noopener">Ouvrir</a></div>'
         : '<p class="nabu-world-url-invalid">URL geofence pas encore ouvrable</p>')
@@ -1300,12 +1361,18 @@
   if (typeof window !== "undefined") {
     window.NabuWorldGate = {
       isOpenableGeofenceUrl: isOpenableGeofenceUrl,
+      isHttpsUrl: isHttpsUrl,
+      isShortHttpsUrl: isShortHttpsUrl,
+      pickNotifyUrl: pickNotifyUrl,
+      pickOpenableGeofenceUrl: pickOpenableGeofenceUrl,
       isPlainDataUrl: isPlainDataUrl,
       isDemoPending: isDemoPending,
       isAlertablePending: isAlertablePending,
       livePending: livePending,
       alertablePending: alertablePending,
       pendingUrl: pendingUrl,
+      notifyTitle: notifyTitle,
+      notifyBody: notifyBody,
       normalizeSnapshot: normalizeSnapshot,
       worldOpen: worldOpen
     };
