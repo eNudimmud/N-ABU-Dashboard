@@ -1,9 +1,9 @@
 {
   "schema_version": 2,
   "example": false,
-  "generated_at": "2026-09-12T21:49:13Z",
-  "generated_at_zh": "2026-09-12T23:49:13+02:00",
-  "source": "NO Saints fill \u2014 caps full 8/8",
+  "generated_at": "2026-09-12T22:08:01Z",
+  "generated_at_zh": "2026-09-12T23:58:45+02:00",
+  "source": "score cycle \u2014 caps full 8/8 watch settles",
   "venue": "world.xyz",
   "wallet": {
     "chain": "solana",
@@ -132,8 +132,8 @@
       "track": "B",
       "side": "YES",
       "size_usd": 5.0,
-      "mark_usd": 5.0,
-      "upnl_usd": 0.0,
+      "mark_usd": 4.777,
+      "upnl_usd": -0.223,
       "mint": "8oPxy1gnH59DXQjXzAjUDwXEVf2YLCdbQARRQxGj631b",
       "status": "open"
     }
@@ -276,33 +276,56 @@
     "idle_usdc": 9.29,
     "deployed_usd": 40.0,
     "deployed_cost_usd": 40.0,
-    "positions_mark_usd": 39.12,
+    "positions_mark_usd": 38.89,
     "positions_cost_usd": 40.0,
     "total_usd": 49.65,
     "bankroll_usd": 49.65,
     "realized_pnl_usd": 2.85,
-    "unrealized_pnl_usd": -0.8841,
+    "unrealized_pnl_usd": -1.107,
     "fees_usd": 0.0,
-    "net_usd": 1.9659,
+    "net_usd": 1.743,
     "tickets_opened": 9,
     "tickets_closed": 1,
     "volume_usd": 45.0
   },
   "autonomy": {
-    "evaluated_at": "2026-09-12T23:49:13+02:00",
-    "note": "NO Saints filled \u00b7 open 8/8 FULL"
+    "evaluated_at": "2026-09-12T23:58:45+02:00",
+    "note": "WATCH_SETTLES \u00b7 open 8/8 FULL \u00b7 no new settle"
   },
-  "pending_geofence": null,
-  "awaiting_region_check": false,
+  "pending_geofence": {
+    "request_id": "97069ab2-9342-4fbc-9210-46350da9d4cf",
+    "market": "ATL Falcons YES \u00b7 EXIT",
+    "ticker": "WXNFL-26SEP13ATLPIT-AFAL",
+    "mint": "CHJqyFNpjLgm2WvQ55tQAkB73RjAy2bsaS8SNy8xBj3",
+    "side": "SELL",
+    "track": "B",
+    "action": "exit",
+    "family": "sports_exit",
+    "paper_rule": "thesis broken QB Rush",
+    "status": "pending_signature",
+    "check_region_url": "https://enudimmud.github.io/N-ABU-Dashboard/assets/geofence-latest.html",
+    "geofence_url": "https://enudimmud.github.io/N-ABU-Dashboard/assets/geofence-latest.html",
+    "geofence_api": "https://api.paybox.sh/iframe/swap/97069ab2-9342-4fbc-9210-46350da9d4cf/geofence",
+    "example": false,
+    "token_exp_zh": "2026-09-13T00:20:01+02:00"
+  },
+  "awaiting_region_check": true,
   "sub_runway": {
     "target_chf": 1700,
     "bankroll_usd": 49.65,
-    "realized_pnl_usd": 2.85
+    "realized_pnl_usd": 2.85,
+    "surplus_vs_float": 44.65
   },
   "utilization": {
     "open_usd": 40.0,
     "max_usd": 40.0,
     "basis": "deployed_cost / max_open_usd"
   },
-  "notify": false
+  "swings": [
+    {
+      "market": "CLE Browns YES",
+      "upnl_pct": -5.38
+    }
+  ],
+  "notify": true
 }
