@@ -1,9 +1,9 @@
 {
   "schema_version": 2,
   "example": false,
-  "generated_at": "2026-09-12T22:17:18Z",
-  "generated_at_zh": "2026-09-13T00:17:18+02:00",
-  "source": "after ATL+CLE+NO Saints EXIT sells",
+  "generated_at": "2026-09-12T22:22:57Z",
+  "generated_at_zh": "2026-09-13T00:22:57+02:00",
+  "source": "after ATL+CLE+NO+TB EXIT sells \u2014 dog stack cleared",
   "venue": "world.xyz",
   "wallet": {
     "chain": "solana",
@@ -12,38 +12,38 @@
   },
   "mode": "LIVE_ONLY",
   "ticket_usd": 5.0,
-  "bankroll_usd": 49.03,
+  "bankroll_usd": 48.87,
   "caps": {
     "A": {
       "open_usd": 5.0,
       "max_usd": 40.0,
       "pool_usd": 40.0,
-      "bankroll_usd": 49.03,
+      "bankroll_usd": 48.87,
       "label_only": true,
       "share_of_pool_pct": 12.5
     },
     "B": {
-      "open_usd": 20.0,
+      "open_usd": 15.0,
       "max_usd": 40.0,
       "pool_usd": 40.0,
-      "bankroll_usd": 49.03,
+      "bankroll_usd": 48.87,
       "label_only": true,
-      "share_of_pool_pct": 50.0
+      "share_of_pool_pct": 37.5
     },
     "pool_usd": 40.0,
-    "bankroll_usd": 49.03
+    "bankroll_usd": 48.87
   },
   "capacity": {
-    "n_open": 5,
+    "n_open": 4,
     "max_open": 8,
-    "remaining_tickets": 3,
+    "remaining_tickets": 4,
     "ticket": 5.0,
     "max_open_usd": 40.0,
-    "bankroll_usd": 49.03,
+    "bankroll_usd": 48.87,
     "deploy_all_cash_ok": true,
     "A_open": 5.0,
-    "B_open": 20.0,
-    "note": "3 dog exits done; TB still open WATCH; favs held"
+    "B_open": 15.0,
+    "note": "4 dog exits done; hold favs only; room for new DECISION.md buys"
   },
   "positions": [
     {
@@ -89,20 +89,21 @@
       "upnl_usd": -0.0878,
       "mint": "9Xop5RNLHfPZZ84dnsUjcDEBTBSYs4BqBr7QpXAFjAPb",
       "status": "open"
-    },
-    {
-      "market": "TB Buccaneers YES",
-      "ticker": "WXNFL-26SEP13TBCIN-TBUC",
-      "track": "B",
-      "side": "YES",
-      "size_usd": 5.0,
-      "mark_usd": 4.8373,
-      "upnl_usd": -0.1627,
-      "mint": "EGDvorh9RMzfewkjFZpky7ScQUiTrwGtWxGf1ydnGPMs",
-      "status": "open"
     }
   ],
   "fills": [
+    {
+      "ts": "2026-09-12T22:22:40.542942389Z",
+      "action": "close",
+      "market": "TB Buccaneers YES",
+      "track": "B",
+      "side": "sell",
+      "size_usd": 5,
+      "pnl_usd": null,
+      "tx": "2YWZkMXkjdHLLe7dKRKE412PsEFe65hLfqHGM9ZL3zYMAdV3Th848S3KMgKW1NWn6ToTYaisPiSzujNKNZy55pEX",
+      "ticker": "WXNFL-26SEP13TBCIN-TBUC",
+      "note": "exited_sold"
+    },
     {
       "ts": "2026-09-12T22:16:57.289858856Z",
       "action": "close",
@@ -285,48 +286,47 @@
       "result": "exited",
       "size_usd": 5.0,
       "track": "B"
+    },
+    {
+      "market": "TB Buccaneers YES",
+      "result": "exited",
+      "size_usd": 5.0,
+      "track": "B"
     }
   ],
   "cashflow": {
-    "usdc": 24.36,
-    "idle_usd": 24.36,
-    "idle_usdc": 24.36,
-    "deployed_usd": 25.0,
-    "deployed_cost_usd": 25.0,
-    "positions_mark_usd": 24.67,
-    "positions_cost_usd": 25.0,
-    "total_usd": 49.03,
-    "bankroll_usd": 49.03,
+    "usdc": 29.04,
+    "idle_usd": 29.04,
+    "idle_usdc": 29.04,
+    "deployed_usd": 20.0,
+    "deployed_cost_usd": 20.0,
+    "positions_mark_usd": 19.83,
+    "positions_cost_usd": 20.0,
+    "total_usd": 48.87,
+    "bankroll_usd": 48.87,
     "realized_pnl_usd": 2.85,
-    "unrealized_pnl_usd": -0.3336,
+    "unrealized_pnl_usd": -0.1709,
     "fees_usd": 0.0,
-    "net_usd": 2.5164,
+    "net_usd": 2.6791,
     "tickets_opened": 9,
-    "tickets_closed": 4,
+    "tickets_closed": 5,
     "volume_usd": 45.0
   },
   "autonomy": {
-    "evaluated_at": "2026-09-13T00:17:18+02:00",
-    "note": "exits ATL+CLE+NO done \u00b7 open 5/8 \u00b7 TB WATCH \u00b7 favs HOLD"
+    "evaluated_at": "2026-09-13T00:22:57+02:00",
+    "note": "4 dog exits done \u00b7 open 4/8 \u00b7 HOLD favs \u00b7 next buy = DECISION.md only"
   },
-  "pending_geofence": {
-    "kind": "exit",
-    "market": "TB Buccaneers YES",
-    "request_id": "15f69aab-cf5a-4d8c-919f-5a3fe639d14b",
-    "url": "https://enudimmud.github.io/N-ABU-Dashboard/assets/geofence-exit-tb.html",
-    "expires_zh": "00:33",
-    "note": "EXIT TB dog @ CIN"
-  },
-  "awaiting_region_check": true,
+  "pending_geofence": null,
+  "awaiting_region_check": false,
+  "notify": false,
   "utilization": {
-    "open_usd": 25.0,
+    "open_usd": 20.0,
     "max_usd": 40.0,
     "basis": "deployed_cost / max_open_usd"
   },
   "sub_runway": {
     "target_chf": 1700,
-    "bankroll_usd": 49.03,
+    "bankroll_usd": 48.87,
     "realized_pnl_usd": 2.85
-  },
-  "notify": true
+  }
 }
