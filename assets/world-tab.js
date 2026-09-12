@@ -160,6 +160,9 @@
       var txt, neg = false;
       if (k.indexOf("tickets") === 0) {
         txt = isBlank(v) ? "—" : String(v);
+      } else if (k === "fees_usd" || k === "volume_usd") {
+        txt = money(v);
+        neg = Number(v) < 0;
       } else {
         var s = signedMoney(v);
         txt = s.txt; neg = s.neg;
