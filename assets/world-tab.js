@@ -3,7 +3,7 @@
   "use strict";
 
   var SNAPSHOT_URL = "assets/world-live.json";
-  var CSS_URL = "assets/world-tab.css?v=planche1";
+  var CSS_URL = "assets/world-tab.css?v=planche2";
   var WALLET_FALLBACK = "27bcZ8xT8qWzkmdyjKy7mRXKqRAR9KBphZt3BMyjmac3";
   var POLL_MS = 8000;
   var SEEN_KEY = "nabu-world-seen-geofence";

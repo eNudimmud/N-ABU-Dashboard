@@ -95,29 +95,40 @@
   position:relative;overflow:hidden;background:var(--nw-navy)
 }
 .nabu-world-grid{
-  position:absolute;inset:-30%;pointer-events:none;opacity:.55;
+  position:absolute;inset:-20%;pointer-events:none;opacity:.72;
   background-image:
-    repeating-radial-gradient(circle at 50% 118%, transparent 0 36px, rgba(62,224,255,.20) 37px 38px),
-    repeating-linear-gradient(118deg, transparent 0 42px, rgba(227,91,255,.12) 43px 44px),
-    repeating-linear-gradient(62deg, transparent 0 46px, rgba(62,224,255,.10) 47px 48px);
-  -webkit-mask-image:radial-gradient(ellipse at 58% 42%, black 0 36%, transparent 72%);
-  mask-image:radial-gradient(ellipse at 58% 42%, black 0 36%, transparent 72%);
+    repeating-radial-gradient(circle at 50% 115%, transparent 0 28px, rgba(62,224,255,.28) 29px 30px),
+    repeating-linear-gradient(118deg, transparent 0 34px, rgba(227,91,255,.16) 35px 36px),
+    repeating-linear-gradient(62deg, transparent 0 38px, rgba(62,224,255,.14) 39px 40px);
+  -webkit-mask-image:radial-gradient(ellipse at 58% 42%, black 0 42%, transparent 78%);
+  mask-image:radial-gradient(ellipse at 58% 42%, black 0 42%, transparent 78%);
 }
 .nabu-world-orb{
   position:absolute;width:176px;height:176px;left:50%;top:50%;
   transform:translate(-50%,-54%);border-radius:50%;pointer-events:none;
   background:
-    radial-gradient(circle at 36% 30%, rgba(255,255,255,.92) 0 5%, transparent 22%),
-    radial-gradient(circle at 70% 26%, rgba(255,255,255,.28) 0 3%, transparent 16%),
-    radial-gradient(circle at 50% 50%, #ffe7a8 0 9%, #7be7ff 26%, #d7b8ff 50%, #ff7ad9 70%, #3EE0FF 88%);
-  box-shadow:0 0 48px 10px rgba(62,224,255,.26), 0 0 90px 22px rgba(227,91,255,.16);
+    radial-gradient(circle at 34% 28%, #fff 0 4%, transparent 18%),
+    radial-gradient(circle at 72% 24%, rgba(255,255,255,.55) 0 2%, transparent 12%),
+    radial-gradient(circle at 50% 50%, #ffe7a8 0 8%, #7be7ff 24%, #e8c4ff 48%, #ff7ad9 70%, #3EE0FF 90%);
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,.18),
+    0 0 48px 10px rgba(62,224,255,.28),
+    0 0 90px 22px rgba(227,91,255,.16);
+}
+.nabu-world-orb::before{
+  content:"";position:absolute;width:3px;height:3px;border-radius:50%;
+  background:#fff;box-shadow:
+    118px 42px 0 1px #fff, 28px 122px 0 0 #fff, 148px 108px 0 0.5px #fff;
+  opacity:.9
 }
 .nabu-world-orb::after{
   content:"";position:absolute;inset:0;border-radius:50%;
   background:
-    repeating-radial-gradient(circle at 50% 55%, transparent 0 16px, rgba(255,255,255,.22) 17px 18px),
-    repeating-linear-gradient(28deg, transparent 0 20px, rgba(255,255,255,.16) 21px 22px);
-  mix-blend-mode:soft-light;opacity:.75
+    repeating-radial-gradient(circle at 50% 115%, transparent 0 11px, rgba(255,255,255,.42) 12px 13px),
+    repeating-linear-gradient(28deg, transparent 0 14px, rgba(255,255,255,.32) 15px 16px);
+  mix-blend-mode:overlay;opacity:.9;
+  -webkit-mask-image:radial-gradient(circle, black 68%, transparent 72%);
+  mask-image:radial-gradient(circle, black 68%, transparent 72%)
 }
 .nabu-world-mast-meta{
   position:absolute;z-index:5;left:18px;top:18px;display:flex;gap:6px;flex-wrap:wrap
