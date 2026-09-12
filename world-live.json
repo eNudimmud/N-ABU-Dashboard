@@ -1,8 +1,8 @@
 {
   "schema_version": 2,
   "example": false,
-  "generated_at": "2026-09-12T21:42:52Z",
-  "generated_at_zh": "2026-09-12T23:42:52+02:00",
+  "generated_at": "2026-09-12T21:47:17Z",
+  "generated_at_zh": "2026-09-12T23:47:17+02:00",
   "source": "tracks A/B share same pool=max_open_usd; util must not sum maxes",
   "venue": "world.xyz",
   "wallet": {
@@ -12,13 +12,13 @@
   },
   "mode": "LIVE_ONLY",
   "ticket_usd": 5.0,
-  "bankroll_usd": 48.57,
+  "bankroll_usd": 48.41,
   "caps": {
     "A": {
       "open_usd": 5.0,
       "max_usd": 40.0,
       "pool_usd": 40.0,
-      "bankroll_usd": 48.57,
+      "bankroll_usd": 48.41,
       "share_of_pool_pct": 12.5,
       "share_of_bankroll_pct": 10.3,
       "label_only": true
@@ -27,13 +27,13 @@
       "open_usd": 30.0,
       "max_usd": 40.0,
       "pool_usd": 40.0,
-      "bankroll_usd": 48.57,
+      "bankroll_usd": 48.41,
       "share_of_pool_pct": 75.0,
-      "share_of_bankroll_pct": 61.8,
+      "share_of_bankroll_pct": 62.0,
       "label_only": true
     },
     "pool_usd": 40.0,
-    "bankroll_usd": 48.57,
+    "bankroll_usd": 48.41,
     "note": "A/B labels; each bar vs shared max_open_usd pool (not A40+B40)"
   },
   "capacity": {
@@ -42,7 +42,7 @@
     "remaining_tickets": 1,
     "ticket": 5.0,
     "max_open_usd": 40.0,
-    "bankroll_usd": 48.57,
+    "bankroll_usd": 48.41,
     "deploy_all_cash_ok": true,
     "A_open": 5.0,
     "B_open": 30.0,
@@ -121,8 +121,8 @@
       "track": "B",
       "side": "YES",
       "size_usd": 5.0,
-      "mark_usd": 5.0,
-      "upnl_usd": 0.0,
+      "mark_usd": 4.8373,
+      "upnl_usd": -0.1627,
       "mint": "EGDvorh9RMzfewkjFZpky7ScQUiTrwGtWxGf1ydnGPMs",
       "status": "open"
     }
@@ -175,66 +175,6 @@
       "tx": "2PyaaDFjt3gKmprH5ZbPG29ruchmazeLwFWXdANb3QQi2khCPeKPnHcoQy8pS2XtLJDAsWbhSFAFkzJYJrxgjFgL",
       "ticker": "WXNFL-26SEP13ATLPIT-AFAL",
       "note": "success"
-    },
-    {
-      "ts": "2026-09-12T16:16:12.541162187Z",
-      "action": "open",
-      "market": "Barcelona YES",
-      "track": "B",
-      "side": "YES",
-      "size_usd": 5,
-      "pnl_usd": null,
-      "tx": "4DrBNGxyDx9ANAsbGRF1yRXsY2GbHNVGPQVdaXH7r6U1UJHaBMwPiKmVDiSi7LjcjdAtKr7FkseWi2eWPrQtyjM3",
-      "ticker": "WXLIG-26SEP131615BARCLEVA-BARC",
-      "note": "success"
-    },
-    {
-      "ts": "2026-09-12T16:05:53.115440728Z",
-      "action": "open",
-      "market": "Milwaukee YES",
-      "track": "B",
-      "side": "YES",
-      "size_usd": 5,
-      "pnl_usd": null,
-      "tx": "4A8TD9mKnppk8V6S53Xn7KqgT2SxqW9yufFdRRxwRCPXCTiZs3BqqpmW5aHbzmFvue4tH7T5bcQE1N8cTjs5jfr4",
-      "ticker": "WXMLB-26SEP121810CINMIL-MBRE",
-      "note": "success"
-    },
-    {
-      "ts": "2026-09-12T15:00:49.280847334Z",
-      "action": "open",
-      "market": "Arsenal YES",
-      "track": "A",
-      "side": "YES",
-      "size_usd": 5,
-      "pnl_usd": null,
-      "tx": "2KDYt4L1pq9Uyqth77ed9XTwrLze3B8oL1rkd1KGnxwHodrciUAp9CLjaCTmSqNMVq9LhK71RfqALFdsFp1paVFR",
-      "ticker": "WXEPL-26SEP122000ARSESUND-ARSE",
-      "note": "success"
-    },
-    {
-      "ts": "2026-09-12T14:47:42.724355576Z",
-      "action": "open",
-      "market": "PHI Eagles YES",
-      "track": "B",
-      "side": "YES",
-      "size_usd": 5,
-      "pnl_usd": null,
-      "tx": "5115D3hMBcrAV7t1v7pkQegxuopzqiq5n5EDSpUGmiuf64gJsEaebbREF8zXarbtJoMocePKhcMkWTEKcJ9DtLys",
-      "ticker": "WXNFL-26SEP13WASPHI-PEAG",
-      "note": "success"
-    },
-    {
-      "ts": "2026-09-12T14:40:21.362877608Z",
-      "action": "open",
-      "market": "Real Madrid YES",
-      "track": "A",
-      "side": "YES",
-      "size_usd": 5,
-      "pnl_usd": null,
-      "tx": "3dAqPKWesGg5kaSYaL1nCAgrKKDQSQ4dcLQPBtjFQPoUfEAnnmm3S3NNNjS51hGrVQRD2a3rxDuRgLBnkmAPE22X",
-      "ticker": null,
-      "note": "success"
     }
   ],
   "settled": [
@@ -253,30 +193,48 @@
     "idle_usdc": 14.29,
     "deployed_usd": 35.0,
     "deployed_cost_usd": 35.0,
-    "positions_mark_usd": 34.28,
+    "positions_mark_usd": 34.12,
     "positions_cost_usd": 35.0,
-    "total_usd": 48.57,
-    "bankroll_usd": 48.57,
+    "total_usd": 48.41,
+    "bankroll_usd": 48.41,
     "realized_pnl_usd": 2.85,
-    "unrealized_pnl_usd": -0.7214,
+    "unrealized_pnl_usd": -0.8841,
     "fees_usd": 0.0,
-    "net_usd": 2.1286,
+    "net_usd": 1.9659,
     "tickets_opened": 8,
     "tickets_closed": 1,
     "volume_usd": 40.0
   },
   "autonomy": {
-    "evaluated_at": "2026-09-12T23:42:52+02:00",
-    "note": "A 5.0/40.0 \u00b7 B 30.0/40.0 shared \u00b7 bankroll 48.57"
+    "evaluated_at": "2026-09-12T23:47:17+02:00",
+    "note": "PREPARE_BUY NO Saints dog \u00b7 open 7/8 \u00b7 pending geofence CH"
   },
-  "pending_geofence": null,
-  "awaiting_region_check": false,
+  "pending_geofence": {
+    "request_id": "761a151e-5ad3-4bb8-9ac1-6df6084752f5",
+    "market": "NO Saints YES",
+    "ticker": "WXNFL-26SEP13NODET-NSAI",
+    "mint": "8oPxy1gnH59DXQjXzAjUDwXEVf2YLCdbQARRQxGj631b",
+    "side": "YES",
+    "track": "B",
+    "size_usd": 5.0,
+    "family": "sports_dog",
+    "mid": 0.255,
+    "spr": 0.02,
+    "paper_rule": "sports dog mid\u2208[0.12,0.40] spr\u22640.06 (mid~0.255 spr~0.02)",
+    "status": "pending_signature",
+    "check_region_url": "https://enudimmud.github.io/N-ABU-Dashboard/assets/geofence-latest.html",
+    "geofence_url": "https://enudimmud.github.io/N-ABU-Dashboard/assets/geofence-latest.html",
+    "geofence_api": "https://api.paybox.sh/iframe/swap/761a151e-5ad3-4bb8-9ac1-6df6084752f5/geofence",
+    "token_exp_zh": "2026-09-13T00:01:29+02:00",
+    "example": false
+  },
+  "awaiting_region_check": true,
   "sub_runway": {
     "target_chf": 1700,
-    "bankroll_usd": 48.57,
+    "bankroll_usd": 48.41,
     "realized_pnl_usd": 2.85
   },
-  "notify": false,
+  "notify": true,
   "utilization": {
     "open_usd": 35.0,
     "max_usd": 40.0,
