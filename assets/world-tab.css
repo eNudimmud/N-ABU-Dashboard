@@ -182,23 +182,17 @@
 .nabu-world-pill--dead{color:var(--nw-dead);background:rgba(255,92,122,.12)}
 
 .nabu-world-map{
-  margin-top:22px;min-height:160px;border-radius:14px;border:1px solid var(--nw-line);
+  margin-top:22px;border-radius:14px;border:1px solid var(--nw-line);
   background:
     radial-gradient(circle at 50% 55%, rgba(62,224,255,.10), transparent 42%),
     linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.015));
-  position:relative;overflow:hidden
-}
-.nabu-world-map::before{
-  content:"";position:absolute;inset:-20%;
-  background-image:
-    repeating-radial-gradient(circle at 50% 80%, transparent 0 22px, rgba(255,255,255,.14) 23px 24px),
-    repeating-linear-gradient(25deg, transparent 0 28px, rgba(62,224,255,.10) 29px 30px);
-  opacity:.55
+  position:relative;overflow:hidden;padding:16px 16px 14px
 }
 .nabu-world-map-label{
-  position:absolute;left:16px;bottom:12px;z-index:1;
+  display:block;margin:0 0 12px;
   font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--nw-muted)
 }
+.nabu-world-runway{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(160px,1fr))}
 
 .nabu-world-pending{
   margin-top:0;background:rgba(255,159,67,.08);color:var(--nw-text);

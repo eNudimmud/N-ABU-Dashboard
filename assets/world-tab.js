@@ -3,7 +3,7 @@
   "use strict";
 
   var SNAPSHOT_URLS = ["assets/world-live.json", "world-live.json"];
-  var CSS_URL = "assets/world-tab.css?v=hotfix1";
+  var CSS_URL = "assets/world-tab.css?v=hotfix2";
   var WALLET_FALLBACK = "27bcZ8xT8qWzkmdyjKy7mRXKqRAR9KBphZt3BMyjmac3";
   var POLL_MS = 8000;
   var SEEN_KEY = "nabu-world-seen-geofence";
@@ -13,6 +13,7 @@
   var TOAST_DISMISS_KEY = "nabu-world-toast-dismissed";
   var CHIME_REPEAT_MS = 10000;
   var CHIME_MAX = 5;
+  var TARGET_CHF = 1700;
   var NBSP = "\u00a0";
   var root, banner, toast, navLink, snapshot = null, pollTimer = null;
   var chimeTimer = null, chimeKey = "";
@@ -203,14 +204,40 @@
     return o;
   }
 
+  function sumField(rows, keys) {
+    var s = 0, n = 0;
+    for (var i = 0; i < (rows || []).length; i++) {
+      var v = numish(pick(rows[i], keys, null));
+      if (v != null) { s += v; n++; }
+    }
+    return n ? s : null;
+  }
+
   function normalizeCashflow(cash, data) {
     var o = (cash && typeof cash === "object" && !Array.isArray(cash)) ? copyOwn(cash) : {};
     if (isBlank(o.usdc) && !isBlank(data.usdc)) o.usdc = data.usdc;
     if (isBlank(o.total_usd) && !isBlank(data.total_usd)) o.total_usd = data.total_usd;
+    ["realized_pnl_usd", "unrealized_pnl_usd", "fees_usd", "net_usd", "volume_usd",
+      "tickets_opened", "tickets_closed", "positions_mark_usd"].forEach(function (k) {
+      if (isBlank(o[k]) && !isBlank(data[k])) o[k] = data[k];
+    });
     if (isBlank(o.bankroll_usd)) {
-      var br = pick(data, ["bankroll_usd"], null);
+      var br = pick(o, ["total_usd"], null) || pick(data, ["total_usd", "bankroll_usd"], null);
       if (isBlank(br) && data.capacity) br = pick(data.capacity, ["bankroll_usd"], null);
       if (!isBlank(br)) o.bankroll_usd = br;
+    }
+    if (isBlank(o.positions_mark_usd)) {
+      var marks = sumField(data.positions, ["mark", "mark_usd"]);
+      if (marks != null) o.positions_mark_usd = Math.round(marks * 10000) / 10000;
+    }
+    if (isBlank(o.idle_usd) && !isBlank(o.usdc)) o.idle_usd = o.usdc;
+    if (isBlank(o.deployed_usd)) {
+      var dep = sumField(data.positions, ["size_usd", "size", "notional"]);
+      if (dep == null && !isBlank(o.total_usd) && !isBlank(o.usdc)) {
+        dep = Number(o.total_usd) - Number(o.usdc);
+      }
+      if (dep == null && !isBlank(o.positions_mark_usd)) dep = Number(o.positions_mark_usd);
+      if (dep != null) o.deployed_usd = Math.round(dep * 10000) / 10000;
     }
     return o;
   }
@@ -339,33 +366,100 @@
     return html;
   }
 
+  function capUtil(caps) {
+    var open = 0, max = 0, have = false;
+    var tracks = ["A", "B"];
+    for (var i = 0; i < tracks.length; i++) {
+      var c = (caps && caps[tracks[i]]) || {};
+      var o = numish(c.open_usd), m = numish(c.max_usd);
+      if (o != null) { open += o; have = true; }
+      if (m != null) max += m;
+    }
+    if (!have || max <= 0) return null;
+    return { open: open, max: max, pct: (open / max) * 100 };
+  }
+
+  function renderRunway(data) {
+    data = data || {};
+    var cash = data.cashflow || {};
+    var bank = numish(pick(cash, ["bankroll_usd", "total_usd"], null));
+    var ticket = numish(data.ticket_usd);
+    var idle = numish(pick(cash, ["idle_usd", "usdc"], null));
+    var dep = numish(cash.deployed_usd);
+    var util = capUtil(data.caps);
+    var fx = numish(pick(data, ["usdchf", "fx_usdchf", "chf_per_usd"], null));
+    if (fx == null) fx = numish(pick(cash, ["usdchf", "fx_usdchf", "chf_per_usd"], null));
+    var chf = numish(pick(cash, ["bankroll_chf", "chf", "total_chf"], null));
+    if (chf == null && bank != null && fx != null) chf = bank * fx;
+    var surplus = (chf != null) ? (TARGET_CHF - chf) : null;
+    var cards = [];
+    if (bank != null) cards.push(["Bankroll", money(bank)]);
+    if (ticket != null) cards.push(["Ticket", money(ticket)]);
+    if (idle != null || dep != null) {
+      cards.push(["Idle / déployé",
+        (idle != null ? money(idle) : "—") + " · " + (dep != null ? money(dep) : "—")]);
+    }
+    if (util) {
+      cards.push(["Utilisation",
+        money(util.open) + " / " + money(util.max) + " · " + Math.round(util.pct) + NBSP + "%"]);
+    }
+    if (surplus != null) {
+      var lab = surplus > 0 ? "Reste vers 1 700 CHF" : "Au-dessus de 1 700 CHF";
+      cards.push([lab, (surplus < 0 ? "" : "") + Math.abs(surplus).toLocaleString("en-US", {
+        minimumFractionDigits: 2, maximumFractionDigits: 2
+      }).replace(/,/g, NBSP) + NBSP + "CHF"]);
+    } else {
+      cards.push(["Cible 1 700 CHF", "fx UNVERIFIED — pas de conversion inventée"]);
+    }
+    if (!cards.length) {
+      return '<div class="nabu-world-map"><span class="nabu-world-map-label">World field</span>'
+        + '<p class="nabu-world-empty">Runway UNVERIFIED.</p></div>';
+    }
+    var html = '<div class="nabu-world-map" aria-label="Runway">'
+      + '<span class="nabu-world-map-label">Runway / World field</span><div class="nabu-world-runway">';
+    for (var i = 0; i < cards.length; i++) {
+      html += '<div class="nabu-world-card"><span class="nabu-world-card-k">' + esc(cards[i][0])
+        + '</span><span class="nabu-world-card-v">' + cards[i][1] + "</span></div>";
+    }
+    html += "</div></div>";
+    return html;
+  }
+
   function renderCells(cash) {
     cash = cash || {};
     var keys = [
-      ["realized_pnl_usd", "PnL réalisé"],
-      ["unrealized_pnl_usd", "uPnL"],
-      ["fees_usd", "Frais"],
-      ["net_usd", "Net"],
-      ["usdc", "USDC"],
-      ["total_usd", "Total"],
-      ["tickets_opened", "Tickets ouverts"],
-      ["tickets_closed", "Tickets clos"],
-      ["volume_usd", "Volume"]
+      ["realized_pnl_usd", "PnL réalisé", "signed"],
+      ["unrealized_pnl_usd", "uPnL", "signed"],
+      ["fees_usd", "Frais", "money"],
+      ["net_usd", "Net", "signed"],
+      ["idle_usd", "USDC idle", "money"],
+      ["usdc", "USDC", "money"],
+      ["deployed_usd", "Déployé", "money"],
+      ["positions_mark_usd", "Marks positions", "money"],
+      ["total_usd", "Total", "money"],
+      ["bankroll_usd", "Bankroll", "money"],
+      ["tickets_opened", "Tickets ouverts", "int"],
+      ["tickets_closed", "Tickets clos", "int"],
+      ["volume_usd", "Volume", "money"]
     ];
     var html = '<div class="nabu-world-cells">';
     var any = false;
+    var skip = {};
+    if (!isBlank(cash.idle_usd) && Number(cash.idle_usd) === Number(cash.usdc)) skip.usdc = true;
+    if (!isBlank(cash.bankroll_usd) && Number(cash.bankroll_usd) === Number(cash.total_usd)) skip.bankroll_usd = true;
     for (var i = 0; i < keys.length; i++) {
-      var k = keys[i][0], label = keys[i][1], v = cash[k];
-      if (!isBlank(v)) any = true;
+      var k = keys[i][0], label = keys[i][1], kind = keys[i][2], v = cash[k];
+      if (skip[k] || isBlank(v)) continue;
+      any = true;
       var txt, neg = false;
-      if (k.indexOf("tickets") === 0) {
-        txt = isBlank(v) ? "—" : String(v);
-      } else if (k === "fees_usd" || k === "volume_usd") {
-        txt = money(v);
-        neg = Number(v) < 0;
-      } else {
+      if (kind === "int") {
+        txt = String(v);
+      } else if (kind === "signed") {
         var s = signedMoney(v);
         txt = s.txt; neg = s.neg;
+      } else {
+        txt = money(v);
+        neg = Number(v) < 0;
       }
       var spark = "";
       if (k === "realized_pnl_usd") spark = sparkline(fillSeries(snapshot && snapshot.fills, "pnl_usd"));
@@ -384,7 +478,7 @@
     }
     html += "</div>";
     if (!any) {
-      return '<p class="nabu-world-empty">Cashflow UNVERIFIED — le snapshot ne porte pas de résumé PnL. Aucun zéro inventé.</p>';
+      return '<p class="nabu-world-empty">Cashflow UNVERIFIED — le snapshot ne porte pas de résumé. Aucun zéro inventé.</p>';
     }
     return html;
   }
@@ -1001,7 +1095,7 @@
       + '<div class="nabu-world-badges">' + badges + "</div></header>"
       + warn
       + renderPending(pending, snapshot)
-      + '<div class="nabu-world-map" aria-hidden="true"><span class="nabu-world-map-label">World field</span></div>'
+      + renderRunway(snapshot)
       + '<div class="nabu-world-meta">'
       + '<div class="nabu-world-card"><span class="nabu-world-card-k">Portefeuille ' + esc(label) + "</span>"
       + '<span class="nabu-world-card-v"><a href="' + esc(solscanAddr(wallet)) + '" target="_blank" rel="noopener" title="'

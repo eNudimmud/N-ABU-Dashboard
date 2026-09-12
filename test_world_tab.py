@@ -200,6 +200,10 @@ class AdditiveHook(unittest.TestCase):
         self.assertIn("Completed", js)
         self.assertIn("normalizeSnapshot", js)
         self.assertIn("capacity.A_open", js)
+        self.assertIn("if (skip[k] || isBlank(v)) continue;", js)
+        self.assertIn("renderRunway", js)
+        self.assertIn("TARGET_CHF = 1700", js)
+        self.assertIn("USDC idle", js)
         self.assertIn("closeWorld", js)
         self.assertIn("stopChimeLoop(false)", js)
         self.assertIn('href !== "#world"', js)
@@ -255,6 +259,7 @@ def _eval_gate(expr: str):
         "noteText",
         "normalizeAutonomy",
         "normalizeCashflow",
+        "sumField",
         "normalizeSnapshot",
     ]
     bundle = "\n".join(_extract_js_function(js, n) for n in names)
@@ -391,6 +396,10 @@ class LegacyScoreSchema(unittest.TestCase):
         self.assertEqual(got["ticket_usd"], 5.0)
         self.assertEqual(got["positions"][0]["mark"], 6.3959)
         self.assertEqual(got["cashflow"]["usdc"], 21.47)
+        self.assertEqual(got["cashflow"]["idle_usd"], 21.47)
+        self.assertEqual(got["cashflow"]["deployed_usd"], 5)
+        self.assertEqual(got["cashflow"]["positions_mark_usd"], 6.3959)
+        self.assertEqual(got["cashflow"]["bankroll_usd"], 47.47)
         self.assertEqual(got["autonomy"]["note"], "SKIP_no_capacity + Arsenal mark +61.4%")
 
     def test_open_alias_becomes_positions(self):
@@ -422,6 +431,29 @@ class LegacyScoreSchema(unittest.TestCase):
             self.assertIsInstance(got, dict)
         nested = _eval_gate('normalizeSnapshot({"autonomy":{"note":{"note":"ok"}}}).autonomy.note')
         self.assertEqual(nested, "ok")
+
+    def test_rich_cashflow_fields_are_kept(self):
+        raw = {
+            "caps": {"A": {"open_usd": 5, "max_usd": 15}, "B": {"open_usd": 10, "max_usd": 25}},
+            "cashflow": {
+                "realized_pnl_usd": 1.15,
+                "unrealized_pnl_usd": 0.4,
+                "fees_usd": 0.12,
+                "net_usd": 1.43,
+                "volume_usd": 20,
+                "tickets_opened": 4,
+                "tickets_closed": 1,
+                "usdc": 8.2,
+                "total_usd": 18.2,
+            },
+            "positions": [{"market": "X", "track": "A", "size_usd": 5, "mark": 0.6}],
+        }
+        got = _eval_gate("normalizeSnapshot(" + json.dumps(raw) + ").cashflow")
+        self.assertEqual(got["realized_pnl_usd"], 1.15)
+        self.assertEqual(got["net_usd"], 1.43)
+        self.assertEqual(got["idle_usd"], 8.2)
+        self.assertEqual(got["deployed_usd"], 5)
+        self.assertEqual(got["positions_mark_usd"], 0.6)
 
 
 class PagesRoot(unittest.TestCase):
