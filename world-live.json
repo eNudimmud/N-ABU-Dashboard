@@ -1,9 +1,9 @@
 {
   "schema_version": 2,
   "example": false,
-  "generated_at": "2026-09-12T22:27:56Z",
-  "generated_at_zh": "2026-09-13T00:27:56+02:00",
-  "source": "after PIT Steelers YES $5 fill (WEB_OK fav)",
+  "generated_at": "2026-09-12T22:39:10Z",
+  "generated_at_zh": "2026-09-13T00:39:10+02:00",
+  "source": "after JAC Jaguars YES $5 fill",
   "venue": "world.xyz",
   "wallet": {
     "chain": "solana",
@@ -12,38 +12,38 @@
   },
   "mode": "LIVE_ONLY",
   "ticket_usd": 5.0,
-  "bankroll_usd": 48.63,
+  "bankroll_usd": 48.4,
   "caps": {
     "A": {
       "open_usd": 5.0,
       "max_usd": 40.0,
       "pool_usd": 40.0,
-      "bankroll_usd": 48.63,
+      "bankroll_usd": 48.4,
       "label_only": true,
       "share_of_pool_pct": 12.5
     },
     "B": {
-      "open_usd": 20.0,
+      "open_usd": 25.0,
       "max_usd": 40.0,
       "pool_usd": 40.0,
-      "bankroll_usd": 48.63,
+      "bankroll_usd": 48.4,
       "label_only": true,
-      "share_of_pool_pct": 50.0
+      "share_of_pool_pct": 62.5
     },
     "pool_usd": 40.0,
-    "bankroll_usd": 48.63
+    "bankroll_usd": 48.4
   },
   "capacity": {
-    "n_open": 5,
+    "n_open": 6,
     "max_open": 8,
-    "remaining_tickets": 3,
+    "remaining_tickets": 2,
     "ticket": 5.0,
     "max_open_usd": 40.0,
-    "bankroll_usd": 48.63,
+    "bankroll_usd": 48.4,
     "deploy_all_cash_ok": true,
     "A_open": 5.0,
-    "B_open": 20.0,
-    "note": "PIT filled WEB_OK; full-platform scan running for non-sports edges"
+    "B_open": 25.0,
+    "note": "JAC filled as WEB_OK fav confirm (not deep thesis); crypto idle"
   },
   "positions": [
     {
@@ -100,9 +100,32 @@
       "upnl_usd": -0.0814,
       "mint": "9eVCZW4oUXDo11N6K6TWCuC7BcBccwZTQ7n5aT6MYy9P",
       "status": "open"
+    },
+    {
+      "market": "JAC Jaguars YES",
+      "ticker": "WXNFL-26SEP13CLEJAC-JJAG",
+      "track": "B",
+      "side": "YES",
+      "size_usd": 5.0,
+      "mark_usd": 4.9281,
+      "upnl_usd": -0.0719,
+      "mint": "D4SQxgvMhq53k7CWkc3Ck1muUyQWKvG3TQ537tuftxhm",
+      "status": "open"
     }
   ],
   "fills": [
+    {
+      "ts": "2026-09-12T22:38:22.254070605Z",
+      "action": "open",
+      "market": "JAC Jaguars YES",
+      "track": "B",
+      "side": "buy",
+      "size_usd": 5,
+      "pnl_usd": null,
+      "tx": "55MqRnqeuUbb61SD6mbYenn6ZSqtn8yzypTRmuoGZDjdKVMAAgt32nmt75VeEpbpR9PAUJkA4gGRLWcmJhaXg9bM",
+      "ticker": "WXNFL-26SEP13CLEJAC-JJAG",
+      "note": "filled"
+    },
     {
       "ts": "2026-09-12T22:27:36.290794764Z",
       "action": "open",
@@ -318,38 +341,38 @@
     }
   ],
   "cashflow": {
-    "usdc": 23.88,
-    "idle_usd": 23.88,
-    "idle_usdc": 23.88,
-    "deployed_usd": 25.0,
-    "deployed_cost_usd": 25.0,
-    "positions_mark_usd": 24.75,
-    "positions_cost_usd": 25.0,
-    "total_usd": 48.63,
-    "bankroll_usd": 48.63,
+    "usdc": 18.72,
+    "idle_usd": 18.72,
+    "idle_usdc": 18.72,
+    "deployed_usd": 30.0,
+    "deployed_cost_usd": 30.0,
+    "positions_mark_usd": 29.68,
+    "positions_cost_usd": 30.0,
+    "total_usd": 48.4,
+    "bankroll_usd": 48.4,
     "realized_pnl_usd": 2.85,
-    "unrealized_pnl_usd": -0.2523,
+    "unrealized_pnl_usd": -0.3242,
     "fees_usd": 0.0,
-    "net_usd": 2.5977,
-    "tickets_opened": 10,
+    "net_usd": 2.5258,
+    "tickets_opened": 11,
     "tickets_closed": 5,
-    "volume_usd": 50.0
+    "volume_usd": 55.0
   },
   "autonomy": {
-    "evaluated_at": "2026-09-13T00:27:56+02:00",
-    "note": "PIT fill \u00b7 open 5/8 \u00b7 next = best edge any family (EDGE-LAB)"
+    "evaluated_at": "2026-09-13T00:39:10+02:00",
+    "note": "JAC fill \u00b7 open 6/8 \u00b7 analysis=fav_confirm not deep thesis"
   },
   "pending_geofence": null,
   "awaiting_region_check": false,
   "notify": false,
   "utilization": {
-    "open_usd": 25.0,
+    "open_usd": 30.0,
     "max_usd": 40.0,
     "basis": "deployed_cost / max_open_usd"
   },
   "sub_runway": {
     "target_chf": 1700,
-    "bankroll_usd": 48.63,
+    "bankroll_usd": 48.4,
     "realized_pnl_usd": 2.85
   }
 }
