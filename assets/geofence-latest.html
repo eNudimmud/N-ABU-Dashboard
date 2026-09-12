@@ -8,45 +8,22 @@ button{width:100%;padding:16px;font-size:1.1rem;border:0;border-radius:12px;back
 .ok{color:#1a7f37}.bad{color:#c62828}
 </style>
 <p><b>VPN off</b> · Suisse · <b>EXIT</b> ATL Falcons YES (sell)</p>
-<p style="font-size:13px;opacity:.8">Thèse morte: Rush titulaire @ PIT · récupérer cash avant settle</p>
+<p style="font-size:13px;opacity:.8">Rush @ PIT · token → ~00:21 ZH · si Expiré dis re-préparer</p>
 <button id=g>Check région</button><pre id=o></pre>
 <script>
-const GEO="https://api.paybox.sh/iframe/swap/97069ab2-9342-4fbc-9210-46350da9d4cf/geofence", REF="https://api.paybox.sh/iframe/swap/97069ab2-9342-4fbc-9210-46350da9d4cf/refresh", RT="eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJwYXlib3giLCJzdWIiOiJjMDQ4NmU2Mi05M2ZlLTQ5NjgtYWM1MS0zOWFmZDBiZGIxZWYiLCJjaWQiOiJlN2I2ZmY0NS1kYTZlLTQxMmMtOGNlYS0xMzYwZTJhZDJiNDMiLCJhdWQiOiI5NzA2OWFiMi05MzQyLTRmYmMtOTIxMC00NjM1MGRhOWQ0Y2YiLCJwdXJwb3NlIjoicmVmcmVzaCIsImlhdCI6MTc4OTI1MDgxNCwiZXhwIjoxNzg5MjUxNzE0LCJqdGkiOiJkNzRkYjQ3Zi03NWVlLTQ3MGYtYmVhNS1mNjg4ZmE1MThlMTUifQ.59QCZ__6Nq2awDbnwwmjBqi0LK0UQjpPwxMUgaAJuHA";
-const o=document.getElementById('o'), g=document.getElementById('g');
-async function accessToken(){
-  // try common refresh shapes
-  const attempts=[
-    ()=>fetch(REF,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+RT},body:JSON.stringify({refresh_token:RT})}),
-    ()=>fetch(REF,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({refresh_token:RT})}),
-    ()=>fetch(REF,{method:'POST',headers:{Authorization:'Bearer '+RT}}),
-  ];
-  let last='';
-  for (const fn of attempts){
-    try{
-      const r=await fn();
-      const t=await r.text();
-      last=r.status+' '+t.slice(0,200);
-      if(!r.ok) continue;
-      let j; try{j=JSON.parse(t)}catch{j={raw:t}}
-      const tok=j.access_token||j.token||j.jwt||(j.data&&j.data.access_token);
-      if(tok) return tok;
-      if(typeof j==='string' && j.length>20) return j;
-    }catch(e){last=String(e)}
-  }
-  throw new Error('refresh fail: '+last);
-}
+const U="https://api.paybox.sh/iframe/swap/97069ab2-9342-4fbc-9210-46350da9d4cf/geofence",T="eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJwYXlib3giLCJzdWIiOiJjMDQ4NmU2Mi05M2ZlLTQ5NjgtYWM1MS0zOWFmZDBiZGIxZWYiLCJjaWQiOiJlN2I2ZmY0NS1kYTZlLTQxMmMtOGNlYS0xMzYwZTJhZDJiNDMiLCJhdWQiOiI5NzA2OWFiMi05MzQyLTRmYmMtOTIxMC00NjM1MGRhOWQ0Y2YiLCJwdXJwb3NlIjoicmVmcmVzaCIsImlhdCI6MTc4OTI1MDgxNCwiZXhwIjoxNzg5MjUxNzE0LCJqdGkiOiJkNzRkYjQ3Zi03NWVlLTQ3MGYtYmVhNS1mNjg4ZmE1MThlMTUifQ.59QCZ__6Nq2awDbnwwmjBqi0LK0UQjpPwxMUgaAJuHA";
+const o=document.getElementById('o'),g=document.getElementById('g');
 g.onclick=async()=>{
-  g.disabled=true; o.className=''; o.textContent='…';
+  g.disabled=true;o.className='';o.textContent='…';
   try{
-    const T=await accessToken();
-    const r=await fetch(GEO,{method:'POST',headers:{Authorization:'Bearer '+T}});
+    const r=await fetch(U,{method:'POST',headers:{Authorization:'Bearer '+T}});
     const t=await r.text(); let b; try{b=JSON.parse(t)}catch{b={raw:t}}
-    if(r.status===401){o.className='bad'; o.textContent='Expiré — dis au bot de re-préparer'; return}
-    if(!r.ok){o.className='bad'; o.textContent='HTTP '+r.status+'\n'+t.slice(0,400); g.disabled=false; return}
-    if(b.status==='blocked'||b.blocked||b.status==='denied'){o.className='bad'; o.textContent='Bloqué\n'+(b.reason||t.slice(0,300)); g.disabled=false; return}
+    if(r.status===401){o.className='bad';o.textContent='Expiré — dis re-préparer';return}
+    if(!r.ok){o.className='bad';o.textContent='HTTP '+r.status+'\n'+t.slice(0,400);g.disabled=false;return}
+    if(b.status==='blocked'||b.blocked||b.status==='denied'){o.className='bad';o.textContent='Bloqué\n'+(b.reason||t.slice(0,300));g.disabled=false;return}
     const n=(b.plan&&b.plan.txs&&b.plan.txs.length)||0;
-    if(!n){o.className='bad'; o.textContent='0 txs — dis empty'; g.disabled=false; return}
-    o.className='ok'; o.textContent='OK '+n+' txs\nDis: parked';
-  }catch(e){o.className='bad'; o.textContent=String(e); g.disabled=false}
+    if(!n){o.className='bad';o.textContent='0 txs — dis empty';g.disabled=false;return}
+    o.className='ok';o.textContent='OK '+n+' txs\nDis: parked';
+  }catch(e){o.className='bad';o.textContent=String(e);g.disabled=false}
 };
 </script>
