@@ -84,6 +84,9 @@ class RefreshFromLedgers(unittest.TestCase):
         self.assertEqual(snap["positions"][0]["track"], "B")
         self.assertEqual(snap["caps"]["B"]["open_usd"], 5.0)
         self.assertEqual(snap["caps"]["A"]["max_usd"], 10.0)
+        self.assertTrue(snap["caps"]["A"]["label_only"])
+        self.assertEqual(snap["capacity"]["max_open_usd"], 40.0)
+        self.assertEqual(snap["capacity"]["max_open"], 8)
         self.assertEqual(snap["fills"][0]["action"], "close")
         self.assertEqual(snap["autonomy"]["note"], "Stand down. B has room.")
         self.assertEqual(snap["cashflow"]["tickets_opened"], 1)
@@ -217,11 +220,15 @@ class AdditiveHook(unittest.TestCase):
         self.assertIn("#nabu-world-toast", css)
         self.assertIn("nabu-world-btn--cta", css)
         self.assertIn("nabu-world-btn.is-highlight", css)
+        self.assertIn("nabu-world-cap.is-label", css)
         self.assertIn("nabu-world-lockup", js)
         self.assertIn("nabu-world-orb", js)
         self.assertIn("Completed", js)
         self.assertIn("normalizeSnapshot", js)
         self.assertIn("capacity.A_open", js)
+        self.assertIn("max_open_usd", js)
+        self.assertIn("label_only", js)
+        self.assertIn("function capUtil", js)
         self.assertIn("if (skip[k] || isBlank(v)) continue;", js)
         self.assertIn("renderRunway", js)
         self.assertIn("TARGET_CHF = 1700", js)
@@ -290,12 +297,24 @@ def _eval_gate(expr: str):
         "normalizeAutonomy",
         "normalizeCashflow",
         "sumField",
+        "labelsNote",
+        "normalizeCapacity",
         "normalizeSnapshot",
+        "tracksAreLabels",
+        "poolMax",
+        "poolOpen",
+        "capUtil",
+        "pct",
+        "capStatus",
+        "esc",
+        "renderCaps",
+        "renderRunway",
     ]
     preamble = (
         "var URL_KEYS=['check_region_url','geofence_url','url','data_url','link','href'];\n"
         "var SHORT_HTTPS_MAX=280;\n"
         "var NBSP='\\u00a0';\n"
+        "var TARGET_CHF=1700;\n"
     )
     bundle = preamble + "\n".join(_extract_js_function(js, n) for n in names)
     script = bundle + f";\nconsole.log(JSON.stringify({expr}));"
@@ -588,6 +607,129 @@ class PagesRoot(unittest.TestCase):
         self.assertIn("Check région", slot)
         self.assertIn("check_region_url", slot)
         self.assertIn("enudimmud.github.io/N-ABU-Dashboard/assets/geofence-latest.html", slot)
+
+
+def _plain(s: str) -> str:
+    return str(s).replace("\u00a0", " ").replace("\xa0", " ")
+
+
+class RunwayUtilPool(unittest.TestCase):
+    """Utilisation is a single pool — never A.max + B.max (fake 80)."""
+
+    DOUBLE_TRACK = {
+        "ticket_usd": 5,
+        "bankroll_usd": 48.57,
+        "caps": {
+            "A": {"open_usd": 5.0, "max_usd": 40.0},
+            "B": {"open_usd": 30.0, "max_usd": 40.0},
+        },
+        "capacity": {
+            "n_open": 7,
+            "max_open": 8,
+            "max_open_usd": 40.0,
+            "ticket": 5.0,
+            "bankroll_usd": 48.57,
+            "A_open": 5.0,
+            "B_open": 30.0,
+            "note": "paper-aligned: max 8 · $5–10 · A/B labels",
+        },
+        "cashflow": {
+            "usdc": 14.29,
+            "idle_usdc": 14.29,
+            "positions_cost_usd": 35.0,
+            "deployed_cost_usd": 35.0,
+            "total_usd": 48.57,
+            "bankroll_usd": 48.57,
+        },
+    }
+
+    def test_double_track_max_renders_util_35_over_40_not_80(self):
+        snap = _eval_gate("normalizeSnapshot(" + json.dumps(self.DOUBLE_TRACK) + ")")
+        got = _eval_gate("capUtil(" + json.dumps(snap) + ")")
+        self.assertEqual(got["open"], 35)
+        self.assertEqual(got["max"], 40)
+        self.assertNotEqual(got["max"], 80)
+        html = _plain(_eval_gate("renderRunway(" + json.dumps(snap) + ")"))
+        self.assertIn("35.00", html)
+        self.assertIn("40.00", html)
+        self.assertNotIn("80.00", html)
+        self.assertIn("48.57", html)
+        self.assertIn("14.29", html)
+
+    def test_max_open_times_ticket_when_max_open_usd_absent(self):
+        raw = {
+            "ticket_usd": 5,
+            "caps": {"A": {"open_usd": 5, "max_usd": 40}, "B": {"open_usd": 30, "max_usd": 40}},
+            "capacity": {"max_open": 8, "ticket": 5},
+            "cashflow": {"deployed_usd": 35, "total_usd": 48.57},
+        }
+        got = _eval_gate("capUtil(normalizeSnapshot(" + json.dumps(raw) + "))")
+        self.assertEqual(got["open"], 35)
+        self.assertEqual(got["max"], 40)
+
+    def test_label_only_caps_show_open_not_hard_per_track_max(self):
+        raw = {
+            "ticket_usd": 5,
+            "caps": {
+                "A": {"open_usd": 5, "max_usd": 40, "label_only": True},
+                "B": {"open_usd": 30, "max_usd": 40, "label_only": True},
+            },
+            "capacity": {"max_open_usd": 40, "label_only": True},
+            "cashflow": {"deployed_usd": 35, "total_usd": 48.57},
+        }
+        snap = _eval_gate("normalizeSnapshot(" + json.dumps(raw) + ")")
+        self.assertTrue(_eval_gate("tracksAreLabels(" + json.dumps(snap) + ")"))
+        html = _plain(_eval_gate(
+            "renderCaps(" + json.dumps(snap["caps"]) + ", " + json.dumps(snap) + ")"
+        ))
+        self.assertIn("5.00", html)
+        self.assertIn("30.00", html)
+        self.assertIn("open", html)
+        self.assertIn("is-label", html)
+        self.assertNotIn("/ 40.00", html)
+        self.assertNotIn("/ 80.00", html)
+
+    def test_label_note_without_flag_still_skips_track_max_sum(self):
+        raw = {
+            "caps": {"A": {"open_usd": 5, "max_usd": 40}, "B": {"open_usd": 30, "max_usd": 40}},
+            "capacity": {
+                "max_open_usd": 40,
+                "note": "paper-aligned: max 8 · $5–10 · A/B labels",
+            },
+            "cashflow": {"positions_cost_usd": 35, "total_usd": 48.57},
+        }
+        snap = _eval_gate("normalizeSnapshot(" + json.dumps(raw) + ")")
+        self.assertTrue(snap["caps"]["A"].get("label_only"))
+        got = _eval_gate("capUtil(" + json.dumps(snap) + ")")
+        self.assertEqual(got["max"], 40)
+        html = _plain(_eval_gate(
+            "renderCaps(" + json.dumps(snap["caps"]) + ", " + json.dumps(snap) + ")"
+        ))
+        self.assertNotIn("/ 40.00", html)
+
+    def test_prefer_deployed_cost_over_track_open_sum(self):
+        raw = {
+            "caps": {"A": {"open_usd": 5}, "B": {"open_usd": 10}},
+            "capacity": {"max_open_usd": 40},
+            "cashflow": {"deployed_cost_usd": 35, "positions_cost_usd": 35},
+        }
+        got = _eval_gate("capUtil(normalizeSnapshot(" + json.dumps(raw) + "))")
+        self.assertEqual(got["open"], 35)
+        self.assertEqual(got["max"], 40)
+
+    def test_checked_in_live_snapshot_util_is_single_pool(self):
+        snap = json.loads((ROOT / "assets" / "world-live.json").read_text())
+        got = _eval_gate("capUtil(normalizeSnapshot(" + json.dumps(snap) + "))")
+        self.assertAlmostEqual(got["open"], 35.0)
+        self.assertAlmostEqual(got["max"], 40.0)
+        self.assertNotEqual(got["max"], 80)
+        html = _plain(_eval_gate(
+            "renderRunway(normalizeSnapshot(" + json.dumps(snap) + "))"
+        ))
+        self.assertIn("35.00", html)
+        self.assertIn("40.00", html)
+        self.assertNotIn("80.00", html)
+        self.assertIn("48.57", html)
 
 
 class OverlayClose(unittest.TestCase):
