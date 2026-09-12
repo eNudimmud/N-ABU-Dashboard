@@ -1,9 +1,9 @@
 {
   "schema_version": 2,
   "example": false,
-  "generated_at": "2026-09-12T22:22:12.689720Z",
-  "generated_at_zh": "2026-09-13T00:22:12.688487+02:00",
-  "source": "live-score cycle 0021 ZH",
+  "generated_at": "2026-09-12T22:22:57Z",
+  "generated_at_zh": "2026-09-13T00:22:57+02:00",
+  "source": "after ATL+CLE+NO+TB EXIT sells \u2014 dog stack cleared",
   "venue": "world.xyz",
   "wallet": {
     "chain": "solana",
@@ -12,38 +12,38 @@
   },
   "mode": "LIVE_ONLY",
   "ticket_usd": 5.0,
-  "bankroll_usd": 49.03,
+  "bankroll_usd": 48.87,
   "caps": {
     "A": {
       "open_usd": 5.0,
       "max_usd": 40.0,
       "pool_usd": 40.0,
-      "bankroll_usd": 49.03,
+      "bankroll_usd": 48.87,
       "label_only": true,
       "share_of_pool_pct": 12.5
     },
     "B": {
-      "open_usd": 20.0,
+      "open_usd": 15.0,
       "max_usd": 40.0,
       "pool_usd": 40.0,
-      "bankroll_usd": 49.03,
+      "bankroll_usd": 48.87,
       "label_only": true,
-      "share_of_pool_pct": 50.0
+      "share_of_pool_pct": 37.5
     },
     "pool_usd": 40.0,
-    "bankroll_usd": 49.03
+    "bankroll_usd": 48.87
   },
   "capacity": {
-    "n_open": 5,
+    "n_open": 4,
     "max_open": 8,
-    "remaining_tickets": 3,
+    "remaining_tickets": 4,
     "ticket": 5.0,
     "max_open_usd": 40.0,
-    "bankroll_usd": 49.03,
+    "bankroll_usd": 48.87,
     "deploy_all_cash_ok": true,
     "A_open": 5.0,
-    "B_open": 20.0,
-    "note": "TB EXIT pending + PIT BUY pending geofence; favs HOLD"
+    "B_open": 15.0,
+    "note": "4 dog exits done; hold favs only; room for new DECISION.md buys"
   },
   "positions": [
     {
@@ -89,63 +89,244 @@
       "upnl_usd": -0.0878,
       "mint": "9Xop5RNLHfPZZ84dnsUjcDEBTBSYs4BqBr7QpXAFjAPb",
       "status": "open"
+    }
+  ],
+  "fills": [
+    {
+      "ts": "2026-09-12T22:22:40.542942389Z",
+      "action": "close",
+      "market": "TB Buccaneers YES",
+      "track": "B",
+      "side": "sell",
+      "size_usd": 5,
+      "pnl_usd": null,
+      "tx": "2YWZkMXkjdHLLe7dKRKE412PsEFe65hLfqHGM9ZL3zYMAdV3Th848S3KMgKW1NWn6ToTYaisPiSzujNKNZy55pEX",
+      "ticker": "WXNFL-26SEP13TBCIN-TBUC",
+      "note": "exited_sold"
+    },
+    {
+      "ts": "2026-09-12T22:16:57.289858856Z",
+      "action": "close",
+      "market": "NO Saints YES",
+      "track": "B",
+      "side": "sell",
+      "size_usd": 5,
+      "pnl_usd": null,
+      "tx": "2ZzNSAo1TaP2B5kSVZ6LKgxAN82pgWCFUPzk2ksh8f61jhzNV2XcTVUZXED7KDQHrmasgrppe8mHaTNJm41DnfrH",
+      "ticker": "WXNFL-26SEP13NODET-NSAI",
+      "note": "exited_sold"
+    },
+    {
+      "ts": "2026-09-12T22:14:59.944776655Z",
+      "action": "close",
+      "market": "CLE Browns YES",
+      "track": "B",
+      "side": "sell",
+      "size_usd": 5,
+      "pnl_usd": null,
+      "tx": "5XkFNX7Zpr87qdhtho7z1scyQdH7PkGKPSaeZKEztBpFTYR34myF4sti8qa9WbHHmgVLcGQWybFkStR4pqh6A14U",
+      "ticker": "WXNFL-26SEP13CLEJAC-CBRO",
+      "note": "exited_sold"
+    },
+    {
+      "ts": "2026-09-12T22:11:56.880292876Z",
+      "action": "close",
+      "market": "ATL Falcons YES",
+      "track": "B",
+      "side": "sell",
+      "size_usd": 5,
+      "pnl_usd": null,
+      "tx": "5GxEiHZraK4wq2TngNoN9GhkNg34B1CXHSv2YNSqVmt8kzuH4J8vXFiXsFPdhEhC84ik7drShjEPAWQbtagcgeVE",
+      "ticker": "WXNFL-26SEP13ATLPIT-AFAL",
+      "note": "exited_sold"
+    },
+    {
+      "ts": "2026-09-12T21:48:52.519733890Z",
+      "action": "open",
+      "market": "NO Saints YES",
+      "track": "B",
+      "side": "YES",
+      "size_usd": 5,
+      "pnl_usd": null,
+      "tx": "431CTvNrPuEoXnqR5pU83Nq55ieRhKVZ5unKBs4mqCNTPtQ3jydSRsv6KGLUunMT8J3thcBMrZsKS8rLqPKowXN1",
+      "ticker": "WXNFL-26SEP13NODET-NSAI",
+      "note": "success"
+    },
+    {
+      "ts": "2026-09-12T21:35:44.172786954Z",
+      "action": "open",
+      "market": "TB Buccaneers YES",
+      "track": "B",
+      "side": "YES",
+      "size_usd": 5,
+      "pnl_usd": null,
+      "tx": "2vdSdULCT68HjqEN1GrGc7bL4p11f1vi4VFUpVwDJyEZzYnGySaobLSfE6gp3rMvJqLVrsRzVZTQKwqb1JhjBVfC",
+      "ticker": "WXNFL-26SEP13TBCIN-TBUC",
+      "note": "success"
+    },
+    {
+      "ts": "2026-09-12T21:23:43.640375409Z",
+      "action": "open",
+      "market": "CLE Browns YES",
+      "track": "B",
+      "side": "YES",
+      "size_usd": 5,
+      "pnl_usd": null,
+      "tx": "4n1i563oD57UWSaFHZ3daxCe8NoGviaBTc9Scz2G2XLzi6qU74wndWLEstUeP2MdM7VaMgB59pfEz8e29sLYxs1U",
+      "ticker": "WXNFL-26SEP13CLEJAC-CBRO",
+      "note": "success"
+    },
+    {
+      "ts": "2026-09-12T23:19:38+02:00",
+      "action": "close",
+      "market": "Arsenal YES",
+      "track": "A",
+      "side": "YES",
+      "size_usd": 5.0,
+      "pnl_usd": 2.85,
+      "tx": null,
+      "ticker": "WXEPL-26SEP122000ARSESUND-ARSE",
+      "note": "settled_cashed"
+    },
+    {
+      "ts": "2026-09-12T21:08:41.685538015Z",
+      "action": "open",
+      "market": "ATL Falcons YES",
+      "track": "B",
+      "side": "YES",
+      "size_usd": 5,
+      "pnl_usd": null,
+      "tx": "2PyaaDFjt3gKmprH5ZbPG29ruchmazeLwFWXdANb3QQi2khCPeKPnHcoQy8pS2XtLJDAsWbhSFAFkzJYJrxgjFgL",
+      "ticker": "WXNFL-26SEP13ATLPIT-AFAL",
+      "note": "success"
+    },
+    {
+      "ts": "2026-09-12T16:16:12.541162187Z",
+      "action": "open",
+      "market": "Barcelona YES",
+      "track": "B",
+      "side": "YES",
+      "size_usd": 5,
+      "pnl_usd": null,
+      "tx": "4DrBNGxyDx9ANAsbGRF1yRXsY2GbHNVGPQVdaXH7r6U1UJHaBMwPiKmVDiSi7LjcjdAtKr7FkseWi2eWPrQtyjM3",
+      "ticker": "WXLIG-26SEP131615BARCLEVA-BARC",
+      "note": "success"
+    },
+    {
+      "ts": "2026-09-12T16:05:53.115440728Z",
+      "action": "open",
+      "market": "Milwaukee YES",
+      "track": "B",
+      "side": "YES",
+      "size_usd": 5,
+      "pnl_usd": null,
+      "tx": "4A8TD9mKnppk8V6S53Xn7KqgT2SxqW9yufFdRRxwRCPXCTiZs3BqqpmW5aHbzmFvue4tH7T5bcQE1N8cTjs5jfr4",
+      "ticker": "WXMLB-26SEP121810CINMIL-MBRE",
+      "note": "success"
+    },
+    {
+      "ts": "2026-09-12T15:00:49.280847334Z",
+      "action": "open",
+      "market": "Arsenal YES",
+      "track": "A",
+      "side": "YES",
+      "size_usd": 5,
+      "pnl_usd": null,
+      "tx": "2KDYt4L1pq9Uyqth77ed9XTwrLze3B8oL1rkd1KGnxwHodrciUAp9CLjaCTmSqNMVq9LhK71RfqALFdsFp1paVFR",
+      "ticker": "WXEPL-26SEP122000ARSESUND-ARSE",
+      "note": "success"
+    },
+    {
+      "ts": "2026-09-12T14:47:42.724355576Z",
+      "action": "open",
+      "market": "PHI Eagles YES",
+      "track": "B",
+      "side": "YES",
+      "size_usd": 5,
+      "pnl_usd": null,
+      "tx": "5115D3hMBcrAV7t1v7pkQegxuopzqiq5n5EDSpUGmiuf64gJsEaebbREF8zXarbtJoMocePKhcMkWTEKcJ9DtLys",
+      "ticker": "WXNFL-26SEP13WASPHI-PEAG",
+      "note": "success"
+    },
+    {
+      "ts": "2026-09-12T14:40:21.362877608Z",
+      "action": "open",
+      "market": "Real Madrid YES",
+      "track": "A",
+      "side": "YES",
+      "size_usd": 5,
+      "pnl_usd": null,
+      "tx": "3dAqPKWesGg5kaSYaL1nCAgrKKDQSQ4dcLQPBtjFQPoUfEAnnmm3S3NNNjS51hGrVQRD2a3rxDuRgLBnkmAPE22X",
+      "ticker": null,
+      "note": "success"
+    }
+  ],
+  "settled": [
+    {
+      "market": "Arsenal YES",
+      "result": "won",
+      "pnl_usd": 2.85,
+      "size_usd": 5.0,
+      "track": "A"
+    },
+    {
+      "market": "ATL Falcons YES",
+      "result": "exited",
+      "size_usd": 5.0,
+      "track": "B"
+    },
+    {
+      "market": "CLE Browns YES",
+      "result": "exited",
+      "size_usd": 5.0,
+      "track": "B"
+    },
+    {
+      "market": "NO Saints YES",
+      "result": "exited",
+      "size_usd": 5.0,
+      "track": "B"
     },
     {
       "market": "TB Buccaneers YES",
-      "ticker": "WXNFL-26SEP13TBCIN-TBUC",
-      "track": "B",
-      "side": "YES",
+      "result": "exited",
       "size_usd": 5.0,
-      "mark_usd": 4.8373,
-      "upnl_usd": -0.1627,
-      "mint": "EGDvorh9RMzfewkjFZpky7ScQUiTrwGtWxGf1ydnGPMs",
-      "status": "exit_pending"
+      "track": "B"
     }
   ],
   "cashflow": {
-    "usdc": 22.9,
-    "idle_usd": 22.9,
-    "deployed_usd": 25.0,
-    "positions_mark_usd": 24.67,
-    "total_usd": 49.03,
-    "bankroll_usd": 49.03,
+    "usdc": 29.04,
+    "idle_usd": 29.04,
+    "idle_usdc": 29.04,
+    "deployed_usd": 20.0,
+    "deployed_cost_usd": 20.0,
+    "positions_mark_usd": 19.83,
+    "positions_cost_usd": 20.0,
+    "total_usd": 48.87,
+    "bankroll_usd": 48.87,
     "realized_pnl_usd": 2.85,
-    "unrealized_pnl_usd": -0.33,
+    "unrealized_pnl_usd": -0.1709,
+    "fees_usd": 0.0,
+    "net_usd": 2.6791,
     "tickets_opened": 9,
-    "tickets_closed": 4
+    "tickets_closed": 5,
+    "volume_usd": 45.0
   },
-  "pending_geofence": {
-    "kind": "buy",
-    "market": "PIT Steelers YES",
-    "request_id": "4f77ff3c-fa56-4edd-a247-9e242f290c15",
-    "url": "https://enudimmud.github.io/N-ABU-Dashboard/assets/geofence-latest.html",
-    "expires_zh": "00:36",
-    "note": "BUY PIT fav WEB_OK \u00b7 also EXIT TB at geofence-exit-tb.html"
+  "autonomy": {
+    "evaluated_at": "2026-09-13T00:22:57+02:00",
+    "note": "4 dog exits done \u00b7 open 4/8 \u00b7 HOLD favs \u00b7 next buy = DECISION.md only"
   },
-  "pending_exit": {
-    "market": "TB Buccaneers YES",
-    "request_id": "15f69aab-cf5a-4d8c-919f-5a3fe639d14b",
-    "url": "https://enudimmud.github.io/N-ABU-Dashboard/assets/geofence-exit-tb.html",
-    "expires_zh": "00:35"
+  "pending_geofence": null,
+  "awaiting_region_check": false,
+  "notify": false,
+  "utilization": {
+    "open_usd": 20.0,
+    "max_usd": 40.0,
+    "basis": "deployed_cost / max_open_usd"
   },
-  "awaiting_region_check": true,
   "sub_runway": {
     "target_chf": 1700,
-    "bankroll_usd": 49.03,
+    "bankroll_usd": 48.87,
     "realized_pnl_usd": 2.85
-  },
-  "notify": true,
-  "sizing": {
-    "bankroll_usd": 49.03,
-    "usdc": 22.9,
-    "ticket_usd": 5.0,
-    "ticket_band": [
-      5.0,
-      10.0
-    ],
-    "max_open": 8,
-    "max_open_usd": 40.0,
-    "deploy_all_cash_ok": true,
-    "note": "JD: paper-like live \u2014 8 tickets max, $5\u201310, deploy all cash if edges"
   }
 }
