@@ -1,9 +1,9 @@
 {
   "schema_version": 2,
   "example": false,
-  "generated_at": "2026-09-12T22:52:06Z",
-  "generated_at_zh": "2026-09-13T00:52:06+02:00",
-  "source": "after DET Lions YES $5 DEEP_BRIEF fill",
+  "generated_at": "2026-09-12T23:08:58Z",
+  "generated_at_zh": "2026-09-13T01:08:58+02:00",
+  "source": "after CIN Bengals YES $5 DEEP_BRIEF fill \u2014 book full 8/8",
   "venue": "world.xyz",
   "wallet": {
     "chain": "solana",
@@ -12,37 +12,38 @@
   },
   "mode": "LIVE_ONLY",
   "ticket_usd": 5.0,
-  "bankroll_usd": 48.17,
+  "bankroll_usd": 47.92,
   "caps": {
     "A": {
       "open_usd": 5.0,
       "max_usd": 40.0,
       "pool_usd": 40.0,
-      "bankroll_usd": 48.17,
+      "bankroll_usd": 47.92,
       "label_only": true,
       "share_of_pool_pct": 12.5
     },
     "B": {
-      "open_usd": 30.0,
+      "open_usd": 35.0,
       "max_usd": 40.0,
       "pool_usd": 40.0,
-      "bankroll_usd": 48.17,
+      "bankroll_usd": 47.92,
       "label_only": true,
-      "share_of_pool_pct": 75.0
+      "share_of_pool_pct": 87.5
     },
     "pool_usd": 40.0,
-    "bankroll_usd": 48.17
+    "bankroll_usd": 47.92
   },
   "capacity": {
-    "n_open": 7,
+    "n_open": 8,
     "max_open": 8,
-    "remaining_tickets": 1,
+    "remaining_tickets": 0,
     "ticket": 5.0,
     "max_open_usd": 40.0,
-    "bankroll_usd": 48.17,
+    "bankroll_usd": 47.92,
     "deploy_all_cash_ok": true,
     "A_open": 5.0,
-    "B_open": 30.0
+    "B_open": 35.0,
+    "note": "8/8 full \u2014 watch settles; no new buys until capacity"
   },
   "positions": [
     {
@@ -51,8 +52,8 @@
       "track": "B",
       "side": "YES",
       "size_usd": 5.0,
-      "mark_usd": 4.9947,
-      "upnl_usd": -0.0053,
+      "mark_usd": 4.995,
+      "upnl_usd": -0.005,
       "mint": "AzYRWeHmHQbpwoDKJb4A9YgGq7tiwyfwCd4GJJWKeJb4",
       "status": "open"
     },
@@ -121,9 +122,32 @@
       "upnl_usd": -0.0772,
       "mint": "5mNmJVCvPYhXJtXziCHgvjohwn6giyLo4Jirza46uw1C",
       "status": "open"
+    },
+    {
+      "market": "CIN Bengals YES",
+      "ticker": "WXNFL-26SEP13TBCIN-CBEN",
+      "track": "B",
+      "side": "YES",
+      "size_usd": 5.0,
+      "mark_usd": 4.9061,
+      "upnl_usd": -0.0939,
+      "mint": "ExcaH6fdw9ujzyKUfVD8uBEdA4ciipQQG2LgbU7mVTmr",
+      "status": "open"
     }
   ],
   "fills": [
+    {
+      "ts": "2026-09-12T23:08:38.332031239Z",
+      "action": "open",
+      "market": "CIN Bengals YES",
+      "track": "B",
+      "side": "buy",
+      "size_usd": 5,
+      "pnl_usd": null,
+      "tx": "5inz1yNk389zcdDdUH1qkjkZuoeCBjDcXbuk47LUHKzTbWwKGjJxV7PojAzT7BxcbusSsamPau2e3WNSydQXGg5B",
+      "ticker": "WXNFL-26SEP13TBCIN-CBEN",
+      "note": "filled"
+    },
     {
       "ts": "2026-09-12T22:51:05.876319416Z",
       "action": "open",
@@ -363,38 +387,38 @@
     }
   ],
   "cashflow": {
-    "usdc": 13.57,
-    "idle_usd": 13.57,
-    "idle_usdc": 13.57,
-    "deployed_usd": 35.0,
-    "deployed_cost_usd": 35.0,
-    "positions_mark_usd": 34.6,
-    "positions_cost_usd": 35.0,
-    "total_usd": 48.17,
-    "bankroll_usd": 48.17,
+    "usdc": 8.41,
+    "idle_usd": 8.41,
+    "idle_usdc": 8.41,
+    "deployed_usd": 40.0,
+    "deployed_cost_usd": 40.0,
+    "positions_mark_usd": 39.51,
+    "positions_cost_usd": 40.0,
+    "total_usd": 47.92,
+    "bankroll_usd": 47.92,
     "realized_pnl_usd": 2.85,
-    "unrealized_pnl_usd": -0.4014,
+    "unrealized_pnl_usd": -0.495,
     "fees_usd": 0.0,
-    "net_usd": 2.4486,
-    "tickets_opened": 12,
+    "net_usd": 2.355,
+    "tickets_opened": 13,
     "tickets_closed": 5,
-    "volume_usd": 60.0
+    "volume_usd": 65.0
   },
   "autonomy": {
-    "evaluated_at": "2026-09-13T00:52:06+02:00",
-    "note": "DET fill DEEP_BRIEF \u00b7 open 7/8"
+    "evaluated_at": "2026-09-13T01:08:58+02:00",
+    "note": "CIN fill \u00b7 open 8/8 FULL \u00b7 wait settles / crypto windows"
   },
   "pending_geofence": null,
   "awaiting_region_check": false,
   "notify": false,
   "utilization": {
-    "open_usd": 35.0,
+    "open_usd": 40.0,
     "max_usd": 40.0,
     "basis": "deployed_cost / max_open_usd"
   },
   "sub_runway": {
     "target_chf": 1700,
-    "bankroll_usd": 48.17,
+    "bankroll_usd": 47.92,
     "realized_pnl_usd": 2.85
   }
 }
