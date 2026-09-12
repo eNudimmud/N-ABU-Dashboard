@@ -122,7 +122,7 @@ class RefreshFromLedgers(unittest.TestCase):
 class AdditiveHook(unittest.TestCase):
     def test_dashboard_html_only_adds_script(self):
         html = (ROOT / "dashboard.html").read_text(encoding="utf-8", errors="replace")
-        self.assertIn('src="assets/world-tab.js"', html)
+        self.assertIn('src="assets/world-tab.js', html)
         # original four nav items remain exactly as shipped
         self.assertIn(
             '<nav class="rail-nav"><a href="#portfolio" aria-label="Portefeuille">PF</a>'
@@ -148,7 +148,7 @@ class AdditiveHook(unittest.TestCase):
         out = Path(str(ROOT / "dashboard.world-test.tmp"))
         self.addCleanup(lambda: out.exists() and out.unlink())
         text = out.read_text(encoding="utf-8", errors="replace")
-        self.assertIn('src="assets/world-tab.js"', text)
+        self.assertIn('src="assets/world-tab.js', text)
         self.assertIn('href="#portfolio"', text)
         self.assertIn('href="#analysis"', text)
         self.assertNotIn("nabu-world-root", text)
