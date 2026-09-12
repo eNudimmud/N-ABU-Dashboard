@@ -2265,7 +2265,7 @@ def render(state: dict) -> str:
     a(LIVE_JS)
     # World tab — additive overlay (assets/world-tab.js). Isolated; does not
     # alter original nav markup, CSS, or the inlined nabu-state contract.
-    a("<script src=\"assets/world-tab.js?v=geofence4\" defer></script>")
+    a("<script src=\"assets/world-tab.js?v=alerts1\" defer></script>")
     a("</body></html>")
     return "\n".join(o)
 

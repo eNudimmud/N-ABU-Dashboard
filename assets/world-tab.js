@@ -3,13 +3,19 @@
   "use strict";
 
   var SNAPSHOT_URL = "assets/world-live.json";
-  var CSS_URL = "assets/world-tab.css?v=geofence4";
+  var CSS_URL = "assets/world-tab.css?v=alerts1";
   var WALLET_FALLBACK = "27bcZ8xT8qWzkmdyjKy7mRXKqRAR9KBphZt3BMyjmac3";
   var POLL_MS = 8000;
   var SEEN_KEY = "nabu-world-seen-geofence";
   var SOUND_KEY = "nabu-world-sound";
+  var NOTIFY_ASKED_KEY = "nabu-world-notify-asked";
+  var CHIME_STATE_KEY = "nabu-world-chime-state";
+  var TOAST_DISMISS_KEY = "nabu-world-toast-dismissed";
+  var CHIME_REPEAT_MS = 10000;
+  var CHIME_MAX = 5;
   var NBSP = "\u00a0";
-  var root, banner, navLink, snapshot = null, pollTimer = null;
+  var root, banner, toast, navLink, snapshot = null, pollTimer = null;
+  var chimeTimer = null, chimeKey = "";
 
   function $(sel, el) { return (el || document).querySelector(sel); }
 
@@ -121,6 +127,18 @@
     banner.hidden = true;
     banner.setAttribute("role", "status");
     document.body.appendChild(banner);
+  }
+
+  function injectToast() {
+    if (document.getElementById("nabu-world-toast")) {
+      toast = document.getElementById("nabu-world-toast");
+      return;
+    }
+    toast = document.createElement("div");
+    toast.id = "nabu-world-toast";
+    toast.hidden = true;
+    toast.setAttribute("role", "presentation");
+    document.body.appendChild(toast);
   }
 
   function capStatus(util) {
@@ -367,6 +385,24 @@
     return (list || []).filter(function (p) { return !isDemoPending(p, snap); });
   }
 
+  function pendingUrl(p) {
+    return String(pick(p, ["geofence_url", "url", "data_url", "link", "href"], "") || "");
+  }
+
+  function isPlainDataUrl(url) {
+    return /^data:text\/plain(?:;|,|$)/i.test(String(url || "").trim());
+  }
+
+  function isAlertablePending(p, snap) {
+    if (!p || isDemoPending(p, snap)) return false;
+    if (isPlainDataUrl(pendingUrl(p))) return false;
+    return true;
+  }
+
+  function alertablePending(list, snap) {
+    return (list || []).filter(function (p) { return isAlertablePending(p, snap); });
+  }
+
   function parseExpiry(iso) {
     if (!iso) return null;
     var t = Date.parse(iso);
@@ -435,8 +471,8 @@
             + '<div class="nabu-world-url">'
             + '<button type="button" class="nabu-world-btn nabu-world-btn--ghost" disabled aria-disabled="true">Ouvrir</button>'
             + "</div>")
-        + (demo ? "" : ('<div class="nabu-world-actions">'
-          + '<button type="button" class="nabu-world-btn" data-notify="1">Autoriser les alertes navigateur</button>'
+        + (demo || !isAlertablePending(p, snap) ? "" : ('<div class="nabu-world-actions">'
+          + notifyCtaHtml()
           + '<button type="button" class="nabu-world-btn nabu-world-btn--ghost" data-sound="1">'
           + (soundOn() ? "Son : on" : "Son : off") + "</button></div>"))
         + "</article>";
@@ -453,16 +489,29 @@
     try { localStorage.setItem(SOUND_KEY, on ? "1" : "0"); } catch (_) {}
   }
 
-  function readSeen() {
+  function syncSoundButtons() {
+    document.querySelectorAll("[data-sound]").forEach(function (el) {
+      el.textContent = soundOn() ? "Son : on" : "Son : off";
+    });
+  }
+
+  function readJsonStore(key, storage) {
     try {
-      var raw = sessionStorage.getItem(SEEN_KEY);
+      var raw = storage.getItem(key);
       return raw ? JSON.parse(raw) : {};
     } catch (_) { return {}; }
   }
 
-  function writeSeen(map) {
-    try { sessionStorage.setItem(SEEN_KEY, JSON.stringify(map)); } catch (_) {}
+  function writeJsonStore(key, storage, map) {
+    try { storage.setItem(key, JSON.stringify(map)); } catch (_) {}
   }
+
+  function readSeen() { return readJsonStore(SEEN_KEY, sessionStorage); }
+  function writeSeen(map) { writeJsonStore(SEEN_KEY, sessionStorage, map); }
+  function readChimeState() { return readJsonStore(CHIME_STATE_KEY, sessionStorage); }
+  function writeChimeState(map) { writeJsonStore(CHIME_STATE_KEY, sessionStorage, map); }
+  function readToastDismissed() { return readJsonStore(TOAST_DISMISS_KEY, sessionStorage); }
+  function writeToastDismissed(map) { writeJsonStore(TOAST_DISMISS_KEY, sessionStorage, map); }
 
   function playChime() {
     if (!soundOn()) return;
@@ -471,25 +520,108 @@
       if (!Ctx) return;
       var ctx = playChime._ctx || (playChime._ctx = new Ctx());
       if (ctx.state === "suspended") ctx.resume();
-      var o = ctx.createOscillator();
-      var g = ctx.createGain();
-      o.type = "sine";
-      o.frequency.setValueAtTime(880, ctx.currentTime);
-      o.frequency.exponentialRampToValueAtTime(520, ctx.currentTime + 0.22);
-      g.gain.setValueAtTime(0.0001, ctx.currentTime);
-      g.gain.exponentialRampToValueAtTime(0.08, ctx.currentTime + 0.02);
-      g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.35);
-      o.connect(g); g.connect(ctx.destination);
-      o.start(); o.stop(ctx.currentTime + 0.36);
+      function tone(freq, t0, dur, peak) {
+        var o = ctx.createOscillator();
+        var g = ctx.createGain();
+        o.type = "triangle";
+        o.frequency.setValueAtTime(freq, t0);
+        g.gain.setValueAtTime(0.0001, t0);
+        g.gain.exponentialRampToValueAtTime(peak, t0 + 0.012);
+        g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+        o.connect(g); g.connect(ctx.destination);
+        o.start(t0); o.stop(t0 + dur + 0.02);
+      }
+      var t = ctx.currentTime;
+      tone(880, t, 0.16, 0.28);
+      tone(1175, t + 0.13, 0.22, 0.24);
     } catch (_) {}
+  }
+
+  function stopChimeLoop(markDismissed) {
+    if (chimeTimer) {
+      clearInterval(chimeTimer);
+      chimeTimer = null;
+    }
+    if (markDismissed && chimeKey) {
+      var st = readChimeState();
+      st.key = chimeKey;
+      st.dismissed = true;
+      writeChimeState(st);
+    }
+  }
+
+  function startChimeLoop(key) {
+    if (!key || !soundOn()) return;
+    var st = readChimeState();
+    if (st.key === key && (st.dismissed || (st.count || 0) >= CHIME_MAX)) return;
+    if (chimeKey === key && chimeTimer) return;
+    if (chimeTimer) {
+      clearInterval(chimeTimer);
+      chimeTimer = null;
+    }
+    chimeKey = key;
+    if (st.key !== key) st = { key: key, count: 0, dismissed: false };
+    function beat() {
+      if (!soundOn()) { stopChimeLoop(false); return; }
+      if (typeof document !== "undefined" && document.hidden) return;
+      if ((st.count || 0) >= CHIME_MAX) { stopChimeLoop(false); return; }
+      playChime();
+      st.count = (st.count || 0) + 1;
+      writeChimeState(st);
+      if (st.count >= CHIME_MAX) stopChimeLoop(false);
+    }
+    beat();
+    if ((st.count || 0) < CHIME_MAX) {
+      chimeTimer = setInterval(beat, CHIME_REPEAT_MS);
+    }
+  }
+
+  function notifyCtaNeeded() {
+    return ("Notification" in window) && Notification.permission !== "granted";
+  }
+
+  function notifyCtaHtml() {
+    if (!notifyCtaNeeded()) return "";
+    var denied = Notification.permission === "denied";
+    return '<button type="button" class="nabu-world-btn nabu-world-btn--cta" data-notify="1">Autoriser les alertes</button>'
+      + (denied
+        ? '<span class="nabu-world-notify-hint">Bloqué par le navigateur — activer les notifications pour ce site.</span>'
+        : "");
+  }
+
+  function markNotifyAsked() {
+    try { localStorage.setItem(NOTIFY_ASKED_KEY, "1"); } catch (_) {}
+  }
+
+  function notifyAlreadyAsked() {
+    try { return localStorage.getItem(NOTIFY_ASKED_KEY) === "1"; } catch (_) { return false; }
+  }
+
+  function refreshAlertChrome() {
+    if (!snapshot) return;
+    var list = alertablePending(collectPending(snapshot), snapshot);
+    updateBanner(list);
+    if (list[0] && toast && !toast.hidden) showToast(list[0]);
+  }
+
+  function maybeAskNotifyOnce() {
+    if (!("Notification" in window)) return;
+    if (notifyAlreadyAsked()) return;
+    markNotifyAsked();
+    if (Notification.permission !== "default") return;
+    Notification.requestPermission().then(function () { refreshAlertChrome(); });
   }
 
   function requestNotify() {
     if (!("Notification" in window)) return Promise.resolve("denied");
-    if (Notification.permission === "granted" || Notification.permission === "denied") {
-      return Promise.resolve(Notification.permission);
-    }
-    return Notification.requestPermission();
+    markNotifyAsked();
+    var pending = (Notification.permission === "granted" || Notification.permission === "denied")
+      ? Promise.resolve(Notification.permission)
+      : Notification.requestPermission();
+    return pending.then(function (perm) {
+      refreshAlertChrome();
+      return perm;
+    });
   }
 
   function desktopNotify(p) {
@@ -514,6 +646,7 @@
     if (!navLink) return;
     var dot = navLink.querySelector(".nabu-world-nav-dot");
     navLink.classList.toggle("has-pending", n > 0);
+    navLink.classList.toggle("is-pulse", n > 0);
     if (dot) {
       dot.hidden = n <= 0;
       dot.textContent = String(n);
@@ -528,7 +661,7 @@
     navLink.classList.add("is-flash");
   }
 
-  function updateBanner(list, pulse) {
+  function updateBanner(list) {
     if (!banner) return;
     if (!list || !list.length) {
       banner.hidden = true;
@@ -538,18 +671,70 @@
     var p = list[0];
     var more = list.length > 1 ? " · +" + (list.length - 1) : "";
     banner.innerHTML = '<span class="nabu-world-pill nabu-world-pill--pending">Pending</span>'
-      + "<span>Ticket prêt — CH Check région · "
+      + '<span class="nabu-world-banner-msg">Ticket prêt — CH Check région · '
       + esc(pick(p, ["market", "title"], "marché")) + " · track "
       + esc(pick(p, ["track", "book"], "?")) + more + "</span>"
+      + notifyCtaHtml()
+      + '<button type="button" class="nabu-world-btn nabu-world-btn--ghost" data-sound="1">'
+      + (soundOn() ? "Son : on" : "Son : off") + "</button>"
       + '<a href="#world">Ouvrir World</a>';
     banner.hidden = false;
-    banner.classList.toggle("is-pulse", !!pulse);
+    banner.classList.add("is-pulse");
+  }
+
+  function toastHtml(p) {
+    var href = pickOpenableGeofenceUrl(p);
+    var market = pick(p, ["market", "question", "title"], "Ticket préparé");
+    var rid = pendingKey(p);
+    return '<div class="nabu-world-toast-card" role="alertdialog" aria-modal="true" aria-label="CH Check région">'
+      + '<div class="nabu-world-kicker">Ticket prêt · CH Check région</div>'
+      + "<h2>" + esc(market) + "</h2>"
+      + "<p>Track " + esc(pick(p, ["track", "book"], "?")) + " · "
+      + money(pick(p, ["size_usd", "size", "ticket"], 5)) + "</p>"
+      + notifyCtaHtml()
+      + (href
+        ? '<div class="nabu-world-url">'
+          + '<textarea readonly id="nabu-world-toast-url">' + esc(href) + "</textarea>"
+          + '<button type="button" class="nabu-world-btn" data-copy="nabu-world-toast-url">Copier</button>'
+          + '<a class="nabu-world-btn nabu-world-btn--ghost" href="' + esc(href)
+          + '" target="_blank" rel="noopener">Ouvrir</a></div>'
+        : '<p class="nabu-world-url-invalid">URL geofence pas encore ouvrable</p>')
+      + '<button type="button" class="nabu-world-btn nabu-world-btn--ghost" data-dismiss-toast="'
+      + esc(rid) + '">OK, vu</button></div>';
+  }
+
+  function hideToast() {
+    if (!toast) return;
+    toast.hidden = true;
+    toast.innerHTML = "";
+  }
+
+  function showToast(p) {
+    if (!toast || !p) return;
+    var id = pendingKey(p);
+    if (!id || readToastDismissed()[id]) {
+      hideToast();
+      return;
+    }
+    toast.innerHTML = toastHtml(p);
+    toast.hidden = false;
+  }
+
+  function dismissToast(id) {
+    var map = readToastDismissed();
+    if (id) map[id] = 1;
+    writeToastDismissed(map);
+    hideToast();
+    stopChimeLoop(true);
   }
 
   function alertNewPending(list) {
     if (!list || !list.length) {
       updateBadge(0);
-      updateBanner([], false);
+      updateBanner([]);
+      hideToast();
+      stopChimeLoop(false);
+      chimeKey = "";
       return;
     }
     var seen = readSeen();
@@ -559,10 +744,11 @@
       if (id && !seen[id]) fresh.push(list[i]);
     }
     updateBadge(list.length);
-    updateBanner(list, fresh.length > 0);
+    updateBanner(list);
+    showToast(list[0]);
+    startChimeLoop(pendingKey(list[0]));
     if (!fresh.length) return;
     pulseNav();
-    playChime();
     for (var j = 0; j < fresh.length; j++) {
       desktopNotify(fresh[j]);
       seen[pendingKey(fresh[j])] = 1;
@@ -590,12 +776,12 @@
     var generated = snapshot.generated_at || "—";
     var source = snapshot.source || "assets/world-live.json";
     var pending = collectPending(snapshot);
-    var live = livePending(pending, snapshot);
+    var alertable = alertablePending(pending, snapshot);
     var badges = '<span class="nabu-world-badge nabu-world-badge--mode">' + esc(mode) + "</span>"
       + '<span class="nabu-world-badge">Read only</span>';
     if (example) badges += '<span class="nabu-world-badge nabu-world-badge--ex">Exemple</span>';
     if (unverified) badges += '<span class="nabu-world-badge nabu-world-badge--fail">UNVERIFIED</span>';
-    if (live.length) badges += '<span class="nabu-world-badge nabu-world-badge--hot">Check région</span>';
+    if (alertable.length) badges += '<span class="nabu-world-badge nabu-world-badge--hot">Check région</span>';
 
     var autonomy = snapshot.autonomy || {};
     var autoHtml = "";
@@ -651,7 +837,7 @@
       + '<p class="nabu-world-foot"><b>Lecture seule.</b> Source : ' + esc(source)
       + ". En cas de conflit, les ledgers world-paper et le wallet PayBox gagnent — "
       + "ce JSON n'est qu'un tirage. Voir <code>scripts/refresh_world_snapshot.py</code>.</p>";
-    alertNewPending(live);
+    alertNewPending(alertable);
   }
 
   function unverified() {
@@ -696,6 +882,7 @@
     if (!root) return;
     root.hidden = false;
     if (navLink) navLink.classList.add("is-active");
+    maybeAskNotifyOnce();
   }
 
   function closeWorld() {
@@ -732,9 +919,20 @@
       requestNotify();
       return;
     }
+    var dismiss = t.closest("[data-dismiss-toast]");
+    if (dismiss) {
+      dismissToast(dismiss.getAttribute("data-dismiss-toast"));
+      return;
+    }
     if (t.closest("[data-sound]")) {
       setSound(!soundOn());
-      t.closest("[data-sound]").textContent = soundOn() ? "Son : on" : "Son : off";
+      syncSoundButtons();
+      if (soundOn() && snapshot) {
+        var next = alertablePending(collectPending(snapshot), snapshot);
+        if (next[0]) startChimeLoop(pendingKey(next[0]));
+      } else {
+        stopChimeLoop(false);
+      }
     }
   }
 
@@ -743,6 +941,7 @@
     injectNav();
     injectPanel();
     injectBanner();
+    injectToast();
     document.addEventListener("click", onClick);
     loadSnapshot().then(function (data) { applySnapshot(data, false); });
     window.addEventListener("hashchange", syncHash);
@@ -750,6 +949,18 @@
       loadSnapshot().then(function (data) { applySnapshot(data, true); });
     }, POLL_MS);
     setInterval(tickExpiry, 15000);
+  }
+
+  if (typeof window !== "undefined") {
+    window.NabuWorldGate = {
+      isOpenableGeofenceUrl: isOpenableGeofenceUrl,
+      isPlainDataUrl: isPlainDataUrl,
+      isDemoPending: isDemoPending,
+      isAlertablePending: isAlertablePending,
+      livePending: livePending,
+      alertablePending: alertablePending,
+      pendingUrl: pendingUrl
+    };
   }
 
   if (document.readyState === "loading") {

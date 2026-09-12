@@ -342,19 +342,33 @@ vert) reste intacte hors `#nabu-world-root`.
     "request_id": "ch-check-…",
     "prepared_at": "2026-09-12T17:44:00Z",
     "expires_at": "2026-09-13T18:00:00Z",   // token expiry
-    "geofence_url": "data:text/plain,… | https://…",
+    "geofence_url": "https://… | data:text/html,…",  // data:text/plain = démo invalide
     "note": "CH Check région — ouvrir l'URL du chat"
   }
   // alias acceptés : pending_geofences[] · awaiting_region_check
 }
 ```
 
+`Ouvrir` / `Copier` n'acceptent que `https://` (PayBox) ou `data:text/html`
+(page téléphone). `data:text/plain`, `http:` et URL absente → `DEMO / URL invalide`.
+`example: true` ou `request_id` `ch-check-…` / `ETH-2700-WK` → panneau **EXEMPLE**,
+pas d'alerte.
+
 ### Alerte « ticket prêt » (JD)
 
-L'onglet World poll `assets/world-live.json` toutes les ~8 s. Un nouveau
-`request_id` déclenche : badge pulsé sur `WD`, bandeau fixe (même hors overlay),
-Notification API si autorisée, son optionnel. L'URL geofence est copiable.
-La page ne contacte pas PayBox.
+L'onglet World poll `assets/world-live.json` toutes les ~8 s. Un **vrai**
+`pending_geofence` (pas EXEMPLE, pas `data:text/plain`) déclenche :
+
+- badge `WD` pulsé + bandeau pleine largeur jusqu'à disparition du pending ;
+- toast assombri (marché, Copier / Ouvrir) ; dismiss arrête le son, pas le bandeau ;
+- Notification API (`requireInteraction: true`) si `granted` ;
+- chime Web Audio **on par défaut**, persisté dans `localStorage`
+  (`nabu-world-sound` = `"0"` pour off) ; répétition ~10 s, max 5, ou jusqu'à
+  dismiss / clear, uniquement onglet visible ;
+- permission Notification demandée une seule fois à la première ouverture WD ;
+  sinon CTA **Autoriser les alertes**.
+
+La page ne contacte pas PayBox. PF / RK / PX / AN restent la planche d'origine.
 
 **Contrat pipeline :** la boucle live score / autonomie réécrit ce snapshot
 **dès qu'un buy est préparé** (URL geofence émise). Sans ce refresh, le
