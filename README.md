@@ -11,6 +11,9 @@ Planche de lecture autonome produite par `nabu_dashboard.py`. Aucune dépendance
 | `assets/nabu-command.webp` | Visuel principal N*ABU, intégré en base64 au HTML final |
 | `assets/nabu-portrait.webp` | Avatar de navigation, intégré en base64 au HTML final |
 | `assets/iii-symbol.svg` | Géométrie vectorielle canonique du symbole `iii` |
+| `assets/world-live.json` | Snapshot lecture seule World.xyz / PayBox (exemple commité) |
+| `assets/world-tab.js` + `world-tab.css` | Onglet World — overlay isolé, sans refactor de la planche |
+| `scripts/refresh_world_snapshot.py` | Régénère le snapshot depuis les ledgers world-paper |
 
 ## Tirage
 
@@ -82,3 +85,22 @@ et edge ; il ne confond pas une série gagnante avec une stratégie démontrée.
 Les limites de risque sont immuables depuis cette boucle. Une amélioration teste une seule hypothèse
 en paper, attend la prochaine taille d'échantillon, puis exige une validation humaine avant toute
 promotion live.
+
+## Onglet World (additif)
+
+Un cinquième item de navigation (`WD`) ouvre un **panneau isolé** : mode `LIVE_ONLY`,
+caps A ≤ $10 / B ≤ $15, positions, fills (tx Solana), cashflow, dernière note
+d'autonomie. La planche d'origine (PF / RK / PX / AN) n'est pas refactorisée.
+
+Les données viennent de `assets/world-live.json` — un tirage local, pas d'auth PayBox
+dans le HTML. Le fichier commité est un **exemple**. Pour le rafraîchir depuis les
+ledgers (`fills.jsonl`, `autonomy_cycle.json`, `positions`) :
+
+```bash
+python3 scripts/refresh_world_snapshot.py \
+  --ledgers /opt/data/.nabu/world-paper \
+  --out assets/world-live.json
+```
+
+Servir la page en HTTP pour que le fetch du snapshot aboutisse
+(`python3 -m http.server` depuis la racine du dépôt). Format : §8 du contrat.

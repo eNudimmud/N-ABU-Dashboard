@@ -1,0 +1,121 @@
+{
+  "schema_version": 1,
+  "example": true,
+  "generated_at": "2026-09-12T16:40:00Z",
+  "source": "example snapshot — replace by regenerating from world-paper ledgers",
+  "venue": "world.xyz",
+  "wallet": {
+    "chain": "solana",
+    "address": "27bcZ8xT8qWzkmdyjKy7mRXKqRAR9KBphZt3BMyjmac3",
+    "label": "PayBox"
+  },
+  "mode": "LIVE_ONLY",
+  "ticket_usd": 5,
+  "caps": {
+    "A": { "open_usd": 5.0, "max_usd": 10.0 },
+    "B": { "open_usd": 10.0, "max_usd": 15.0 }
+  },
+  "positions": [
+    {
+      "market": "Will the FOMC hold rates at the September meeting?",
+      "track": "A",
+      "side": "YES",
+      "size_usd": 5.0,
+      "mark": 0.64,
+      "entry": 0.58,
+      "mint": "So1FomcSeptHoldYes111111111111111111111111",
+      "ticker": "FOMC-HOLD-SEP",
+      "opened_at": "2026-09-11T18:12:04Z"
+    },
+    {
+      "market": "BTC above $80k by month end?",
+      "track": "B",
+      "side": "NO",
+      "size_usd": 5.0,
+      "mark": 0.47,
+      "entry": 0.51,
+      "mint": "So1Btc80kNo222222222222222222222222222222",
+      "ticker": "BTC-80K-EOM",
+      "opened_at": "2026-09-10T21:04:41Z"
+    },
+    {
+      "market": "SOL spot ETF decision published this week?",
+      "track": "B",
+      "side": "YES",
+      "size_usd": 5.0,
+      "mark": 0.31,
+      "entry": 0.28,
+      "mint": "So1SolEtfYes33333333333333333333333333333",
+      "ticker": "SOL-ETF-WK",
+      "opened_at": "2026-09-12T09:17:22Z"
+    }
+  ],
+  "fills": [
+    {
+      "ts": "2026-09-12T09:17:22Z",
+      "action": "open",
+      "market": "SOL spot ETF decision published this week?",
+      "track": "B",
+      "side": "YES",
+      "size_usd": 5.0,
+      "price": 0.28,
+      "pnl_usd": null,
+      "tx": "5vNabuExamp1eTxOpenSo1Etf111111111111111111111111111111111111",
+      "ticker": "SOL-ETF-WK",
+      "note": "$5 ticket"
+    },
+    {
+      "ts": "2026-09-11T18:12:04Z",
+      "action": "open",
+      "market": "Will the FOMC hold rates at the September meeting?",
+      "track": "A",
+      "side": "YES",
+      "size_usd": 5.0,
+      "price": 0.58,
+      "pnl_usd": null,
+      "tx": "4kNabuExamp1eTxOpenFomc222222222222222222222222222222222222",
+      "ticker": "FOMC-HOLD-SEP",
+      "note": "$5 ticket"
+    },
+    {
+      "ts": "2026-09-11T07:44:18Z",
+      "action": "close",
+      "market": "ETH above $2,600 this week?",
+      "track": "A",
+      "side": "YES",
+      "size_usd": 5.0,
+      "price": 0.71,
+      "pnl_usd": 1.15,
+      "tx": "3mNabuExamp1eTxCloseEth33333333333333333333333333333333333",
+      "ticker": "ETH-2600-WK",
+      "note": "settled / closed"
+    },
+    {
+      "ts": "2026-09-10T21:04:41Z",
+      "action": "open",
+      "market": "BTC above $80k by month end?",
+      "track": "B",
+      "side": "NO",
+      "size_usd": 5.0,
+      "price": 0.51,
+      "pnl_usd": null,
+      "tx": "2bNabuExamp1eTxOpenBtc444444444444444444444444444444444444",
+      "ticker": "BTC-80K-EOM",
+      "note": "$5 ticket"
+    }
+  ],
+  "cashflow": {
+    "realized_pnl_usd": 1.15,
+    "unrealized_pnl_usd": 0.4,
+    "fees_usd": 0.12,
+    "net_usd": 1.43,
+    "tickets_opened": 4,
+    "tickets_closed": 1,
+    "volume_usd": 20.0
+  },
+  "autonomy": {
+    "cycle_id": "cycle-14",
+    "evaluated_at": "2026-09-12T16:35:00Z",
+    "note": "Hold. A at 50% of cap (one $5 ticket). B has room for one more ticket. Do not chase after the FOMC print; wait for the settlement window."
+  }
+}

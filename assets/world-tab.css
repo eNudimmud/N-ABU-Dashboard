@@ -1,0 +1,130 @@
+/* Isolated World tab overlay. Does not restyle the original dashboard. */
+#nabu-world-root{
+  --nw-paper:var(--paper,#E8E3D9);
+  --nw-paper-2:var(--paper-2,#DED7C8);
+  --nw-paper-3:var(--paper-3,#F2EEE6);
+  --nw-ink:var(--ink,#0B1533);
+  --nw-ink-soft:var(--ink-soft,#3A4468);
+  --nw-cobalt:var(--cobalt,#1F45C8);
+  --nw-prussian:var(--prussian,#0F2E63);
+  --nw-navy:var(--navy,#070C1E);
+  --nw-gold:var(--gold,#B0801F);
+  --nw-gold-lite:var(--gold-lite,#D7A83A);
+  --nw-oxblood:var(--oxblood,#7C1D21);
+  --nw-oxblood-lite:var(--oxblood-lite,#B14A44);
+  --nw-hair:var(--hair,rgba(11,21,51,.22));
+  --nw-sans:var(--sans,ui-sans-serif,"Helvetica Neue",Helvetica,Arial,sans-serif);
+  --nw-mono:var(--mono,ui-monospace,"SF Mono",Menlo,Consolas,monospace);
+  --nw-serif:var(--serif,"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif);
+  position:fixed;
+  inset:0 0 0 82px;
+  z-index:65;
+  overflow:auto;
+  background:var(--nw-paper);
+  color:var(--nw-ink);
+  font-family:var(--nw-mono);
+  font-size:14px;
+  line-height:1.5;
+  box-shadow:inset 1px 0 0 var(--nw-hair);
+}
+#nabu-world-root[hidden]{display:none!important}
+#nabu-world-root *{box-sizing:border-box}
+.nabu-world-shell{max-width:1100px;margin:0 auto;padding:22px 28px 88px}
+.nabu-world-kicker{
+  font-size:9.5px;letter-spacing:.30em;text-transform:uppercase;
+  color:var(--nw-cobalt);font-weight:700;margin:0 0 8px
+}
+.nabu-world-head{
+  display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap
+}
+.nabu-world-title{
+  font-family:var(--nw-sans);font-weight:800;font-size:clamp(34px,6vw,56px);
+  line-height:.86;letter-spacing:-.04em;margin:0
+}
+.nabu-world-sub{margin:10px 0 0;font-size:11px;color:var(--nw-ink-soft);max-width:560px}
+.nabu-world-badges{display:flex;flex-wrap:wrap;gap:6px;justify-content:flex-end}
+.nabu-world-badge{
+  display:inline-block;border:1px solid var(--nw-ink);padding:3px 8px;
+  font-size:9.5px;letter-spacing:.18em;text-transform:uppercase;font-weight:700
+}
+.nabu-world-badge--mode{background:var(--nw-ink);color:var(--nw-paper)}
+.nabu-world-badge--ex{border-color:var(--nw-gold);color:var(--nw-gold)}
+.nabu-world-badge--fail{border-color:var(--nw-gold);color:var(--nw-gold);background:rgba(176,128,31,.08)}
+.nabu-world-rule{height:1px;background:var(--nw-hair);margin:16px 0}
+.nabu-world-note{font-size:11px;color:var(--nw-ink-soft);line-height:1.55}
+.nabu-world-meta{
+  display:grid;grid-template-columns:1.4fr .8fr .8fr;gap:12px;margin-top:8px
+}
+.nabu-world-card{
+  border:1px solid var(--nw-hair);background:rgba(255,255,255,.28);padding:12px 14px
+}
+.nabu-world-card-k{
+  display:block;font-size:9px;letter-spacing:.22em;text-transform:uppercase;color:var(--nw-ink-soft)
+}
+.nabu-world-card-v{
+  display:block;font-family:var(--nw-sans);font-weight:800;font-size:18px;
+  margin-top:4px;font-variant-numeric:tabular-nums;word-break:break-all
+}
+.nabu-world-card a{color:var(--nw-cobalt);text-decoration:none}
+.nabu-world-card a:hover{text-decoration:underline}
+.nabu-world-caps{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:18px}
+.nabu-world-cap{border:1px solid var(--nw-hair);background:var(--nw-paper-3);padding:14px 14px 12px}
+.nabu-world-cap-top{display:flex;justify-content:space-between;gap:10px;align-items:baseline}
+.nabu-world-cap-name{font-family:var(--nw-sans);font-weight:800;font-size:20px;letter-spacing:.04em}
+.nabu-world-cap-use{font-variant-numeric:tabular-nums;font-size:12px}
+.nabu-world-bar{height:10px;background:rgba(31,69,200,.12);margin-top:10px;position:relative}
+.nabu-world-bar>i{position:absolute;inset:0 auto 0 0;width:var(--w,0);background:var(--nw-cobalt)}
+.nabu-world-cap.is-watch .nabu-world-bar>i{background:var(--nw-gold)}
+.nabu-world-cap.is-hot .nabu-world-bar>i{background:var(--nw-oxblood)}
+.nabu-world-cap.is-hot .nabu-world-cap-use{color:var(--nw-oxblood)}
+.nabu-world-cells{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(128px,1fr));
+  gap:1px;background:var(--nw-hair);margin-top:18px
+}
+.nabu-world-cell{background:var(--nw-paper-3);padding:13px 12px}
+.nabu-world-cell-k{font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(--nw-ink-soft)}
+.nabu-world-cell-v{
+  font-family:var(--nw-sans);font-weight:800;font-size:22px;line-height:1.2;margin-top:3px;
+  font-variant-numeric:tabular-nums
+}
+.nabu-world-neg{color:var(--nw-oxblood)}
+.nabu-world-empty{
+  font-family:var(--nw-serif);font-style:italic;font-size:16px;color:var(--nw-ink-soft);padding:16px 0
+}
+.nabu-world-sec{margin-top:32px}
+.nabu-world-tbl{width:100%;border-collapse:collapse;font-size:12px}
+.nabu-world-tbl th{
+  text-align:left;font-size:9px;letter-spacing:.2em;text-transform:uppercase;
+  color:var(--nw-ink-soft);font-weight:700;padding:0 10px 7px 0;border-bottom:1px solid var(--nw-hair);
+  white-space:nowrap
+}
+.nabu-world-tbl td{
+  padding:9px 10px 9px 0;border-bottom:1px solid rgba(11,21,51,.10);
+  font-variant-numeric:tabular-nums;vertical-align:top
+}
+.nabu-world-tbl tr:last-child td{border-bottom:0}
+.nabu-world-num{text-align:right;padding-right:16px;white-space:nowrap}
+.nabu-world-track{
+  font-weight:700;letter-spacing:.12em;font-size:10px;text-transform:uppercase
+}
+.nabu-world-track--a{color:var(--nw-cobalt)}
+.nabu-world-track--b{color:var(--nw-gold)}
+.nabu-world-tx{font-size:11px;color:var(--nw-cobalt);text-decoration:none;word-break:break-all}
+.nabu-world-tx:hover{text-decoration:underline}
+.nabu-world-mono{font-size:11px;word-break:break-all}
+.nabu-world-eval{
+  margin-top:18px;border-left:2px solid var(--nw-cobalt);padding:4px 0 4px 14px
+}
+.nabu-world-eval p{
+  font-family:var(--nw-serif);font-style:italic;font-size:15px;line-height:1.6;margin:6px 0 0
+}
+.nabu-world-eval-meta{font-size:10px;letter-spacing:.08em;color:var(--nw-ink-soft);text-transform:uppercase}
+.nabu-world-foot{margin-top:28px;font-size:11px;color:var(--nw-ink-soft);line-height:1.55}
+.rail-nav a.nabu-world-nav.is-active{
+  background:var(--gold,#B0801F);color:var(--navy,#070C1E);border-color:var(--gold,#B0801F)
+}
+@media(max-width:760px){
+  #nabu-world-root{inset:0 0 58px 0}
+  .nabu-world-shell{padding:14px 12px 28px}
+  .nabu-world-meta,.nabu-world-caps{grid-template-columns:1fr}
+}

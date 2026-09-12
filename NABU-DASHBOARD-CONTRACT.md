@@ -286,3 +286,56 @@ seuil. `DEGRADING` demande une segmentation des pertes mais n'autorise jamais
   cache.
 - Elle ne dit rien de la **justesse** du mark, seulement de son âge. Un mark
   frais issu d'une bougie fausse reste faux.
+
+---
+
+## 8. Onglet World — surface additive (hors contrat `state`)
+
+World.xyz / PayBox n'entre **pas** dans l'objet `state` ni dans `nabu-state`.
+C'est un overlay isolé (`assets/world-tab.js` + `assets/world-tab.css`) branché
+par un seul `<script defer>` en fin de page. Le HTML d'origine (nav PF/RK/PX/AN,
+CSS, JS live Hyperliquid) n'est pas refactorisé.
+
+Le panneau charge `assets/world-live.json` (fetch local). Pas d'auth PayBox,
+pas de secret, pas de venue joint. Un snapshot absent s'affiche `UNVERIFIED`
+— jamais un zéro inventé.
+
+Wallet observé (PayBox Solana) : `27bcZ8xT8qWzkmdyjKy7mRXKqRAR9KBphZt3BMyjmac3`.
+Mode : `LIVE_ONLY`. Tickets $5. Caps : A ≤ $10 open, B ≤ $15 open.
+
+### Format du snapshot
+
+```jsonc
+{
+  "schema_version": 1,
+  "example": false,                 // true = jeu d'exemple commité
+  "generated_at": "2026-09-12T16:40:00Z",
+  "source": "chemin des ledgers lus",
+  "venue": "world.xyz",
+  "wallet": { "chain": "solana", "address": "27bc…mac3", "label": "PayBox" },
+  "mode": "LIVE_ONLY",
+  "ticket_usd": 5,
+  "caps": {
+    "A": { "open_usd": 5, "max_usd": 10 },
+    "B": { "open_usd": 10, "max_usd": 15 }
+  },
+  "positions": [{ "market", "track", "side", "size_usd", "mark", "mint", "ticker" }],
+  "fills": [{ "ts", "action", "market", "track", "size_usd", "pnl_usd", "tx" }],
+  "cashflow": { "realized_pnl_usd", "unrealized_pnl_usd", "fees_usd", "net_usd",
+                "tickets_opened", "tickets_closed", "volume_usd" },
+  "autonomy": { "cycle_id", "evaluated_at", "note" }
+}
+```
+
+### Rafraîchir depuis les ledgers world-paper
+
+```bash
+python3 scripts/refresh_world_snapshot.py \
+  --ledgers ${NABU_WORLD_ROOT:-/opt/data/.nabu/world-paper} \
+  --out assets/world-live.json
+```
+
+Ledgers lus (chacun optionnel) : `fills.jsonl`, `autonomy_cycle.json`,
+`positions.json` ou `positions.jsonl`. Alias de champs acceptés
+(`signature`→`tx`, `book`→`track`, `question`→`market`, …).
+`--write-example` réécrit le mock commité.

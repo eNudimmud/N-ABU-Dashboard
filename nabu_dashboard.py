@@ -2263,6 +2263,9 @@ def render(state: dict) -> str:
     a(html.escape(json.dumps(S, ensure_ascii=False, default=str), quote=False))
     a("</script>")
     a(LIVE_JS)
+    # World tab — additive overlay (assets/world-tab.js). Isolated; does not
+    # alter original nav markup, CSS, or the inlined nabu-state contract.
+    a("<script src=\"assets/world-tab.js\" defer></script>")
     a("</body></html>")
     return "\n".join(o)
 
