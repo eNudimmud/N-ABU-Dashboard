@@ -1,10 +1,10 @@
 {
   "schema_version": 1,
   "example": false,
-  "generated_at": "2026-09-12T20:30:37Z",
-  "generated_at_zh": "2026-09-12T22:30:37+02:00",
-  "updated_at": "2026-09-12T22:17:32.039+02:00",
-  "source": "ledger-live repair after schema drift",
+  "generated_at": "2026-09-12T20:37:32Z",
+  "generated_at_zh": "2026-09-12T22:37:27+02:00",
+  "updated_at": "2026-09-12T22:37:27.832+02:00",
+  "source": "world live score cycle",
   "venue": "world.xyz",
   "wallet": {
     "chain": "solana",
@@ -31,58 +31,53 @@
     "B_cap": 15.0,
     "B_remaining": 0.0,
     "ticket": 5.0,
-    "bankroll_usd": 47.47
+    "bankroll_usd": 47.78
   },
   "positions": [
     {
       "market": "Arsenal",
-      "track": "A",
-      "side": "YES",
-      "size_usd": 5.0,
-      "mark_usd": 6.3959,
-      "mint": "7m6EfZGRaD1riwQJjtvGVZH2PQ1r6W8V5HPoD52HTHE7",
       "ticker": "WXEPL-26SEP122000ARSESUND-ARSE",
-      "status": "open"
+      "side": "YES",
+      "track": "A",
+      "size_usd": 5.0,
+      "mark_usd": 6.7098,
+      "mint": "7m6EfZGRaD1riwQJjtvGVZH2PQ1r6W8V5HPoD52HTHE7"
     },
     {
       "market": "Milwaukee",
-      "track": "B",
+      "ticker": "WXMLB-26SEP121810CINMIL-MBRE",
       "side": "YES",
+      "track": "B",
       "size_usd": 5.0,
       "mark_usd": 4.8306,
-      "mint": "8yz5Yxzw9nYLnFZb27J9FCZuGmyp3J9tcL5XRyJbCHPe",
-      "ticker": "WXMLB-26SEP121810CINMIL-MBRE",
-      "status": "open"
+      "mint": "8yz5Yxzw9nYLnFZb27J9FCZuGmyp3J9tcL5XRyJbCHPe"
     },
     {
       "market": "PHI Eagles",
-      "track": "B",
+      "ticker": "WXNFL-26SEP13WASPHI-PEAG",
       "side": "YES",
+      "track": "B",
       "size_usd": 5.0,
       "mark_usd": 4.9122,
-      "mint": "9Xop5RNLHfPZZ84dnsUjcDEBTBSYs4BqBr7QpXAFjAPb",
-      "ticker": "WXNFL-26SEP13WASPHI-PEAG",
-      "status": "open"
+      "mint": "9Xop5RNLHfPZZ84dnsUjcDEBTBSYs4BqBr7QpXAFjAPb"
     },
     {
       "market": "Real Madrid",
-      "track": "A",
+      "ticker": "WXLIG-26SEP152130RMADELCH-RMAD",
       "side": "YES",
+      "track": "A",
       "size_usd": 5.0,
       "mark_usd": 4.8628,
-      "mint": "67r1PciCLNHrT5iK15jy2mj3KEByTbgGHFgqB3eNBE36",
-      "ticker": "WXLIG-26SEP152130RMADELCH-RMAD",
-      "status": "open"
+      "mint": "67r1PciCLNHrT5iK15jy2mj3KEByTbgGHFgqB3eNBE36"
     },
     {
       "market": "Barcelona",
-      "track": "B",
+      "ticker": "WXLIG-26SEP131615BARCLEVA-BARC",
       "side": "YES",
+      "track": "B",
       "size_usd": 5.0,
       "mark_usd": 4.9943,
-      "mint": "AzYRWeHmHQbpwoDKJb4A9YgGq7tiwyfwCd4GJJWKeJb4",
-      "ticker": "WXLIG-26SEP131615BARCLEVA-BARC",
-      "status": "open"
+      "mint": "AzYRWeHmHQbpwoDKJb4A9YgGq7tiwyfwCd4GJJWKeJb4"
     }
   ],
   "fills": [
@@ -149,36 +144,52 @@
   ],
   "cashflow": {
     "usdc": 21.47,
-    "total_usd": 47.47,
+    "total_usd": 47.78,
     "tickets_opened": 5,
     "tickets_closed": 0
   },
   "autonomy": {
-    "evaluated_at": "2026-09-12T22:17:32.039+02:00",
-    "note": {
-      "id": "20260912-2217-LIVE",
-      "evaluated_at": "2026-09-12T22:17:32.039+02:00",
-      "note": "SKIP_no_capacity + Arsenal mark +61.4%",
-      "last_decision": "SKIP_no_capacity"
-    },
-    "last_decision": null
+    "evaluated_at": "2026-09-12T22:37:27.832+02:00",
+    "note": "SKIP_no_capacity",
+    "last_decision": "SKIP_no_capacity"
   },
   "pending_geofence": null,
   "awaiting_region_check": false,
   "mark_swings": [
     {
       "ticker": "WXEPL-26SEP122000ARSESUND-ARSE",
-      "from": 3.9636,
-      "to": 6.3959,
-      "d_usd": 2.4323,
-      "pct": 61.37
+      "from": 6.3959,
+      "to": 6.7098,
+      "d_usd": 0.3139,
+      "pct": 4.91
+    },
+    {
+      "ticker": "WXMLB-26SEP121810CINMIL-MBRE",
+      "from": 4.8306,
+      "to": 4.8306,
+      "d_usd": -0.0,
+      "pct": -0.0
+    },
+    {
+      "ticker": "WXNFL-26SEP13WASPHI-PEAG",
+      "from": 4.9122,
+      "to": 4.9122,
+      "d_usd": 0.0,
+      "pct": 0.0
+    },
+    {
+      "ticker": "WXLIG-26SEP152130RMADELCH-RMAD",
+      "from": 4.8628,
+      "to": 4.8628,
+      "d_usd": -0.0,
+      "pct": -0.0
     },
     {
       "ticker": "WXLIG-26SEP131615BARCLEVA-BARC",
-      "from": 4.9366,
+      "from": 4.9943,
       "to": 4.9943,
-      "d_usd": 0.0577,
-      "pct": 1.17
+      "d_usd": 0.0,
+      "pct": 0.0
     }
   ]
 }
