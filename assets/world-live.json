@@ -1,9 +1,9 @@
 {
   "schema_version": 1,
   "example": false,
-  "generated_at": "2026-09-12T19:16:03Z",
-  "generated_at_zh": "2026-09-12T21:16:03+02:00",
-  "source": "ledger-live + world positions \u00b7 live book",
+  "generated_at": "2026-09-12T19:28:23Z",
+  "generated_at_zh": "2026-09-12T21:28:23+02:00",
+  "source": "ledger-live + score",
   "venue": "world.xyz",
   "wallet": {
     "chain": "solana",
@@ -28,7 +28,7 @@
       "track": "B",
       "side": "YES",
       "size_usd": 5.0,
-      "mark_usd": 4.9366,
+      "mark_usd": 4.9367,
       "mint": "AzYRWeHmHQbpwoDKJb4A9YgGq7tiwyfwCd4GJJWKeJb4",
       "ticker": "WXLIG-26SEP131615BARCLEVA-BARC",
       "status": "open"
@@ -48,7 +48,7 @@
       "track": "A",
       "side": "YES",
       "size_usd": 5.0,
-      "mark_usd": 4.5911,
+      "mark_usd": 4.3559,
       "mint": "7m6EfZGRaD1riwQJjtvGVZH2PQ1r6W8V5HPoD52HTHE7",
       "ticker": "WXEPL-26SEP122000ARSESUND-ARSE",
       "status": "open"
@@ -85,7 +85,7 @@
       "pnl_usd": null,
       "tx": "4DrBNGxyDx9ANAsbGRF1yRXsY2GbHNVGPQVdaXH7r6U1UJHaBMwPiKmVDiSi7LjcjdAtKr7FkseWi2eWPrQtyjM3",
       "ticker": "WXLIG-26SEP131615BARCLEVA-BARC",
-      "note": "sports fav mid>=0.58 spr<=0.06"
+      "note": "LIVE"
     },
     {
       "ts": "2026-09-12T16:05:53.115440728Z",
@@ -97,7 +97,7 @@
       "pnl_usd": null,
       "tx": "4A8TD9mKnppk8V6S53Xn7KqgT2SxqW9yufFdRRxwRCPXCTiZs3BqqpmW5aHbzmFvue4tH7T5bcQE1N8cTjs5jfr4",
       "ticker": "WXMLB-26SEP121810CINMIL-MBRE",
-      "note": "sports fav mid>=0.58 spr<=0.06"
+      "note": "LIVE"
     },
     {
       "ts": "2026-09-12T15:00:49.280847334Z",
@@ -138,13 +138,12 @@
   ],
   "cashflow": {
     "usdc": 21.47,
-    "total_usd": 45.6,
+    "total_usd": 45.37,
     "tickets_opened": 5,
-    "tickets_closed": 0,
-    "unrealized_note": "marks from last score"
+    "tickets_closed": 0
   },
   "autonomy": {
-    "evaluated_at": "2026-09-12T21:14:47.382+02:00",
+    "evaluated_at": "2026-09-12T21:27:18.873+02:00",
     "note": "SKIP_no_capacity",
     "last_decision": "SKIP_no_capacity"
   },
@@ -153,10 +152,10 @@
   "mark_swings": [
     {
       "ticker": "WXEPL-26SEP122000ARSESUND-ARSE",
-      "from": 4.6694,
-      "to": 4.5911,
-      "d_usd": -0.0783,
-      "pct": -1.68
+      "from": 4.5911,
+      "to": 4.3559,
+      "d_usd": -0.2352,
+      "pct": -5.12
     }
   ]
 }
