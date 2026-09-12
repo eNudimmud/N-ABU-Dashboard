@@ -1,161 +1,134 @@
 {
-  "schema_version": 1,
-  "example": false,
-  "generated_at": "2026-09-12T19:28:23Z",
-  "generated_at_zh": "2026-09-12T21:28:23+02:00",
-  "source": "ledger-live + score",
-  "venue": "world.xyz",
-  "wallet": {
-    "chain": "solana",
-    "address": "27bcZ8xT8qWzkmdyjKy7mRXKqRAR9KBphZt3BMyjmac3",
-    "label": "PayBox"
-  },
+  "updated_at": "2026-09-12T22:04:27.231+02:00",
+  "updated_zh": "2026-09-12T22:04:27.231+02:00",
   "mode": "LIVE_ONLY",
-  "ticket_usd": 5.0,
-  "caps": {
-    "A": {
-      "open_usd": 10.0,
-      "max_usd": 10.0
-    },
-    "B": {
-      "open_usd": 15.0,
-      "max_usd": 15.0
-    }
+  "usdc": 21.47,
+  "total_usd": 44.98,
+  "capacity": {
+    "A_open": 10.0,
+    "A_cap": 10.0,
+    "A_remaining": 0,
+    "B_open": 15.0,
+    "B_cap": 15.0,
+    "B_remaining": 0,
+    "ticket": 5.0
   },
   "positions": [
     {
-      "market": "Barcelona YES",
-      "track": "B",
-      "side": "YES",
-      "size_usd": 5.0,
-      "mark_usd": 4.9367,
-      "mint": "AzYRWeHmHQbpwoDKJb4A9YgGq7tiwyfwCd4GJJWKeJb4",
+      "market": "Barcelona",
       "ticker": "WXLIG-26SEP131615BARCLEVA-BARC",
-      "status": "open"
-    },
-    {
-      "market": "Real Madrid YES",
-      "track": "A",
       "side": "YES",
-      "size_usd": 5.0,
-      "mark_usd": 4.8627,
-      "mint": "67r1PciCLNHrT5iK15jy2mj3KEByTbgGHFgqB3eNBE36",
-      "ticker": "WXLIG-26SEP152130RMADELCH-RMAD",
-      "status": "open"
-    },
-    {
-      "market": "Arsenal YES",
-      "track": "A",
-      "side": "YES",
-      "size_usd": 5.0,
-      "mark_usd": 4.3559,
-      "mint": "7m6EfZGRaD1riwQJjtvGVZH2PQ1r6W8V5HPoD52HTHE7",
-      "ticker": "WXEPL-26SEP122000ARSESUND-ARSE",
-      "status": "open"
-    },
-    {
-      "market": "PHI Eagles YES",
       "track": "B",
+      "size_usd": 5.0,
+      "mark_usd": 4.9366,
+      "mint": "AzYRWeHmHQbpwoDKJb4A9YgGq7tiwyfwCd4GJJWKeJb4"
+    },
+    {
+      "market": "Real Madrid",
+      "ticker": "WXLIG-26SEP152130RMADELCH-RMAD",
       "side": "YES",
+      "track": "A",
+      "size_usd": 5.0,
+      "mark_usd": 4.8628,
+      "mint": "67r1PciCLNHrT5iK15jy2mj3KEByTbgGHFgqB3eNBE36"
+    },
+    {
+      "market": "Arsenal",
+      "ticker": "WXEPL-26SEP122000ARSESUND-ARSE",
+      "side": "YES",
+      "track": "A",
+      "size_usd": 5.0,
+      "mark_usd": 3.9636,
+      "mint": "7m6EfZGRaD1riwQJjtvGVZH2PQ1r6W8V5HPoD52HTHE7"
+    },
+    {
+      "market": "PHI Eagles",
+      "ticker": "WXNFL-26SEP13WASPHI-PEAG",
+      "side": "YES",
+      "track": "B",
       "size_usd": 5.0,
       "mark_usd": 4.9122,
-      "mint": "9Xop5RNLHfPZZ84dnsUjcDEBTBSYs4BqBr7QpXAFjAPb",
-      "ticker": "WXNFL-26SEP13WASPHI-PEAG",
-      "status": "open"
+      "mint": "9Xop5RNLHfPZZ84dnsUjcDEBTBSYs4BqBr7QpXAFjAPb"
     },
     {
-      "market": "Milwaukee YES",
-      "track": "B",
+      "market": "Milwaukee",
+      "ticker": "WXMLB-26SEP121810CINMIL-MBRE",
       "side": "YES",
+      "track": "B",
       "size_usd": 5.0,
       "mark_usd": 4.8306,
-      "mint": "8yz5Yxzw9nYLnFZb27J9FCZuGmyp3J9tcL5XRyJbCHPe",
-      "ticker": "WXMLB-26SEP121810CINMIL-MBRE",
-      "status": "open"
+      "mint": "8yz5Yxzw9nYLnFZb27J9FCZuGmyp3J9tcL5XRyJbCHPe"
     }
   ],
   "fills": [
     {
-      "ts": "2026-09-12T16:16:12.541162187Z",
-      "action": "open",
-      "market": "Barcelona YES",
-      "track": "B",
-      "side": "YES",
-      "size_usd": 5,
-      "pnl_usd": null,
-      "tx": "4DrBNGxyDx9ANAsbGRF1yRXsY2GbHNVGPQVdaXH7r6U1UJHaBMwPiKmVDiSi7LjcjdAtKr7FkseWi2eWPrQtyjM3",
-      "ticker": "WXLIG-26SEP131615BARCLEVA-BARC",
-      "note": "LIVE"
-    },
-    {
-      "ts": "2026-09-12T16:05:53.115440728Z",
-      "action": "open",
-      "market": "Milwaukee YES",
-      "track": "B",
-      "side": "YES",
-      "size_usd": 5,
-      "pnl_usd": null,
-      "tx": "4A8TD9mKnppk8V6S53Xn7KqgT2SxqW9yufFdRRxwRCPXCTiZs3BqqpmW5aHbzmFvue4tH7T5bcQE1N8cTjs5jfr4",
-      "ticker": "WXMLB-26SEP121810CINMIL-MBRE",
-      "note": "LIVE"
-    },
-    {
-      "ts": "2026-09-12T15:00:49.280847334Z",
-      "action": "open",
-      "market": "Arsenal YES",
+      "ts": null,
+      "ticker": "Real Madrid YES",
       "track": "A",
-      "side": "YES",
+      "side": null,
       "size_usd": 5,
-      "pnl_usd": null,
-      "tx": "2KDYt4L1pq9Uyqth77ed9XTwrLze3B8oL1rkd1KGnxwHodrciUAp9CLjaCTmSqNMVq9LhK71RfqALFdsFp1paVFR",
-      "ticker": "WXEPL-26SEP122000ARSESUND-ARSE",
-      "note": "LIVE"
+      "status": "success"
     },
     {
-      "ts": "2026-09-12T14:47:42.724355576Z",
-      "action": "open",
-      "market": "PHI Eagles YES",
-      "track": "B",
-      "side": "YES",
-      "size_usd": 5,
-      "pnl_usd": null,
-      "tx": "5115D3hMBcrAV7t1v7pkQegxuopzqiq5n5EDSpUGmiuf64gJsEaebbREF8zXarbtJoMocePKhcMkWTEKcJ9DtLys",
+      "ts": null,
       "ticker": "WXNFL-26SEP13WASPHI-PEAG",
-      "note": "LIVE"
+      "track": "B",
+      "side": null,
+      "size_usd": 5,
+      "status": "success"
     },
     {
-      "ts": "2026-09-12T14:40:21.362877608Z",
-      "action": "open",
-      "market": "Real Madrid YES",
+      "ts": null,
+      "ticker": "WXEPL-26SEP122000ARSESUND-ARSE",
       "track": "A",
-      "side": "YES",
+      "side": null,
       "size_usd": 5,
-      "pnl_usd": null,
-      "tx": "3dAqPKWesGg5kaSYaL1nCAgrKKDQSQ4dcLQPBtjFQPoUfEAnnmm3S3NNNjS51hGrVQRD2a3rxDuRgLBnkmAPE22X",
-      "ticker": null,
-      "note": "LIVE"
+      "status": "success"
+    },
+    {
+      "ts": null,
+      "ticker": "WXMLB-26SEP121810CINMIL-MBRE",
+      "track": "B",
+      "side": null,
+      "size_usd": 5,
+      "status": "success"
+    },
+    {
+      "ts": null,
+      "ticker": "WXLIG-26SEP131615BARCLEVA-BARC",
+      "track": "B",
+      "side": null,
+      "size_usd": 5,
+      "status": "success"
     }
   ],
-  "cashflow": {
-    "usdc": 21.47,
-    "total_usd": 45.37,
-    "tickets_opened": 5,
-    "tickets_closed": 0
-  },
-  "autonomy": {
-    "evaluated_at": "2026-09-12T21:27:18.873+02:00",
-    "note": "SKIP_no_capacity",
+  "settled": [],
+  "mark_swings": [
+    {
+      "ticker": "WXEPL-26SEP122000ARSESUND-ARSE",
+      "from": 4.4344,
+      "to": 3.9636,
+      "d_usd": -0.4708,
+      "pct": -10.62
+    }
+  ],
+  "big_swings": [
+    {
+      "ticker": "WXEPL-26SEP122000ARSESUND-ARSE",
+      "from": 4.4344,
+      "to": 3.9636,
+      "d_usd": -0.4708,
+      "pct": -10.62
+    }
+  ],
+  "last_eval": {
+    "id": "20260912-2204-LIVE",
+    "evaluated_at": "2026-09-12T22:04:27.231+02:00",
+    "note": "SKIP_no_capacity + Arsenal mark \u221210.6%",
     "last_decision": "SKIP_no_capacity"
   },
   "pending_geofence": null,
   "awaiting_region_check": false,
-  "mark_swings": [
-    {
-      "ticker": "WXEPL-26SEP122000ARSESUND-ARSE",
-      "from": 4.5911,
-      "to": 4.3559,
-      "d_usd": -0.2352,
-      "pct": -5.12
-    }
-  ]
+  "example": false,
+  "notify": true
 }
