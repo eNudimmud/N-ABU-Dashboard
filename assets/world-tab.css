@@ -247,6 +247,15 @@
 }
 .nabu-world-btn:hover{background:var(--nw-cyan);color:#05060a;border-color:var(--nw-cyan)}
 .nabu-world-btn--cta:hover{background:#ffe7a8;color:#05060a;border-color:#ffe7a8}
+.nabu-world-btn.is-highlight,.nabu-world-copy.is-highlight{
+  background:#FFE7A8;color:#05060a;border-color:#FFE7A8;
+  box-shadow:0 0 22px rgba(255,231,168,.65);
+  animation:nabu-world-copyflash .7s ease-in-out 3
+}
+@keyframes nabu-world-copyflash{
+  0%,100%{transform:scale(1)}
+  50%{transform:scale(1.06)}
+}
 .nabu-world-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px;align-items:center}
 .nabu-world-notify-hint{font-size:11px;color:var(--nw-pending);font-weight:650;max-width:28ch}
 .nabu-world-expiry{font-variant-numeric:tabular-nums;font-size:12px}
@@ -322,7 +331,7 @@
 @media(prefers-reduced-motion:reduce){
   #nabu-world-banner.is-pulse,.rail-nav a.nabu-world-nav.is-flash,
   .rail-nav a.nabu-world-nav.has-pending,.rail-nav a.nabu-world-nav.is-pulse,
-  .nabu-world-badge--hot,.nabu-world-btn--cta{animation:none}
+  .nabu-world-badge--hot,.nabu-world-btn--cta,.nabu-world-btn.is-highlight{animation:none}
 }
 @media(max-width:760px){
   #nabu-world-root{inset:0 0 58px 0}

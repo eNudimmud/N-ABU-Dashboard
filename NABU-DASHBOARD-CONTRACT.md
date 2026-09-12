@@ -343,6 +343,7 @@ vert) reste intacte hors `#nabu-world-root`.
     "prepared_at": "2026-09-12T17:44:00Z",
     "expires_at": "2026-09-13T18:00:00Z",   // token expiry
     "geofence_url": "https://… | data:text/html,…",  // data:text/plain = démo invalide
+    "check_region_url": "https://enudimmud.github.io/N-ABU-Dashboard/assets/geofence-latest.html",
     "note": "CH Check région — ouvrir l'URL du chat"
   }
   // alias acceptés : pending_geofences[] · awaiting_region_check
@@ -362,8 +363,10 @@ vert) reste intacte hors `#nabu-world-root`.
 - World field = runway (bankroll, ticket, utilisation, cible 1 700 CHF sans fx inventé)
 
 
-`Ouvrir` / `Copier` n'acceptent que `https://` (PayBox) ou `data:text/html`
-(page téléphone). `data:text/plain`, `http:` et URL absente → `DEMO / URL invalide`.
+`Ouvrir` / `Copier` n'acceptent que `https://` (PayBox / Pages) ou `data:text/html`
+(page téléphone). Un `https://` court (`check_region_url` ou `geofence_url`)
+est préféré à un gros `data:text/html`. `data:text/plain`, `http:` et URL
+absente → `DEMO / URL invalide`.
 `example: true` ou `request_id` `ch-check-…` / `ETH-2700-WK` → panneau **EXEMPLE**,
 pas d'alerte.
 
@@ -374,7 +377,10 @@ L'onglet World poll `assets/world-live.json` toutes les ~8 s. Un **vrai**
 
 - badge `WD` pulsé + bandeau pleine largeur jusqu'à disparition du pending ;
 - toast assombri (marché, Copier / Ouvrir) ; dismiss arrête le son, pas le bandeau ;
-- Notification API (`requireInteraction: true`) si `granted` ;
+- Notification API (`requireInteraction: true`) si `granted` — titre
+  `Check région · {market}`, body avec l'URL `https://` courte (Pages /
+  PayBox) pour ouvrir / copier depuis l'OS ; `onclick` → `window.open(url)`
+  ou focus WD + highlight Copier ;
 - chime Web Audio **on par défaut**, persisté dans `localStorage`
   (`nabu-world-sound` = `"0"` pour off) ; répétition ~10 s, max 5, ou jusqu'à
   dismiss / clear, uniquement onglet visible ;
@@ -387,9 +393,18 @@ et un clic PF arrête les chimes. Le bandeau pending reste pour un **vrai** tick
 
 La page ne contacte pas PayBox. PF / RK / PX / AN restent la planche d'origine.
 
-**Contrat pipeline :** la boucle live score / autonomie réécrit ce snapshot
-**dès qu'un buy est préparé** (URL geofence émise). Sans ce refresh, le
-dashboard ne peut pas voir l'action en attente.
+**Contrat pipeline :** dès qu'un buy réel est préparé, la boucle live score /
+autonomie doit :
+
+1. écrire `assets/geofence-latest.html` depuis la page téléphone Check région ;
+2. poser `pending_geofence.check_region_url` / `geofence_url` sur le lien Pages
+   court `https://enudimmud.github.io/N-ABU-Dashboard/assets/geofence-latest.html`
+   (jamais seulement un `data:text/html` énorme) ;
+3. pousser `assets/world-live.json` (et le miroir racine) pour que WD notifie
+   **avec cette URL** dans la Notification.
+
+Sans ce refresh, le dashboard ne peut pas voir l'action en attente ni coller
+l'URL Check région dans l'alerte.
 
 ### Rafraîchir depuis les ledgers world-paper
 
