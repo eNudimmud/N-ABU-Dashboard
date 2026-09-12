@@ -10,10 +10,16 @@
     "label": "PayBox"
   },
   "mode": "LIVE_ONLY",
-  "ticket_usd": 5,
+  "ticket_usd": 5.0,
   "caps": {
-    "A": { "open_usd": 5.0, "max_usd": 10.0 },
-    "B": { "open_usd": 10.0, "max_usd": 15.0 }
+    "A": {
+      "open_usd": 5.0,
+      "max_usd": 10.0
+    },
+    "B": {
+      "open_usd": 10.0,
+      "max_usd": 15.0
+    }
   },
   "positions": [
     {
@@ -116,6 +122,19 @@
   "autonomy": {
     "cycle_id": "cycle-14",
     "evaluated_at": "2026-09-12T16:35:00Z",
-    "note": "Hold. A at 50% of cap (one $5 ticket). B has room for one more ticket. Do not chase after the FOMC print; wait for the settlement window."
+    "note": "Ticket ETH-2700-WK prepared on A. Awaiting CH Check région / geofence before the fill. Do not let the chat URL expire."
+  },
+  "pending_geofence": {
+    "status": "awaiting_region_check",
+    "market": "Will ETH close above $2,700 this week?",
+    "track": "A",
+    "side": "YES",
+    "size_usd": 5.0,
+    "ticker": "ETH-2700-WK",
+    "request_id": "ch-check-20260912-1844-a1",
+    "prepared_at": "2026-09-12T17:44:00Z",
+    "expires_at": "2026-09-13T18:00:00Z",
+    "geofence_url": "data:text/plain;charset=utf-8,CH%20Check%20region%0Arequest_id=ch-check-20260912-1844-a1%0Amarket=ETH-2700-WK%0Atrack=A%0Asize_usd=5%0Aopen_this_url_to_clear_geofence",
+    "note": "CH Check région — ticket prêt. Ouvrir l'URL geofence du chat avant expiry du token."
   }
 }

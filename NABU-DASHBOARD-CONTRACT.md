@@ -323,9 +323,32 @@ Mode : `LIVE_ONLY`. Tickets $5. Caps : A ≤ $10 open, B ≤ $15 open.
   "fills": [{ "ts", "action", "market", "track", "size_usd", "pnl_usd", "tx" }],
   "cashflow": { "realized_pnl_usd", "unrealized_pnl_usd", "fees_usd", "net_usd",
                 "tickets_opened", "tickets_closed", "volume_usd" },
-  "autonomy": { "cycle_id", "evaluated_at", "note" }
+  "autonomy": { "cycle_id", "evaluated_at", "note" },
+
+  // ticket préparé, fill bloqué tant que le CH Check région n'est pas ouvert
+  "pending_geofence": {
+    "status": "awaiting_region_check",
+    "market": "…", "track": "A", "side": "YES", "size_usd": 5,
+    "request_id": "ch-check-…",
+    "prepared_at": "2026-09-12T17:44:00Z",
+    "expires_at": "2026-09-13T18:00:00Z",   // token expiry
+    "geofence_url": "data:text/plain,… | https://…",
+    "note": "CH Check région — ouvrir l'URL du chat"
+  }
+  // alias acceptés : pending_geofences[] · awaiting_region_check
 }
 ```
+
+### Alerte « ticket prêt » (JD)
+
+L'onglet World poll `assets/world-live.json` toutes les ~8 s. Un nouveau
+`request_id` déclenche : badge pulsé sur `WD`, bandeau fixe (même hors overlay),
+Notification API si autorisée, son optionnel. L'URL geofence est copiable.
+La page ne contacte pas PayBox.
+
+**Contrat pipeline :** la boucle live score / autonomie réécrit ce snapshot
+**dès qu'un buy est préparé** (URL geofence émise). Sans ce refresh, le
+dashboard ne peut pas voir l'action en attente.
 
 ### Rafraîchir depuis les ledgers world-paper
 
@@ -336,6 +359,7 @@ python3 scripts/refresh_world_snapshot.py \
 ```
 
 Ledgers lus (chacun optionnel) : `fills.jsonl`, `autonomy_cycle.json`,
-`positions.json` ou `positions.jsonl`. Alias de champs acceptés
-(`signature`→`tx`, `book`→`track`, `question`→`market`, …).
-`--write-example` réécrit le mock commité.
+`positions.json` ou `positions.jsonl`, `pending_geofence.json` (ou
+`awaiting_region_check.json`, ou le même objet dans `autonomy_cycle.json`).
+Alias de champs acceptés (`signature`→`tx`, `book`→`track`, `question`→`market`, …).
+`--write-example` réécrit le mock commité (avec un pending_geofence de démo).

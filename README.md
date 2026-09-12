@@ -90,11 +90,16 @@ promotion live.
 
 Un cinquième item de navigation (`WD`) ouvre un **panneau isolé** : mode `LIVE_ONLY`,
 caps A ≤ $10 / B ≤ $15, positions, fills (tx Solana), cashflow, dernière note
-d'autonomie. La planche d'origine (PF / RK / PX / AN) n'est pas refactorisée.
+d'autonomie, et un bandeau **pending geofence / CH Check région** quand un ticket
+est préparé. La planche d'origine (PF / RK / PX / AN) n'est pas refactorisée.
 
 Les données viennent de `assets/world-live.json` — un tirage local, pas d'auth PayBox
-dans le HTML. Le fichier commité est un **exemple**. Pour le rafraîchir depuis les
-ledgers (`fills.jsonl`, `autonomy_cycle.json`, `positions`) :
+dans le HTML. Le fichier commité est un **exemple** qui inclut un `pending_geofence`.
+
+**Pipeline live :** dès qu'un buy est préparé et qu'une URL geofence / Check région
+est émise, la boucle score/autonomie **doit réécrire** `assets/world-live.json`
+(ou le chemin du snapshot). L'onglet World poll ce fichier (~8 s) et alerte
+(badge WD, bandeau, Notification API, son optionnel) pour ne pas rater le chat.
 
 ```bash
 python3 scripts/refresh_world_snapshot.py \

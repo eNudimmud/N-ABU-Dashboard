@@ -28,6 +28,13 @@ class SnapshotExample(unittest.TestCase):
         self.assertGreaterEqual(len(snap["fills"]), 1)
         self.assertIn("cashflow", snap)
         self.assertTrue(snap["autonomy"]["note"])
+        pend = snap["pending_geofence"]
+        self.assertEqual(pend["status"], "awaiting_region_check")
+        self.assertEqual(pend["track"], "A")
+        self.assertEqual(pend["size_usd"], 5)
+        self.assertTrue(pend["request_id"])
+        self.assertTrue(pend["expires_at"])
+        self.assertTrue(pend["geofence_url"])
 
 
 class RefreshFromLedgers(unittest.TestCase):
@@ -84,6 +91,24 @@ class RefreshFromLedgers(unittest.TestCase):
         self.assertEqual(snap["autonomy"]["note"], "Stand down. B has room.")
         self.assertEqual(snap["cashflow"]["tickets_opened"], 1)
         self.assertEqual(snap["cashflow"]["tickets_closed"], 1)
+        self.assertIsNone(snap.get("pending_geofence"))
+
+    def test_pending_geofence_from_ledger_file(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / "pending_geofence.json").write_text(json.dumps({
+                "state": "awaiting_region_check",
+                "question": "Ready market",
+                "book": "B",
+                "ticket": 5,
+                "id": "req-99",
+                "expiry": "2026-09-13T12:00:00Z",
+                "data_url": "data:text/plain,geofence-demo",
+            }), encoding="utf-8")
+            snap = rws.build_snapshot(root)
+        self.assertEqual(snap["pending_geofence"]["request_id"], "req-99")
+        self.assertEqual(snap["pending_geofence"]["track"], "B")
+        self.assertEqual(snap["pending_geofence"]["geofence_url"], "data:text/plain,geofence-demo")
 
     def test_missing_ledgers_do_not_invent_zeros_for_pnl(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -128,6 +153,16 @@ class AdditiveHook(unittest.TestCase):
         self.assertIn('href="#analysis"', text)
         self.assertNotIn("nabu-world-root", text)
         self.assertIn("DASHBOARD", html)
+
+    def test_world_js_has_geofence_alerts(self):
+        js = (ROOT / "assets" / "world-tab.js").read_text(encoding="utf-8")
+        self.assertIn("Notification", js)
+        self.assertIn("pending_geofence", js)
+        self.assertIn("awaiting_region_check", js)
+        self.assertIn("nabu-world-banner", js)
+        css = (ROOT / "assets" / "world-tab.css").read_text(encoding="utf-8")
+        self.assertIn("#nabu-world-root", css)
+        self.assertNotIn("body{", css.split("#nabu-world-root", 1)[0])
 
 
 if __name__ == "__main__":

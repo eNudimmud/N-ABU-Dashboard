@@ -1,4 +1,5 @@
-/* Isolated World tab overlay. Does not restyle the original dashboard. */
+/* Isolated World tab. Remix: repo N*ABU tokens + World orb/grid accents.
+   Does not restyle the original dashboard chrome. */
 #nabu-world-root{
   --nw-paper:var(--paper,#E8E3D9);
   --nw-paper-2:var(--paper-2,#DED7C8);
@@ -16,47 +17,75 @@
   --nw-sans:var(--sans,ui-sans-serif,"Helvetica Neue",Helvetica,Arial,sans-serif);
   --nw-mono:var(--mono,ui-monospace,"SF Mono",Menlo,Consolas,monospace);
   --nw-serif:var(--serif,"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif);
+  --nw-cyan:#3EE0FF;
+  --nw-magenta:#E35BFF;
   position:fixed;
   inset:0 0 0 82px;
   z-index:65;
   overflow:auto;
-  background:var(--nw-paper);
-  color:var(--nw-ink);
+  background:
+    radial-gradient(42% 38% at 88% 8%, rgba(227,91,255,.22), transparent 58%),
+    radial-gradient(36% 32% at 8% 92%, rgba(62,224,255,.16), transparent 60%),
+    radial-gradient(80% 70% at 50% 40%, rgba(15,46,99,.55), transparent 70%),
+    var(--nw-navy);
+  color:var(--nw-paper-3);
   font-family:var(--nw-mono);
   font-size:14px;
   line-height:1.5;
-  box-shadow:inset 1px 0 0 var(--nw-hair);
+  box-shadow:inset 1px 0 0 rgba(242,238,230,.12);
+}
+#nabu-world-root::before{
+  content:"";position:absolute;inset:0;pointer-events:none;opacity:.34;
+  background-image:
+    repeating-radial-gradient(circle at 50% 120%, transparent 0 46px, rgba(62,224,255,.10) 47px 48px),
+    repeating-linear-gradient(90deg, transparent 0 58px, rgba(227,91,255,.08) 59px 60px);
+  mask-image:radial-gradient(ellipse at 70% 20%, black 0 40%, transparent 78%);
+}
+#nabu-world-root::after{
+  content:"";position:absolute;width:168px;height:168px;right:7%;top:36px;
+  pointer-events:none;border-radius:50%;
+  background:
+    radial-gradient(circle at 38% 34%, #fff8 0 6%, transparent 28%),
+    radial-gradient(circle at 50% 50%, var(--nw-gold-lite) 0 8%, var(--nw-cyan) 28%, var(--nw-magenta) 62%, transparent 72%);
+  filter:blur(1.2px);opacity:.72;
+  box-shadow:0 0 48px 8px rgba(62,224,255,.18), 0 0 90px 20px rgba(227,91,255,.12);
 }
 #nabu-world-root[hidden]{display:none!important}
 #nabu-world-root *{box-sizing:border-box}
-.nabu-world-shell{max-width:1100px;margin:0 auto;padding:22px 28px 88px}
+.nabu-world-shell{max-width:1100px;margin:0 auto;padding:22px 28px 88px;position:relative;z-index:1}
 .nabu-world-kicker{
   font-size:9.5px;letter-spacing:.30em;text-transform:uppercase;
-  color:var(--nw-cobalt);font-weight:700;margin:0 0 8px
+  color:var(--nw-gold-lite);font-weight:700;margin:0 0 8px
 }
 .nabu-world-head{
   display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap
 }
 .nabu-world-title{
-  font-family:var(--nw-sans);font-weight:800;font-size:clamp(34px,6vw,56px);
-  line-height:.86;letter-spacing:-.04em;margin:0
+  font-family:var(--nw-sans);font-weight:800;font-size:clamp(42px,7vw,72px);
+  line-height:.78;letter-spacing:-.06em;margin:0;text-transform:lowercase;
+  color:var(--nw-paper-3);text-shadow:0 0 28px rgba(62,224,255,.28)
 }
-.nabu-world-sub{margin:10px 0 0;font-size:11px;color:var(--nw-ink-soft);max-width:560px}
+.nabu-world-sub{margin:10px 0 0;font-size:11px;color:rgba(242,238,230,.68);max-width:560px}
 .nabu-world-badges{display:flex;flex-wrap:wrap;gap:6px;justify-content:flex-end}
 .nabu-world-badge{
-  display:inline-block;border:1px solid var(--nw-ink);padding:3px 8px;
-  font-size:9.5px;letter-spacing:.18em;text-transform:uppercase;font-weight:700
+  display:inline-block;border:1px solid rgba(242,238,230,.35);padding:3px 8px;
+  font-size:9.5px;letter-spacing:.18em;text-transform:uppercase;font-weight:700;
+  color:var(--nw-paper-3)
 }
-.nabu-world-badge--mode{background:var(--nw-ink);color:var(--nw-paper)}
-.nabu-world-badge--ex{border-color:var(--nw-gold);color:var(--nw-gold)}
-.nabu-world-badge--fail{border-color:var(--nw-gold);color:var(--nw-gold);background:rgba(176,128,31,.08)}
-.nabu-world-rule{height:1px;background:var(--nw-hair);margin:16px 0}
-.nabu-world-note{font-size:11px;color:var(--nw-ink-soft);line-height:1.55}
+.nabu-world-badge--mode{background:var(--nw-ink);border-color:var(--nw-ink);color:var(--nw-paper)}
+.nabu-world-badge--ex{border-color:var(--nw-gold);color:var(--nw-gold-lite)}
+.nabu-world-badge--fail{border-color:var(--nw-gold);color:var(--nw-gold);background:rgba(176,128,31,.12)}
+.nabu-world-badge--hot{
+  border-color:var(--nw-gold-lite);color:var(--nw-navy);background:var(--nw-gold-lite);
+  box-shadow:0 0 16px rgba(215,168,58,.45)
+}
+.nabu-world-rule{height:1px;background:rgba(242,238,230,.16);margin:16px 0}
+.nabu-world-note{font-size:11px;color:rgba(242,238,230,.62);line-height:1.55}
 .nabu-world-meta{
   display:grid;grid-template-columns:1.4fr .8fr .8fr;gap:12px;margin-top:8px
 }
 .nabu-world-card{
-  border:1px solid var(--nw-hair);background:rgba(255,255,255,.28);padding:12px 14px
+  border:1px solid var(--nw-hair);background:var(--nw-paper-3);padding:12px 14px;color:var(--nw-ink)
 }
 .nabu-world-card-k{
   display:block;font-size:9px;letter-spacing:.22em;text-transform:uppercase;color:var(--nw-ink-soft)
@@ -68,7 +97,7 @@
 .nabu-world-card a{color:var(--nw-cobalt);text-decoration:none}
 .nabu-world-card a:hover{text-decoration:underline}
 .nabu-world-caps{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:18px}
-.nabu-world-cap{border:1px solid var(--nw-hair);background:var(--nw-paper-3);padding:14px 14px 12px}
+.nabu-world-cap{border:1px solid var(--nw-hair);background:var(--nw-paper-3);padding:14px 14px 12px;color:var(--nw-ink)}
 .nabu-world-cap-top{display:flex;justify-content:space-between;gap:10px;align-items:baseline}
 .nabu-world-cap-name{font-family:var(--nw-sans);font-weight:800;font-size:20px;letter-spacing:.04em}
 .nabu-world-cap-use{font-variant-numeric:tabular-nums;font-size:12px}
@@ -81,7 +110,7 @@
   display:grid;grid-template-columns:repeat(auto-fit,minmax(128px,1fr));
   gap:1px;background:var(--nw-hair);margin-top:18px
 }
-.nabu-world-cell{background:var(--nw-paper-3);padding:13px 12px}
+.nabu-world-cell{background:var(--nw-paper-3);padding:13px 12px;color:var(--nw-ink)}
 .nabu-world-cell-k{font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(--nw-ink-soft)}
 .nabu-world-cell-v{
   font-family:var(--nw-sans);font-weight:800;font-size:22px;line-height:1.2;margin-top:3px;
@@ -89,9 +118,10 @@
 }
 .nabu-world-neg{color:var(--nw-oxblood)}
 .nabu-world-empty{
-  font-family:var(--nw-serif);font-style:italic;font-size:16px;color:var(--nw-ink-soft);padding:16px 0
+  font-family:var(--nw-serif);font-style:italic;font-size:16px;color:rgba(242,238,230,.55);padding:16px 0
 }
 .nabu-world-sec{margin-top:32px}
+.nabu-world-tbl-wrap{background:var(--nw-paper-3);color:var(--nw-ink);padding:12px 14px;border:1px solid var(--nw-hair)}
 .nabu-world-tbl{width:100%;border-collapse:collapse;font-size:12px}
 .nabu-world-tbl th{
   text-align:left;font-size:9px;letter-spacing:.2em;text-transform:uppercase;
@@ -113,18 +143,103 @@
 .nabu-world-tx:hover{text-decoration:underline}
 .nabu-world-mono{font-size:11px;word-break:break-all}
 .nabu-world-eval{
-  margin-top:18px;border-left:2px solid var(--nw-cobalt);padding:4px 0 4px 14px
+  margin-top:18px;border-left:2px solid var(--nw-gold-lite);padding:4px 0 4px 14px
 }
 .nabu-world-eval p{
-  font-family:var(--nw-serif);font-style:italic;font-size:15px;line-height:1.6;margin:6px 0 0
+  font-family:var(--nw-serif);font-style:italic;font-size:15px;line-height:1.6;margin:6px 0 0;
+  color:var(--nw-paper-3)
 }
-.nabu-world-eval-meta{font-size:10px;letter-spacing:.08em;color:var(--nw-ink-soft);text-transform:uppercase}
-.nabu-world-foot{margin-top:28px;font-size:11px;color:var(--nw-ink-soft);line-height:1.55}
+.nabu-world-eval-meta{font-size:10px;letter-spacing:.08em;color:rgba(242,238,230,.55);text-transform:uppercase}
+.nabu-world-foot{margin-top:28px;font-size:11px;color:rgba(242,238,230,.55);line-height:1.55}
+.nabu-world-pill{
+  display:inline-block;padding:2px 7px;font-size:8.5px;letter-spacing:.16em;
+  text-transform:uppercase;font-weight:700;border:1px solid currentColor
+}
+.nabu-world-pill--pending{color:var(--nw-gold);background:rgba(176,128,31,.12)}
+.nabu-world-pill--ok{color:var(--nw-cobalt);background:rgba(31,69,200,.08)}
+.nabu-world-pill--dead{color:var(--nw-oxblood);background:rgba(124,29,33,.08)}
+
+/* Pending action — CH Check région */
+.nabu-world-pending{
+  margin-top:18px;background:var(--nw-paper-3);color:var(--nw-ink);
+  border:1px solid var(--nw-gold);border-left:6px solid var(--nw-gold);
+  padding:16px 16px 14px;position:relative;overflow:hidden;
+  box-shadow:0 0 0 1px rgba(215,168,58,.18), 0 0 36px rgba(215,168,58,.16)
+}
+.nabu-world-pending::before{
+  content:"";position:absolute;width:54px;height:54px;right:14px;top:10px;
+  border-radius:50%;pointer-events:none;opacity:.85;
+  background:
+    radial-gradient(circle at 38% 34%, #fff8 0 8%, transparent 30%),
+    radial-gradient(circle at 50% 50%, var(--nw-gold-lite) 0 12%, var(--nw-cyan) 40%, var(--nw-magenta) 70%, transparent 72%);
+}
+.nabu-world-pending-top{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:flex-start}
+.nabu-world-pending h2{
+  margin:8px 0 0;font-family:var(--nw-sans);font-size:22px;letter-spacing:-.02em;max-width:80%
+}
+.nabu-world-pending-grid{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-top:14px
+}
+.nabu-world-url{
+  margin-top:14px;display:flex;gap:8px;align-items:stretch;flex-wrap:wrap
+}
+.nabu-world-url textarea{
+  flex:1 1 280px;min-height:64px;resize:vertical;font:11px/1.4 var(--nw-mono);
+  padding:8px 10px;border:1px solid var(--nw-hair);background:#fff;color:var(--nw-ink)
+}
+.nabu-world-btn{
+  border:1px solid var(--nw-ink);background:var(--nw-ink);color:var(--nw-paper);
+  font:700 10px var(--nw-mono);letter-spacing:.14em;text-transform:uppercase;
+  padding:8px 12px;cursor:pointer
+}
+.nabu-world-btn--ghost{background:transparent;color:var(--nw-ink)}
+.nabu-world-btn:hover{background:var(--nw-cobalt);border-color:var(--nw-cobalt);color:#fff}
+.nabu-world-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.nabu-world-expiry{font-variant-numeric:tabular-nums;font-size:12px}
+.nabu-world-expiry.is-hot{color:var(--nw-oxblood);font-weight:700}
+
+/* Floating banner — additive overlay, not a change to original page CSS */
+#nabu-world-banner{
+  position:fixed;z-index:80;left:94px;right:16px;top:12px;
+  background:var(--navy,#070C1E);color:var(--paper-3,#F2EEE6);
+  border:1px solid var(--gold,#B0801F);
+  box-shadow:0 0 28px rgba(215,168,58,.28);
+  padding:10px 14px;display:flex;gap:12px;align-items:center;flex-wrap:wrap;
+  font:12px var(--mono,ui-monospace,Menlo,Consolas,monospace)
+}
+#nabu-world-banner[hidden]{display:none!important}
+#nabu-world-banner a{color:var(--gold-lite,#D7A83A);font-weight:700;text-decoration:none}
+#nabu-world-banner.is-pulse{animation:nabu-world-pulse 1.2s ease-out 3}
+@keyframes nabu-world-pulse{
+  0%{box-shadow:0 0 0 0 rgba(215,168,58,.55)}
+  70%{box-shadow:0 0 0 14px rgba(215,168,58,0)}
+  100%{box-shadow:0 0 0 0 rgba(215,168,58,0)}
+}
+
+.rail-nav a.nabu-world-nav{position:relative}
 .rail-nav a.nabu-world-nav.is-active{
   background:var(--gold,#B0801F);color:var(--navy,#070C1E);border-color:var(--gold,#B0801F)
+}
+.rail-nav a.nabu-world-nav.has-pending{
+  box-shadow:0 0 0 2px var(--gold,#B0801F), 0 0 16px rgba(215,168,58,.45)
+}
+.rail-nav a.nabu-world-nav .nabu-world-nav-dot{
+  position:absolute;top:-3px;right:-3px;min-width:14px;height:14px;padding:0 3px;
+  border-radius:8px;background:var(--gold,#B0801F);color:var(--navy,#070C1E);
+  font:800 8px/14px var(--sans,ui-sans-serif,sans-serif);text-align:center
+}
+.rail-nav a.nabu-world-nav.is-flash{animation:nabu-world-navflash .9s ease-out 4}
+@keyframes nabu-world-navflash{
+  0%,100%{transform:none}
+  50%{transform:translateX(3px) scale(1.06)}
+}
+@media(prefers-reduced-motion:reduce){
+  #nabu-world-banner.is-pulse,.rail-nav a.nabu-world-nav.is-flash{animation:none}
 }
 @media(max-width:760px){
   #nabu-world-root{inset:0 0 58px 0}
   .nabu-world-shell{padding:14px 12px 28px}
   .nabu-world-meta,.nabu-world-caps{grid-template-columns:1fr}
+  #nabu-world-banner{left:10px;right:10px;top:8px}
+  #nabu-world-root::after{width:96px;height:96px;right:12px;top:18px}
 }

@@ -17,6 +17,11 @@ Expected ledger files (any missing file is UNVERIFIED, never zero-filled):
     $NABU_WORLD_ROOT/fills.jsonl
     $NABU_WORLD_ROOT/autonomy_cycle.json
     $NABU_WORLD_ROOT/positions.json      # or positions.jsonl
+    $NABU_WORLD_ROOT/pending_geofence.json   # or awaiting_region_check.json
+
+The live score / autonomy pipeline MUST rewrite assets/world-live.json
+whenever a buy is prepared and a CH Check région / geofence URL is issued,
+so the World tab can raise a pending-action alert.
 
 Field aliases are accepted (ts/timestamp, tx/signature, track/book, …).
 Caps default to the JD: A max $10 open, B max $15 open, $5 tickets.
@@ -111,9 +116,30 @@ EXAMPLE = {
         "cycle_id": "cycle-14",
         "evaluated_at": "2026-09-12T16:35:00Z",
         "note": (
-            "Hold. A at 50% of cap (one $5 ticket). B has room for one more ticket. "
-            "Do not chase after the FOMC print; wait for the settlement window."
+            "Ticket ETH-2700-WK prepared on A. Awaiting CH Check région / geofence "
+            "before the fill. Do not let the chat URL expire."
         ),
+    },
+    "pending_geofence": {
+        "status": "awaiting_region_check",
+        "market": "Will ETH close above $2,700 this week?",
+        "track": "A",
+        "side": "YES",
+        "size_usd": 5.0,
+        "ticker": "ETH-2700-WK",
+        "request_id": "ch-check-20260912-1844-a1",
+        "prepared_at": "2026-09-12T17:44:00Z",
+        "expires_at": "2026-09-13T18:00:00Z",
+        "geofence_url": (
+            "data:text/plain;charset=utf-8,"
+            "CH%20Check%20region%0A"
+            "request_id=ch-check-20260912-1844-a1%0A"
+            "market=ETH-2700-WK%0A"
+            "track=A%0A"
+            "size_usd=5%0A"
+            "open_this_url_to_clear_geofence"
+        ),
+        "note": "CH Check région — ticket prêt. Ouvrir l'URL geofence du chat avant expiry du token.",
     },
 }
 
@@ -208,6 +234,52 @@ def _load_fills(root: Path) -> tuple[list[dict], str]:
     return fills[:40], str(p)
 
 
+def _norm_pending(row: dict) -> dict:
+    return {
+        "status": _pick(row, ["status", "state"], "awaiting_region_check"),
+        "market": _pick(row, ["market", "question", "title"]),
+        "track": _pick(row, ["track", "book"]),
+        "side": _pick(row, ["side", "outcome"]),
+        "size_usd": _num(_pick(row, ["size_usd", "size", "ticket", "notional"])),
+        "ticker": _pick(row, ["ticker", "symbol"]),
+        "request_id": _pick(row, ["request_id", "id", "token_id"]),
+        "prepared_at": _pick(row, ["prepared_at", "ts", "iso"]),
+        "expires_at": _pick(row, ["expires_at", "token_expiry", "expiry", "expires"]),
+        "geofence_url": _pick(row, ["geofence_url", "url", "data_url", "link", "href"]),
+        "note": _pick(row, ["note", "hint", "chat_hint"]),
+    }
+
+
+def _as_pending_list(raw: Any) -> list[dict]:
+    if raw is None:
+        return []
+    if isinstance(raw, dict):
+        raw = raw.get("pending") or raw.get("tickets") or raw.get("items") or raw
+        if isinstance(raw, dict):
+            return [_norm_pending(raw)]
+    if isinstance(raw, list):
+        return [_norm_pending(r) for r in raw if isinstance(r, dict)]
+    return []
+
+
+def _load_pending(root: Path, auto: dict) -> tuple[list[dict], str]:
+    for name in ("pending_geofence.json", "awaiting_region_check.json"):
+        p = root / name
+        if not p.exists():
+            continue
+        try:
+            data = _read_json(p)
+        except Exception:  # noqa: BLE001
+            return [], str(p)
+        rows = _as_pending_list(data)
+        return rows, str(p)
+    if auto:
+        for key in ("pending_geofence", "pending_geofences", "awaiting_region_check"):
+            if auto.get(key):
+                return _as_pending_list(auto.get(key)), "autonomy_cycle.json"
+    return [], "absent"
+
+
 def _load_autonomy(root: Path) -> tuple[dict, str]:
     p = root / "autonomy_cycle.json"
     if not p.exists():
@@ -223,6 +295,9 @@ def _load_autonomy(root: Path) -> tuple[dict, str]:
         "mode": _pick(data, ["mode"], "LIVE_ONLY"),
         "caps": data.get("caps") if isinstance(data.get("caps"), dict) else None,
         "cashflow": data.get("cashflow") if isinstance(data.get("cashflow"), dict) else None,
+        "pending_geofence": data.get("pending_geofence"),
+        "pending_geofences": data.get("pending_geofences"),
+        "awaiting_region_check": data.get("awaiting_region_check"),
     }, str(p)
 
 
@@ -281,6 +356,7 @@ def build_snapshot(ledgers: Path) -> dict:
     positions, pos_src = _load_positions(ledgers)
     fills, fill_src = _load_fills(ledgers)
     auto, auto_src = _load_autonomy(ledgers)
+    pending, pend_src = _load_pending(ledgers, auto)
     open_usd = _open_by_track(positions)
     caps_src = auto.get("caps") if auto else None
     caps = {"A": {"open_usd": open_usd["A"], "max_usd": CAP_A},
@@ -292,7 +368,14 @@ def build_snapshot(ledgers: Path) -> dict:
                 caps[key]["max_usd"] = float(raw["max_usd"])
             elif isinstance(raw, (int, float)):
                 caps[key]["max_usd"] = float(raw)
-    sources = [s for s in (pos_src, fill_src, auto_src) if s != "absent"]
+    sources = [s for s in (pos_src, fill_src, auto_src, pend_src) if s != "absent"]
+    pending_out: Any
+    if len(pending) == 1:
+        pending_out = pending[0]
+    elif len(pending) > 1:
+        pending_out = pending
+    else:
+        pending_out = None
     return {
         "schema_version": 1,
         "example": False,
@@ -311,6 +394,7 @@ def build_snapshot(ledgers: Path) -> dict:
             "evaluated_at": auto.get("evaluated_at"),
             "note": auto.get("note"),
         } if auto else {},
+        "pending_geofence": pending_out,
     }
 
 
