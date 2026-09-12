@@ -11,6 +11,9 @@ Planche de lecture autonome produite par `nabu_dashboard.py`. Aucune dépendance
 | `assets/nabu-command.webp` | Visuel principal N*ABU, intégré en base64 au HTML final |
 | `assets/nabu-portrait.webp` | Avatar de navigation, intégré en base64 au HTML final |
 | `assets/iii-symbol.svg` | Géométrie vectorielle canonique du symbole `iii` |
+| `assets/world-live.json` | Snapshot lecture seule World.xyz / PayBox (exemple commité) |
+| `assets/world-tab.js` + `world-tab.css` | Onglet World — overlay isolé, sans refactor de la planche |
+| `scripts/refresh_world_snapshot.py` | Régénère le snapshot depuis les ledgers world-paper |
 
 ## Tirage
 
@@ -82,3 +85,30 @@ et edge ; il ne confond pas une série gagnante avec une stratégie démontrée.
 Les limites de risque sont immuables depuis cette boucle. Une amélioration teste une seule hypothèse
 en paper, attend la prochaine taille d'échantillon, puis exige une validation humaine avant toute
 promotion live.
+
+## Onglet World (additif)
+
+Un cinquième item de navigation (`WD`) ouvre un **panneau isolé** : mode `LIVE_ONLY`,
+caps A ≤ $10 / B ≤ $15, positions, fills (tx Solana), cashflow, dernière note
+d'autonomie, et un bandeau **pending geofence / CH Check région** quand un ticket
+est préparé. La planche d'origine (PF / RK / PX / AN) n'est pas refactorisée.
+Visuellement (World seulement) : champ noir World (grille, orbe, glow
+cyan→magenta) + cartes sombres / pills Pending·Completed. PF / RK / PX / AN
+restent la planche d'origine.
+
+Les données viennent de `assets/world-live.json` — un tirage local, pas d'auth PayBox
+dans le HTML. Le fichier commité est un **exemple** qui inclut un `pending_geofence`.
+
+**Pipeline live :** dès qu'un buy est préparé et qu'une URL geofence / Check région
+est émise, la boucle score/autonomie **doit réécrire** `assets/world-live.json`
+(ou le chemin du snapshot). L'onglet World poll ce fichier (~8 s) et alerte
+(badge WD, bandeau, Notification API, son optionnel) pour ne pas rater le chat.
+
+```bash
+python3 scripts/refresh_world_snapshot.py \
+  --ledgers /opt/data/.nabu/world-paper \
+  --out assets/world-live.json
+```
+
+Servir la page en HTTP pour que le fetch du snapshot aboutisse
+(`python3 -m http.server` depuis la racine du dépôt). Format : §8 du contrat.

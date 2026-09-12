@@ -286,3 +286,90 @@ seuil. `DEGRADING` demande une segmentation des pertes mais n'autorise jamais
   cache.
 - Elle ne dit rien de la **justesse** du mark, seulement de son âge. Un mark
   frais issu d'une bougie fausse reste faux.
+
+---
+
+## 8. Onglet World — surface additive (hors contrat `state`)
+
+World.xyz / PayBox n'entre **pas** dans l'objet `state` ni dans `nabu-state`.
+C'est un overlay isolé (`assets/world-tab.js` + `assets/world-tab.css`) branché
+par un seul `<script defer>` en fin de page. Le HTML d'origine (nav PF/RK/PX/AN,
+CSS, JS live Hyperliquid) n'est pas refactorisé.
+
+Le panneau charge `assets/world-live.json` (fetch local). Pas d'auth PayBox,
+pas de secret, pas de venue joint. Un snapshot absent s'affiche `UNVERIFIED`
+— jamais un zéro inventé.
+
+Wallet observé (PayBox Solana) : `27bcZ8xT8qWzkmdyjKy7mRXKqRAR9KBphZt3BMyjmac3`.
+Mode : `LIVE_ONLY`. Tickets $5. Caps : A ≤ $10 open, B ≤ $15 open.
+
+### Identité visuelle (World seulement)
+
+Le panneau World est un overlay isolé : champ noir World (grille lat/long,
+fuites cyan / magenta, orbe, wordmark minuscule `world`) + cartes sombres type
+dashboard (caps / PnL / positions, table d'activité des fills). Pills **dans
+cet onglet seulement** : orange Pending (geofence), vert Completed (soldé),
+rouge Cancelled / expiré. Les onglets PF / RK / PX / AN et le chrome d'origine
+ne sont pas restylés — la planche §5 (ivoire / cobalt / or / oxblood, pas de
+vert) reste intacte hors `#nabu-world-root`.
+
+### Format du snapshot
+
+```jsonc
+{
+  "schema_version": 1,
+  "example": false,                 // true = jeu d'exemple commité
+  "generated_at": "2026-09-12T16:40:00Z",
+  "source": "chemin des ledgers lus",
+  "venue": "world.xyz",
+  "wallet": { "chain": "solana", "address": "27bc…mac3", "label": "PayBox" },
+  "mode": "LIVE_ONLY",
+  "ticket_usd": 5,
+  "caps": {
+    "A": { "open_usd": 5, "max_usd": 10 },
+    "B": { "open_usd": 10, "max_usd": 15 }
+  },
+  "positions": [{ "market", "track", "side", "size_usd", "mark", "mint", "ticker" }],
+  "fills": [{ "ts", "action", "market", "track", "size_usd", "pnl_usd", "tx" }],
+  "cashflow": { "realized_pnl_usd", "unrealized_pnl_usd", "fees_usd", "net_usd",
+                "tickets_opened", "tickets_closed", "volume_usd" },
+  "autonomy": { "cycle_id", "evaluated_at", "note" },
+
+  // ticket préparé, fill bloqué tant que le CH Check région n'est pas ouvert
+  "pending_geofence": {
+    "status": "awaiting_region_check",
+    "market": "…", "track": "A", "side": "YES", "size_usd": 5,
+    "request_id": "ch-check-…",
+    "prepared_at": "2026-09-12T17:44:00Z",
+    "expires_at": "2026-09-13T18:00:00Z",   // token expiry
+    "geofence_url": "data:text/plain,… | https://…",
+    "note": "CH Check région — ouvrir l'URL du chat"
+  }
+  // alias acceptés : pending_geofences[] · awaiting_region_check
+}
+```
+
+### Alerte « ticket prêt » (JD)
+
+L'onglet World poll `assets/world-live.json` toutes les ~8 s. Un nouveau
+`request_id` déclenche : badge pulsé sur `WD`, bandeau fixe (même hors overlay),
+Notification API si autorisée, son optionnel. L'URL geofence est copiable.
+La page ne contacte pas PayBox.
+
+**Contrat pipeline :** la boucle live score / autonomie réécrit ce snapshot
+**dès qu'un buy est préparé** (URL geofence émise). Sans ce refresh, le
+dashboard ne peut pas voir l'action en attente.
+
+### Rafraîchir depuis les ledgers world-paper
+
+```bash
+python3 scripts/refresh_world_snapshot.py \
+  --ledgers ${NABU_WORLD_ROOT:-/opt/data/.nabu/world-paper} \
+  --out assets/world-live.json
+```
+
+Ledgers lus (chacun optionnel) : `fills.jsonl`, `autonomy_cycle.json`,
+`positions.json` ou `positions.jsonl`, `pending_geofence.json` (ou
+`awaiting_region_check.json`, ou le même objet dans `autonomy_cycle.json`).
+Alias de champs acceptés (`signature`→`tx`, `book`→`track`, `question`→`market`, …).
+`--write-example` réécrit le mock commité (avec un pending_geofence de démo).
