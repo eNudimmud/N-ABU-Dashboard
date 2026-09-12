@@ -309,8 +309,15 @@
     "evaluated_at": "2026-09-13T00:17:18+02:00",
     "note": "exits ATL+CLE+NO done \u00b7 open 5/8 \u00b7 TB WATCH \u00b7 favs HOLD"
   },
-  "pending_geofence": null,
-  "awaiting_region_check": false,
+  "pending_geofence": {
+    "kind": "exit",
+    "market": "TB Buccaneers YES",
+    "request_id": "15f69aab-cf5a-4d8c-919f-5a3fe639d14b",
+    "url": "https://enudimmud.github.io/N-ABU-Dashboard/assets/geofence-exit-tb.html",
+    "expires_zh": "00:33",
+    "note": "EXIT TB dog @ CIN"
+  },
+  "awaiting_region_check": true,
   "utilization": {
     "open_usd": 25.0,
     "max_usd": 40.0,
@@ -321,5 +328,5 @@
     "bankroll_usd": 49.03,
     "realized_pnl_usd": 2.85
   },
-  "notify": false
+  "notify": true
 }
