@@ -1,10 +1,9 @@
 {
   "schema_version": 1,
   "example": false,
-  "generated_at": "2026-09-12T20:30:37Z",
-  "generated_at_zh": "2026-09-12T22:30:37+02:00",
-  "updated_at": "2026-09-12T22:17:32.039+02:00",
-  "source": "ledger-live repair after schema drift",
+  "generated_at": "2026-09-12T20:38:33Z",
+  "generated_at_zh": "2026-09-12T22:38:33+02:00",
+  "source": "ledger-live + cashflow repair",
   "venue": "world.xyz",
   "wallet": {
     "chain": "solana",
@@ -13,14 +12,17 @@
   },
   "mode": "LIVE_ONLY",
   "ticket_usd": 5.0,
+  "bankroll_usd": 47.78,
   "caps": {
     "A": {
       "open_usd": 10.0,
-      "max_usd": 10.0
+      "max_usd": 15.0,
+      "legacy_max_usd": 10.0
     },
     "B": {
       "open_usd": 15.0,
-      "max_usd": 15.0
+      "max_usd": 25.0,
+      "legacy_max_usd": 15.0
     }
   },
   "capacity": {
@@ -31,7 +33,7 @@
     "B_cap": 15.0,
     "B_remaining": 0.0,
     "ticket": 5.0,
-    "bankroll_usd": 47.47
+    "bankroll_usd": 47.78
   },
   "positions": [
     {
@@ -39,7 +41,9 @@
       "track": "A",
       "side": "YES",
       "size_usd": 5.0,
-      "mark_usd": 6.3959,
+      "mark_usd": 6.7098,
+      "entry_usd": 5.0,
+      "upnl_usd": 1.7098,
       "mint": "7m6EfZGRaD1riwQJjtvGVZH2PQ1r6W8V5HPoD52HTHE7",
       "ticker": "WXEPL-26SEP122000ARSESUND-ARSE",
       "status": "open"
@@ -50,6 +54,8 @@
       "side": "YES",
       "size_usd": 5.0,
       "mark_usd": 4.8306,
+      "entry_usd": 5.0,
+      "upnl_usd": -0.1694,
       "mint": "8yz5Yxzw9nYLnFZb27J9FCZuGmyp3J9tcL5XRyJbCHPe",
       "ticker": "WXMLB-26SEP121810CINMIL-MBRE",
       "status": "open"
@@ -60,6 +66,8 @@
       "side": "YES",
       "size_usd": 5.0,
       "mark_usd": 4.9122,
+      "entry_usd": 5.0,
+      "upnl_usd": -0.0878,
       "mint": "9Xop5RNLHfPZZ84dnsUjcDEBTBSYs4BqBr7QpXAFjAPb",
       "ticker": "WXNFL-26SEP13WASPHI-PEAG",
       "status": "open"
@@ -70,6 +78,8 @@
       "side": "YES",
       "size_usd": 5.0,
       "mark_usd": 4.8628,
+      "entry_usd": 5.0,
+      "upnl_usd": -0.1372,
       "mint": "67r1PciCLNHrT5iK15jy2mj3KEByTbgGHFgqB3eNBE36",
       "ticker": "WXLIG-26SEP152130RMADELCH-RMAD",
       "status": "open"
@@ -80,6 +90,8 @@
       "side": "YES",
       "size_usd": 5.0,
       "mark_usd": 4.9943,
+      "entry_usd": 5.0,
+      "upnl_usd": -0.0057,
       "mint": "AzYRWeHmHQbpwoDKJb4A9YgGq7tiwyfwCd4GJJWKeJb4",
       "ticker": "WXLIG-26SEP131615BARCLEVA-BARC",
       "status": "open"
@@ -149,36 +161,64 @@
   ],
   "cashflow": {
     "usdc": 21.47,
-    "total_usd": 47.47,
+    "positions_mark_usd": 26.31,
+    "positions_cost_usd": 25.0,
+    "total_usd": 47.78,
+    "realized_pnl_usd": 0.0,
+    "unrealized_pnl_usd": 1.3097,
+    "fees_usd": 0.0,
+    "net_usd": 1.3097,
     "tickets_opened": 5,
-    "tickets_closed": 0
+    "tickets_closed": 0,
+    "volume_usd": 25.0,
+    "idle_usdc_note": "Idle USDC was legacy A10+B15 cap; new rule A=3x B=5x ticket to deploy more when PAPER_* exists"
   },
   "autonomy": {
-    "evaluated_at": "2026-09-12T22:17:32.039+02:00",
-    "note": {
-      "id": "20260912-2217-LIVE",
-      "evaluated_at": "2026-09-12T22:17:32.039+02:00",
-      "note": "SKIP_no_capacity + Arsenal mark +61.4%",
-      "last_decision": "SKIP_no_capacity"
-    },
-    "last_decision": null
+    "evaluated_at": "2026-09-12T22:37:27.832+02:00",
+    "note": " \u00b7 sizing now A3x/B5x"
   },
   "pending_geofence": null,
   "awaiting_region_check": false,
   "mark_swings": [
     {
       "ticker": "WXEPL-26SEP122000ARSESUND-ARSE",
-      "from": 3.9636,
-      "to": 6.3959,
-      "d_usd": 2.4323,
-      "pct": 61.37
+      "from": 6.3959,
+      "to": 6.7098,
+      "d_usd": 0.3139,
+      "pct": 4.91
+    },
+    {
+      "ticker": "WXMLB-26SEP121810CINMIL-MBRE",
+      "from": 4.8306,
+      "to": 4.8306,
+      "d_usd": -0.0,
+      "pct": -0.0
+    },
+    {
+      "ticker": "WXNFL-26SEP13WASPHI-PEAG",
+      "from": 4.9122,
+      "to": 4.9122,
+      "d_usd": 0.0,
+      "pct": 0.0
+    },
+    {
+      "ticker": "WXLIG-26SEP152130RMADELCH-RMAD",
+      "from": 4.8628,
+      "to": 4.8628,
+      "d_usd": -0.0,
+      "pct": -0.0
     },
     {
       "ticker": "WXLIG-26SEP131615BARCLEVA-BARC",
-      "from": 4.9366,
+      "from": 4.9943,
       "to": 4.9943,
-      "d_usd": 0.0577,
-      "pct": 1.17
+      "d_usd": 0.0,
+      "pct": 0.0
     }
-  ]
+  ],
+  "sub_runway": {
+    "target_chf": 1700,
+    "surplus_chf_est": null,
+    "bankroll_usd": 47.78
+  }
 }
