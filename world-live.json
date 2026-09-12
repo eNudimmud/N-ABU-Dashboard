@@ -158,23 +158,15 @@
     "last_decision": "PREPARE_BUY"
   },
   "pending_geofence": {
-    "request_id": "3cf5ea0e-5613-4d31-98f1-7cd054f191a6",
-    "market": "ATL Falcons YES",
-    "ticker": "WXNFL-26SEP13ATLPIT-AFAL",
-    "mint": "CHJqyFNpjLgm2WvQ55tQAkB73RjAy2bsaS8SNy8xBj3",
-    "side": "YES",
+    "status": "awaiting_region_check",
+    "market": "TEST NOTIF \u2014 pas un vrai buy",
     "track": "B",
-    "size_usd": 5.0,
-    "family": "sports_dog",
-    "mid": 0.285,
-    "spr": 0.02,
-    "paper_rule": "sports dog mid\u2208[0.12,0.40] spr\u22640.06 (mid~0.285 spr~0.02)",
-    "status": "pending_signature",
-    "check_region_url": "data:text/html;base64,PCFET0NUWVBFIGh0bWw+PGh0bWwgbGFuZz1mcj48bWV0YSBjaGFyc2V0PXV0Zi04PjxtZXRhIG5hbWU9dmlld3BvcnQgY29udGVudD0id2lkdGg9ZGV2aWNlLXdpZHRoLGluaXRpYWwtc2NhbGU9MSI+PHRpdGxlPkNIIGNoZWNrIEI8L3RpdGxlPgo8c3R5bGU+Ym9keXtmb250OjE2cHggc3lzdGVtLXVpO21hcmdpbjoyNHB4O21heC13aWR0aDo0MjBweH1idXR0b257d2lkdGg6MTAwJTtwYWRkaW5nOjE2cHg7Zm9udC1zaXplOjEuMXJlbTtib3JkZXI6MDtib3JkZXItcmFkaXVzOjEycHg7YmFja2dyb3VuZDojN2QwMGZmO2NvbG9yOiNmZmY7Zm9udC13ZWlnaHQ6NzAwfSNve21hcmdpbi10b3A6MTRweDt3aGl0ZS1zcGFjZTpwcmUtd3JhcH0ub2t7Y29sb3I6IzFhN2YzN30uYmFke2NvbG9yOiNjNjI4Mjh9PC9zdHlsZT4KPHA+PGI+VlBOIG9mZjwvYj4gwrcgU3Vpc3NlIMK3IExpdmUgQiDCtyBBVEwgRmFsY29ucyBZRVMgJDU8L3A+CjxwIHN0eWxlPSJmb250LXNpemU6MTNweDtvcGFjaXR5Oi44Ij5QYXBlciBydWxlczogZG9nIG1pZOKIiFswLjEyLDAuNDBdIHNwcuKJpDAuMDYgwrcgbWlkfjAuMjg1IHNwcn4wLjAyIMK3IEFUTCBAIFBJVDwvcD4KPGJ1dHRvbiBpZD1nPkNoZWNrIHLDqWdpb248L2J1dHRvbj48cHJlIGlkPW8+PC9wcmU+CjxzY3JpcHQ+CmNvbnN0IFU9Imh0dHBzOi8vYXBpLnBheWJveC5zaC9pZnJhbWUvc3dhcC8zY2Y1ZWEwZS01NjEzLTRkMzEtOThmMS03Y2QwNTRmMTkxYTYvZ2VvZmVuY2UiLFQ9ImV5SjBlWEFpT2lKS1YxUWlMQ0poYkdjaU9pSklVekkxTmlKOS5leUpwYzNNaU9pSndZWGxpYjNnaUxDSnpkV0lpT2lKak1EUTRObVUyTWkwNU0yWmxMVFE1TmpndFlXTTFNUzB6T1dGbVpEQmlaR0l4WldZaUxDSmphV1FpT2lKbE4ySTJabVkwTlMxa1lUWmxMVFF4TW1NdE9HTmxZUzB4TXpZd1pUSmhaREppTkRNaUxDSmhkV1FpT2lJelkyWTFaV0V3WlMwMU5qRXpMVFJrTXpFdE9UaG1NUzAzWTJRd05UUm1NVGt4WVRZaUxDSndkWEp3YjNObElqb2ljbVZtY21WemFDSXNJbWxoZENJNk1UYzRPVEkwTmprNE5Td2laWGh3SWpveE56ZzVNalEzT0RnMUxDSnFkR2tpT2lJek9EQTFOV1ppTmkxbE1tSTRMVFExTkdNdFlqYzJNUzAyTlRNNE1XWmhNVEJqTUdFaWZRLmlaQWhncXNKb3lwbkFLbG1rSHNteHNXM2l1SjdnbTFjVTZzWE5wTFQwb1EiOwpjb25zdCBvPWRvY3VtZW50LmdldEVsZW1lbnRCeUlkKCdvJyksZz1kb2N1bWVudC5nZXRFbGVtZW50QnlJZCgnZycpOwpnLm9uY2xpY2s9YXN5bmMoKT0+ewogZy5kaXNhYmxlZD10cnVlO28uY2xhc3NOYW1lPScnO28udGV4dENvbnRlbnQ9J+KApic7CiB0cnl7CiAgY29uc3Qgcj1hd2FpdCBmZXRjaChVLHttZXRob2Q6J1BPU1QnLGhlYWRlcnM6e0F1dGhvcml6YXRpb246J0JlYXJlciAnK1R9fSk7CiAgY29uc3QgdD1hd2FpdCByLnRleHQoKTsgbGV0IGI7IHRyeXtiPUpTT04ucGFyc2UodCl9Y2F0Y2h7Yj17cmF3OnR9fQogIGlmKHIuc3RhdHVzPT09NDAxKXtvLmNsYXNzTmFtZT0nYmFkJztvLnRleHRDb250ZW50PSdFeHBpcsOpIOKAlCBkaXMgZXhwaXJlZCc7cmV0dXJufQogIGlmKCFyLm9rKXtvLmNsYXNzTmFtZT0nYmFkJztvLnRleHRDb250ZW50PSdIVFRQICcrci5zdGF0dXMrJ1xuJyt0LnNsaWNlKDAsNDAwKTtnLmRpc2FibGVkPWZhbHNlO3JldHVybn0KICBpZihiLnN0YXR1cz09PSdibG9ja2VkJ3x8Yi5ibG9ja2VkfHxiLnN0YXR1cz09PSdkZW5pZWQnKXtvLmNsYXNzTmFtZT0nYmFkJztvLnRleHRDb250ZW50PSdCbG9xdcOpXG4nKyhiLnJlYXNvbnx8dC5zbGljZSgwLDMwMCkpO2cuZGlzYWJsZWQ9ZmFsc2U7cmV0dXJufQogIGNvbnN0IG49KGIucGxhbiYmYi5wbGFuLnR4cyYmYi5wbGFuLnR4cy5sZW5ndGgpfHwwOwogIGlmKCFuKXtvLmNsYXNzTmFtZT0nYmFkJztvLnRleHRDb250ZW50PScwIHR4cyDigJQgZGlzIGVtcHR5JztnLmRpc2FibGVkPWZhbHNlO3JldHVybn0KICBvLmNsYXNzTmFtZT0nb2snO28udGV4dENvbnRlbnQ9J09LICcrbisnIHR4c1xuRGlzOiBwYXJrZWQnOwogfWNhdGNoKGUpe28uY2xhc3NOYW1lPSdiYWQnO28udGV4dENvbnRlbnQ9U3RyaW5nKGUpO2cuZGlzYWJsZWQ9ZmFsc2V9Cn07Cjwvc2NyaXB0Pg==",
-    "geofence_url": "https://api.paybox.sh/iframe/swap/3cf5ea0e-5613-4d31-98f1-7cd054f191a6/geofence",
-    "token_exp_zh": "2026-09-12T23:18:05+02:00",
-    "example": false,
-    "refresh_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJwYXlib3giLCJzdWIiOiJjMDQ4NmU2Mi05M2ZlLTQ5NjgtYWM1MS0zOWFmZDBiZGIxZWYiLCJjaWQiOiJlN2I2ZmY0NS1kYTZlLTQxMmMtOGNlYS0xMzYwZTJhZDJiNDMiLCJhdWQiOiIzY2Y1ZWEwZS01NjEzLTRkMzEtOThmMS03Y2QwNTRmMTkxYTYiLCJwdXJwb3NlIjoicmVmcmVzaCIsImlhdCI6MTc4OTI0Njk4NSwiZXhwIjoxNzg5MjQ3ODg1LCJqdGkiOiIzODA1NWZiNi1lMmI4LTQ1NGMtYjc2MS02NTM4MWZhMTBjMGEifQ.iZAhgqsJoypnAKlmkHsmxsW3iuJ7gm1cU6sXNpLT0oQ"
+    "size_usd": 5,
+    "side": "YES",
+    "request_id": "test-notif-20260912-2304",
+    "geofence_url": "https://enudimmud.github.io/N-ABU-Dashboard/dashboard.html",
+    "token_exp": "2026-09-12T22:04:41Z",
+    "note": "Notification system test \u2014 dismiss after verifying sound/banner/toast"
   },
   "awaiting_region_check": true,
   "example": false,
@@ -190,5 +182,12 @@
     "unrealized_vs_cost": 2.4054,
     "surplus_vs_float": 23.88,
     "abo_target_chf": 1700
+  },
+  "generated_at": "2026-09-12T21:04:41Z",
+  "generated_at_zh": "2026-09-12T23:04:41+02:00",
+  "ticket_usd": 5,
+  "autonomy": {
+    "note": "TEST pending_geofence for WD notification verification",
+    "evaluated_at": "2026-09-12T23:04:41+02:00"
   }
 }
