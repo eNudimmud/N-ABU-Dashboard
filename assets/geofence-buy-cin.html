@@ -1,0 +1,28 @@
+<!DOCTYPE html><html lang=fr><meta charset=utf-8>
+<meta name=viewport content="width=device-width,initial-scale=1">
+<title>CH buy CIN</title>
+<style>
+body{font:16px system-ui;margin:24px;max-width:420px;background:#0b0b0f;color:#eee}
+button{width:100%;padding:16px;font-size:1.1rem;border:0;border-radius:12px;background:#7d00ff;color:#fff;font-weight:700}
+#o{margin-top:14px;white-space:pre-wrap}.ok{color:#1a7f37}.bad{color:#c62828}
+</style>
+<p><b>VPN off</b> · Suisse · <b>BUY</b> CIN Bengals YES $5</p>
+<p style="font-size:13px;opacity:.8">DEEP_BRIEF · books CIN -3.5/~-200 · World mid~0.635 · token → <b>01:14 ZH</b></p>
+<button id=g>Check région</button><pre id=o></pre>
+<script>
+const U="https://api.paybox.sh/iframe/swap/73a573a3-c171-4ce2-b5bb-99fe92faf952/geofence",T="eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJwYXlib3giLCJzdWIiOiJjMDQ4NmU2Mi05M2ZlLTQ5NjgtYWM1MS0zOWFmZDBiZGIxZWYiLCJjaWQiOiJlN2I2ZmY0NS1kYTZlLTQxMmMtOGNlYS0xMzYwZTJhZDJiNDMiLCJhdWQiOiI3M2E1NzNhMy1jMTcxLTRjZTItYjViYi05OWZlOTJmYWY5NTIiLCJwdXJwb3NlIjoicmVmcmVzaCIsImlhdCI6MTc4OTI1Mzk1OSwiZXhwIjoxNzg5MjU0ODU5LCJqdGkiOiJkZjg5MzhlYS00NGZiLTRlNzctOGVhMi00YjlkMjgwMzk0MTUifQ.nxX-1U333MERfqrvoBo8tGPbUaIe-9weJHL4mEijKfw";
+const o=document.getElementById('o'),g=document.getElementById('g');
+g.onclick=async()=>{
+  g.disabled=true;o.className='';o.textContent='…';
+  try{
+    const r=await fetch(U,{method:'POST',headers:{Authorization:'Bearer '+T}});
+    const t=await r.text(); let b; try{b=JSON.parse(t)}catch{b={raw:t}}
+    if(r.status===401){o.className='bad';o.textContent='Expiré — dis re-préparer';return}
+    if(!r.ok){o.className='bad';o.textContent='HTTP '+r.status+'\n'+t.slice(0,400);g.disabled=false;return}
+    if(b.status==='blocked'||b.blocked||b.status==='denied'){o.className='bad';o.textContent='Bloqué\n'+(b.reason||t.slice(0,300));g.disabled=false;return}
+    const n=(b.plan&&b.plan.txs&&b.plan.txs.length)||0;
+    if(!n){o.className='bad';o.textContent='0 txs — dis empty';g.disabled=false;return}
+    o.className='ok';o.textContent='OK '+n+' txs\nDis: parked';
+  }catch(e){o.className='bad';o.textContent=String(e);g.disabled=false}
+};
+</script>
