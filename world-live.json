@@ -1,9 +1,9 @@
 {
   "schema_version": 2,
   "example": false,
-  "generated_at": "2026-09-12T22:39:10Z",
-  "generated_at_zh": "2026-09-13T00:39:10+02:00",
-  "source": "after JAC Jaguars YES $5 fill",
+  "generated_at": "2026-09-12T22:52:06Z",
+  "generated_at_zh": "2026-09-13T00:52:06+02:00",
+  "source": "after DET Lions YES $5 DEEP_BRIEF fill",
   "venue": "world.xyz",
   "wallet": {
     "chain": "solana",
@@ -12,38 +12,37 @@
   },
   "mode": "LIVE_ONLY",
   "ticket_usd": 5.0,
-  "bankroll_usd": 48.4,
+  "bankroll_usd": 48.17,
   "caps": {
     "A": {
       "open_usd": 5.0,
       "max_usd": 40.0,
       "pool_usd": 40.0,
-      "bankroll_usd": 48.4,
+      "bankroll_usd": 48.17,
       "label_only": true,
       "share_of_pool_pct": 12.5
     },
     "B": {
-      "open_usd": 25.0,
+      "open_usd": 30.0,
       "max_usd": 40.0,
       "pool_usd": 40.0,
-      "bankroll_usd": 48.4,
+      "bankroll_usd": 48.17,
       "label_only": true,
-      "share_of_pool_pct": 62.5
+      "share_of_pool_pct": 75.0
     },
     "pool_usd": 40.0,
-    "bankroll_usd": 48.4
+    "bankroll_usd": 48.17
   },
   "capacity": {
-    "n_open": 6,
+    "n_open": 7,
     "max_open": 8,
-    "remaining_tickets": 2,
+    "remaining_tickets": 1,
     "ticket": 5.0,
     "max_open_usd": 40.0,
-    "bankroll_usd": 48.4,
+    "bankroll_usd": 48.17,
     "deploy_all_cash_ok": true,
     "A_open": 5.0,
-    "B_open": 25.0,
-    "note": "JAC filled as WEB_OK fav confirm (not deep thesis); crypto idle"
+    "B_open": 30.0
   },
   "positions": [
     {
@@ -111,9 +110,32 @@
       "upnl_usd": -0.0719,
       "mint": "D4SQxgvMhq53k7CWkc3Ck1muUyQWKvG3TQ537tuftxhm",
       "status": "open"
+    },
+    {
+      "market": "DET Lions YES",
+      "ticker": "WXNFL-26SEP13NODET-DLIO",
+      "track": "B",
+      "side": "YES",
+      "size_usd": 5.0,
+      "mark_usd": 4.9228,
+      "upnl_usd": -0.0772,
+      "mint": "5mNmJVCvPYhXJtXziCHgvjohwn6giyLo4Jirza46uw1C",
+      "status": "open"
     }
   ],
   "fills": [
+    {
+      "ts": "2026-09-12T22:51:05.876319416Z",
+      "action": "open",
+      "market": "DET Lions YES",
+      "track": "B",
+      "side": "buy",
+      "size_usd": 5,
+      "pnl_usd": null,
+      "tx": "2g3TW61ctu5bkEKKXW5rguteHWxW5mAso3pctnWTqS9Q9kCjkVDZWkZ2LuTZPTAdMvj5H9vKknDHut3PC4d3yTjy",
+      "ticker": "WXNFL-26SEP13NODET-DLIO",
+      "note": "filled"
+    },
     {
       "ts": "2026-09-12T22:38:22.254070605Z",
       "action": "open",
@@ -341,38 +363,38 @@
     }
   ],
   "cashflow": {
-    "usdc": 18.72,
-    "idle_usd": 18.72,
-    "idle_usdc": 18.72,
-    "deployed_usd": 30.0,
-    "deployed_cost_usd": 30.0,
-    "positions_mark_usd": 29.68,
-    "positions_cost_usd": 30.0,
-    "total_usd": 48.4,
-    "bankroll_usd": 48.4,
+    "usdc": 13.57,
+    "idle_usd": 13.57,
+    "idle_usdc": 13.57,
+    "deployed_usd": 35.0,
+    "deployed_cost_usd": 35.0,
+    "positions_mark_usd": 34.6,
+    "positions_cost_usd": 35.0,
+    "total_usd": 48.17,
+    "bankroll_usd": 48.17,
     "realized_pnl_usd": 2.85,
-    "unrealized_pnl_usd": -0.3242,
+    "unrealized_pnl_usd": -0.4014,
     "fees_usd": 0.0,
-    "net_usd": 2.5258,
-    "tickets_opened": 11,
+    "net_usd": 2.4486,
+    "tickets_opened": 12,
     "tickets_closed": 5,
-    "volume_usd": 55.0
+    "volume_usd": 60.0
   },
   "autonomy": {
-    "evaluated_at": "2026-09-13T00:39:10+02:00",
-    "note": "JAC fill \u00b7 open 6/8 \u00b7 analysis=fav_confirm not deep thesis"
+    "evaluated_at": "2026-09-13T00:52:06+02:00",
+    "note": "DET fill DEEP_BRIEF \u00b7 open 7/8"
   },
   "pending_geofence": null,
   "awaiting_region_check": false,
   "notify": false,
   "utilization": {
-    "open_usd": 30.0,
+    "open_usd": 35.0,
     "max_usd": 40.0,
     "basis": "deployed_cost / max_open_usd"
   },
   "sub_runway": {
     "target_chf": 1700,
-    "bankroll_usd": 48.4,
+    "bankroll_usd": 48.17,
     "realized_pnl_usd": 2.85
   }
 }
