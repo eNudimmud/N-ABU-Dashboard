@@ -1,6 +1,6 @@
 {
-  "updated_at": "2026-09-12T23:20:43.566399+02:00",
-  "updated_zh": "2026-09-12T23:20:43.566399+02:00",
+  "updated_at": "2026-09-12T23:21:32.330930+02:00",
+  "updated_zh": "2026-09-12T23:21:32.330930+02:00",
   "mode": "LIVE_ONLY",
   "usdc": 24.29,
   "total_usd": 48.84,
@@ -121,7 +121,7 @@
   "big_swings": [],
   "last_eval": {
     "id": "20260912-2318-LIVE",
-    "evaluated_at": "2026-09-12T23:20:43.566399+02:00",
+    "evaluated_at": "2026-09-12T23:21:32.330930+02:00",
     "note": "SETTLE_Arsenal_won_cashout + PREPARE_BUY_sports_dog_CLE_Browns",
     "last_decision": "PREPARE_BUY"
   },
@@ -159,5 +159,5 @@
     "surplus_vs_float": 23.84,
     "abo_target_chf": 1700
   },
-  "generated_at": "2026-09-12T21:20:43Z"
+  "generated_at": "2026-09-12T21:21:32Z"
 }
