@@ -1,241 +1,207 @@
 {
   "schema_version": 1,
   "example": false,
-  "generated_at": "2026-09-12T21:30:59Z",
-  "generated_at_zh": "2026-09-12T23:30:59+02:00",
-  "source": "wallet world_positions + ledger fills (canonical rebuild)",
+  "updated_at": "2026-09-12T23:33:36.344400+02:00",
+  "updated_zh": "2026-09-12T23:33:36.344400+02:00",
+  "generated_at": "2026-09-12T21:33:36Z",
+  "generated_at_zh": "2026-09-12T23:33:36.344400+02:00",
+  "mode": "LIVE_ONLY",
+  "source": "world live score routine",
   "venue": "world.xyz",
   "wallet": {
     "chain": "solana",
-    "address": "27bcZ8xT8qWzkmdyjKy7mRXKqRAR9KBphZt3BMyjmac3",
-    "label": "PayBox"
+    "address": "27bcZ8xT8qWzkmdyjKy7mRXKqRAR9KBphZt3BMyjmac3"
   },
-  "mode": "LIVE_ONLY",
-  "ticket_usd": 5.0,
-  "bankroll_usd": 48.57,
-  "caps": {
-    "A": {
-      "open_usd": 5.0,
-      "max_usd": 40.0
-    },
-    "B": {
-      "open_usd": 25.0,
-      "max_usd": 40.0
-    }
-  },
+  "usdc": 19.29,
+  "total_usd": 50.35,
   "capacity": {
     "n_open": 6,
     "max_open": 8,
     "remaining_tickets": 2,
     "ticket": 5.0,
-    "bankroll_usd": 48.57,
+    "bankroll_usd": 50.35,
     "deploy_all_cash_ok": true,
     "A_open": 5.0,
     "B_open": 25.0,
-    "note": "paper-aligned: max 8 \u00b7 $5\u201310 \u00b7 A/B labels"
+    "note": "paper-aligned: max 8 tickets, $5\u201310, A/B soft labels"
   },
   "positions": [
     {
-      "market": "CLE Browns YES",
+      "market": "CLE Browns",
       "ticker": "WXNFL-26SEP13CLEJAC-CBRO",
-      "track": "B",
       "side": "YES",
+      "track": "B",
       "size_usd": 5.0,
       "mark_usd": 4.731,
-      "upnl_usd": -0.269,
-      "mint": "3msWmdeGPbenFCYTfEFiaQ4sTS2VR2o4kKYBFbSQeZKE",
-      "status": "open"
+      "mint": "3msWmdeGPbenFCYTfEFiaQ4sTS2VR2o4kKYBFbSQeZKE"
     },
     {
-      "market": "Barcelona YES",
-      "ticker": "WXLIG-26SEP131615BARCLEVA-BARC",
-      "track": "B",
-      "side": "YES",
-      "size_usd": 5.0,
-      "mark_usd": 4.9947,
-      "upnl_usd": -0.0053,
-      "mint": "AzYRWeHmHQbpwoDKJb4A9YgGq7tiwyfwCd4GJJWKeJb4",
-      "status": "open"
-    },
-    {
-      "market": "Real Madrid YES",
-      "ticker": "WXLIG-26SEP152130RMADELCH-RMAD",
-      "track": "A",
-      "side": "YES",
-      "size_usd": 5.0,
-      "mark_usd": 4.8627,
-      "upnl_usd": -0.1373,
-      "mint": "67r1PciCLNHrT5iK15jy2mj3KEByTbgGHFgqB3eNBE36",
-      "status": "open"
-    },
-    {
-      "market": "ATL Falcons YES",
+      "market": "ATL Falcons",
       "ticker": "WXNFL-26SEP13ATLPIT-AFAL",
-      "track": "B",
       "side": "YES",
+      "track": "B",
       "size_usd": 5.0,
       "mark_usd": 4.7946,
-      "upnl_usd": -0.2054,
-      "mint": "CHJqyFNpjLgm2WvQ55tQAkB73RjAy2bsaS8SNy8xBj3",
-      "status": "open"
+      "mint": "CHJqyFNpjLgm2WvQ55tQAkB73RjAy2bsaS8SNy8xBj3"
     },
     {
-      "market": "Milwaukee YES",
+      "market": "Milwaukee",
       "ticker": "WXMLB-26SEP121810CINMIL-MBRE",
-      "track": "B",
       "side": "YES",
+      "track": "B",
       "size_usd": 5.0,
       "mark_usd": 4.9834,
-      "upnl_usd": -0.0166,
-      "mint": "8yz5Yxzw9nYLnFZb27J9FCZuGmyp3J9tcL5XRyJbCHPe",
-      "status": "open"
+      "mint": "8yz5Yxzw9nYLnFZb27J9FCZuGmyp3J9tcL5XRyJbCHPe"
     },
     {
-      "market": "PHI Eagles YES",
+      "market": "PHI Eagles",
       "ticker": "WXNFL-26SEP13WASPHI-PEAG",
-      "track": "B",
       "side": "YES",
+      "track": "B",
       "size_usd": 5.0,
       "mark_usd": 4.9122,
-      "upnl_usd": -0.0878,
-      "mint": "9Xop5RNLHfPZZ84dnsUjcDEBTBSYs4BqBr7QpXAFjAPb",
-      "status": "open"
+      "mint": "9Xop5RNLHfPZZ84dnsUjcDEBTBSYs4BqBr7QpXAFjAPb"
+    },
+    {
+      "market": "Real Madrid",
+      "ticker": "WXLIG-26SEP152130RMADELCH-RMAD",
+      "side": "YES",
+      "track": "A",
+      "size_usd": 5.0,
+      "mark_usd": 4.8627,
+      "mint": "67r1PciCLNHrT5iK15jy2mj3KEByTbgGHFgqB3eNBE36"
+    },
+    {
+      "market": "Barcelona",
+      "ticker": "WXLIG-26SEP131615BARCLEVA-BARC",
+      "side": "YES",
+      "track": "B",
+      "size_usd": 5.0,
+      "mark_usd": 4.9947,
+      "mint": "AzYRWeHmHQbpwoDKJb4A9YgGq7tiwyfwCd4GJJWKeJb4"
     }
   ],
   "fills": [
     {
-      "ts": "2026-09-12T21:23:43.640375409Z",
-      "action": "open",
-      "market": "CLE Browns YES",
-      "track": "B",
-      "side": "YES",
-      "size_usd": 5,
-      "pnl_usd": null,
-      "tx": "4n1i563oD57UWSaFHZ3daxCe8NoGviaBTc9Scz2G2XLzi6qU74wndWLEstUeP2MdM7VaMgB59pfEz8e29sLYxs1U",
-      "ticker": "WXNFL-26SEP13CLEJAC-CBRO",
-      "note": "success"
-    },
-    {
-      "ts": "2026-09-12T23:19:38+02:00",
-      "action": "close",
-      "market": "Arsenal YES",
+      "ts": "2026-09-12T16:40:42+02:00",
+      "ticker": "Real Madrid YES",
       "track": "A",
-      "side": "YES",
-      "size_usd": 5.0,
-      "pnl_usd": 2.85,
-      "tx": null,
-      "ticker": "WXEPL-26SEP122000ARSESUND-ARSE",
-      "note": "settled_cashed"
+      "size_usd": 5,
+      "status": "success"
     },
     {
-      "ts": "2026-09-12T21:08:41.685538015Z",
-      "action": "open",
-      "market": "ATL Falcons YES",
-      "track": "B",
-      "side": "YES",
-      "size_usd": 5,
-      "pnl_usd": null,
-      "tx": "2PyaaDFjt3gKmprH5ZbPG29ruchmazeLwFWXdANb3QQi2khCPeKPnHcoQy8pS2XtLJDAsWbhSFAFkzJYJrxgjFgL",
-      "ticker": "WXNFL-26SEP13ATLPIT-AFAL",
-      "note": "success"
-    },
-    {
-      "ts": "2026-09-12T16:16:12.541162187Z",
-      "action": "open",
-      "market": "Barcelona YES",
-      "track": "B",
-      "side": "YES",
-      "size_usd": 5,
-      "pnl_usd": null,
-      "tx": "4DrBNGxyDx9ANAsbGRF1yRXsY2GbHNVGPQVdaXH7r6U1UJHaBMwPiKmVDiSi7LjcjdAtKr7FkseWi2eWPrQtyjM3",
-      "ticker": "WXLIG-26SEP131615BARCLEVA-BARC",
-      "note": "success"
-    },
-    {
-      "ts": "2026-09-12T16:05:53.115440728Z",
-      "action": "open",
-      "market": "Milwaukee YES",
-      "track": "B",
-      "side": "YES",
-      "size_usd": 5,
-      "pnl_usd": null,
-      "tx": "4A8TD9mKnppk8V6S53Xn7KqgT2SxqW9yufFdRRxwRCPXCTiZs3BqqpmW5aHbzmFvue4tH7T5bcQE1N8cTjs5jfr4",
-      "ticker": "WXMLB-26SEP121810CINMIL-MBRE",
-      "note": "success"
-    },
-    {
-      "ts": "2026-09-12T15:00:49.280847334Z",
-      "action": "open",
-      "market": "Arsenal YES",
-      "track": "A",
-      "side": "YES",
-      "size_usd": 5,
-      "pnl_usd": null,
-      "tx": "2KDYt4L1pq9Uyqth77ed9XTwrLze3B8oL1rkd1KGnxwHodrciUAp9CLjaCTmSqNMVq9LhK71RfqALFdsFp1paVFR",
-      "ticker": "WXEPL-26SEP122000ARSESUND-ARSE",
-      "note": "success"
-    },
-    {
-      "ts": "2026-09-12T14:47:42.724355576Z",
-      "action": "open",
-      "market": "PHI Eagles YES",
-      "track": "B",
-      "side": "YES",
-      "size_usd": 5,
-      "pnl_usd": null,
-      "tx": "5115D3hMBcrAV7t1v7pkQegxuopzqiq5n5EDSpUGmiuf64gJsEaebbREF8zXarbtJoMocePKhcMkWTEKcJ9DtLys",
+      "ts": "2026-09-12T16:50:24+02:00",
       "ticker": "WXNFL-26SEP13WASPHI-PEAG",
-      "note": "success"
+      "track": "B",
+      "size_usd": 5,
+      "status": "success"
     },
     {
-      "ts": "2026-09-12T14:40:21.362877608Z",
-      "action": "open",
-      "market": "Real Madrid YES",
+      "ts": "2026-09-12T17:03:15+02:00",
+      "ticker": "WXEPL-26SEP122000ARSESUND-ARSE",
       "track": "A",
-      "side": "YES",
       "size_usd": 5,
-      "pnl_usd": null,
-      "tx": "3dAqPKWesGg5kaSYaL1nCAgrKKDQSQ4dcLQPBtjFQPoUfEAnnmm3S3NNNjS51hGrVQRD2a3rxDuRgLBnkmAPE22X",
-      "ticker": null,
-      "note": "success"
+      "status": "success"
+    },
+    {
+      "ts": "2026-09-12T18:06:02+02:00",
+      "ticker": "WXMLB-26SEP121810CINMIL-MBRE",
+      "track": "B",
+      "size_usd": 5,
+      "status": "success"
+    },
+    {
+      "ts": "2026-09-12T18:16:19+02:00",
+      "ticker": "WXLIG-26SEP131615BARCLEVA-BARC",
+      "track": "B",
+      "size_usd": 5,
+      "status": "success"
+    },
+    {
+      "ts": "2026-09-12T23:08:52+02:00",
+      "ticker": "WXNFL-26SEP13ATLPIT-AFAL",
+      "track": "B",
+      "size_usd": 5,
+      "status": "success"
+    },
+    {
+      "ts": "2026-09-12T23:23:53+02:00",
+      "ticker": "WXNFL-26SEP13CLEJAC-CBRO",
+      "track": "B",
+      "size_usd": 5,
+      "status": "success"
     }
   ],
   "settled": [
     {
-      "market": "Arsenal YES",
       "ticker": "WXEPL-26SEP122000ARSESUND-ARSE",
-      "track": "A",
+      "market": "Arsenal YES",
       "result": "won",
-      "pnl_usd": 2.85,
-      "size_usd": 5.0
+      "size_usd": 5.0,
+      "payout_usd": 7.845429,
+      "realized_pnl": 2.845429,
+      "cashout_tx": "2F2fH5h6crEaCHBLdfNNWgXK8Sz2cG1ThoecnRoFLvruuD7RCGQnBdg9h4LpFeAPkWy34tKuwowFKMBZXWW74R7J"
     }
   ],
+  "mark_swings": [
+    {
+      "ticker": "WXNFL-26SEP13CLEJAC-CBRO",
+      "market": "CLE Browns YES",
+      "size_usd": 5.0,
+      "mark_usd": 4.731,
+      "pct": -5.38
+    }
+  ],
+  "big_swings": [
+    {
+      "ticker": "WXNFL-26SEP13CLEJAC-CBRO",
+      "market": "CLE Browns YES",
+      "size_usd": 5.0,
+      "mark_usd": 4.731,
+      "pct": -5.38
+    }
+  ],
+  "last_eval": {
+    "id": "20260912-2333-LIVE",
+    "evaluated_at": "2026-09-12T23:33:36.344400+02:00",
+    "note": "FILL_CLE_Browns + PREPARE_BUY_sports_dog_TB_Bucs; OAuth refreshed +1h",
+    "last_decision": "PREPARE_BUY"
+  },
+  "pending_geofence": {
+    "request_id": "68b24d73-2fbf-4de9-951d-3d46007767eb",
+    "market": "TB Buccaneers YES",
+    "ticker": "WXNFL-26SEP13TBCIN-TBUC",
+    "mint": "EGDvorh9RMzfewkjFZpky7ScQUiTrwGtWxGf1ydnGPMs",
+    "side": "YES",
+    "track": "B",
+    "size_usd": 5.0,
+    "family": "sports_dog",
+    "mid": 0.365,
+    "spr": 0.02,
+    "paper_rule": "sports dog mid\u2208[0.12,0.40] spr\u22640.06 (mid~0.365 spr~0.02)",
+    "status": "pending_signature",
+    "check_region_url": "https://enudimmud.github.io/N-ABU-Dashboard/assets/geofence-latest.html",
+    "geofence_url": "https://enudimmud.github.io/N-ABU-Dashboard/assets/geofence-latest.html",
+    "geofence_api": "https://api.paybox.sh/iframe/swap/68b24d73-2fbf-4de9-951d-3d46007767eb/geofence",
+    "token_exp_zh": "2026-09-12T23:46:30+02:00",
+    "example": false
+  },
+  "awaiting_region_check": true,
+  "notify": true,
   "cashflow": {
     "usdc": 19.29,
-    "positions_mark_usd": 29.28,
-    "positions_cost_usd": 30.0,
-    "total_usd": 48.57,
-    "realized_pnl_usd": 2.85,
-    "unrealized_pnl_usd": -0.7213,
-    "fees_usd": 0.0,
-    "net_usd": 2.1287,
-    "tickets_opened": 7,
-    "tickets_closed": 1,
-    "volume_usd": 35.0,
-    "idle_usdc": 19.29,
-    "deployed_cost_usd": 30.0
+    "open_mark_usd": 31.0575,
+    "total_usd": 50.35,
+    "n_fills": 7,
+    "n_open": 6,
+    "n_settled": 1,
+    "realized_pnl": 2.845429,
+    "unrealized_vs_cost": 1.0575,
+    "surplus_vs_float": 25.35,
+    "abo_target_chf": 1700
   },
-  "autonomy": {
-    "evaluated_at": "2026-09-12T23:30:59+02:00",
-    "note": "canonical snap \u00b7 open 6/8 \u00b7 Arsenal settled +2.85"
-  },
-  "pending_geofence": null,
-  "awaiting_region_check": false,
-  "sub_runway": {
-    "target_chf": 1700,
-    "bankroll_usd": 48.57,
-    "realized_pnl_usd": 2.85,
-    "surplus_chf_est": null
-  },
-  "notify": false
+  "oauth": {
+    "oauth_refreshed": true,
+    "oauth_expires_in_h": 1.0
+  }
 }
