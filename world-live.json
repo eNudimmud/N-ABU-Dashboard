@@ -1,9 +1,9 @@
 {
   "schema_version": 2,
   "example": false,
-  "generated_at": "2026-09-12T21:40:47Z",
-  "generated_at_zh": "2026-09-12T23:40:47+02:00",
-  "source": "bankroll fix: util=deployed/max_open_usd; A/B labels",
+  "generated_at": "2026-09-12T21:42:52Z",
+  "generated_at_zh": "2026-09-12T23:42:52+02:00",
+  "source": "tracks A/B share same pool=max_open_usd; util must not sum maxes",
   "venue": "world.xyz",
   "wallet": {
     "chain": "solana",
@@ -16,14 +16,25 @@
   "caps": {
     "A": {
       "open_usd": 5.0,
+      "max_usd": 40.0,
+      "pool_usd": 40.0,
+      "bankroll_usd": 48.57,
+      "share_of_pool_pct": 12.5,
+      "share_of_bankroll_pct": 10.3,
       "label_only": true
     },
     "B": {
       "open_usd": 30.0,
       "max_usd": 40.0,
+      "pool_usd": 40.0,
+      "bankroll_usd": 48.57,
+      "share_of_pool_pct": 75.0,
+      "share_of_bankroll_pct": 61.8,
       "label_only": true
     },
-    "note": "A/B labels only \u2014 hard cap is capacity.max_open_usd (8\u00d7ticket)"
+    "pool_usd": 40.0,
+    "bankroll_usd": 48.57,
+    "note": "A/B labels; each bar vs shared max_open_usd pool (not A40+B40)"
   },
   "capacity": {
     "n_open": 7,
@@ -35,7 +46,7 @@
     "deploy_all_cash_ok": true,
     "A_open": 5.0,
     "B_open": 30.0,
-    "note": "hard cap = max 8 tickets \u00d7 ticket_usd; A/B = labels not $40+$40"
+    "note": "shared pool max_open_usd; A/B label shares of same pool"
   },
   "positions": [
     {
@@ -255,16 +266,20 @@
     "volume_usd": 40.0
   },
   "autonomy": {
-    "evaluated_at": "2026-09-12T23:40:47+02:00",
-    "note": "bankroll fix \u00b7 util 35.0/40.0 \u00b7 open 7/8"
+    "evaluated_at": "2026-09-12T23:42:52+02:00",
+    "note": "A 5.0/40.0 \u00b7 B 30.0/40.0 shared \u00b7 bankroll 48.57"
   },
   "pending_geofence": null,
   "awaiting_region_check": false,
   "sub_runway": {
     "target_chf": 1700,
     "bankroll_usd": 48.57,
-    "realized_pnl_usd": 2.85,
-    "surplus_chf_est": null
+    "realized_pnl_usd": 2.85
   },
-  "notify": false
+  "notify": false,
+  "utilization": {
+    "open_usd": 35.0,
+    "max_usd": 40.0,
+    "basis": "deployed_cost / max_open_usd"
+  }
 }
