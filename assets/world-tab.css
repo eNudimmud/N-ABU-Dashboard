@@ -137,6 +137,8 @@
 .nabu-world-cap.is-watch .nabu-world-cap-name{color:var(--nw-pending)}
 .nabu-world-cap.is-hot .nabu-world-bar>i{background:var(--nw-dead)}
 .nabu-world-cap.is-hot .nabu-world-cap-name,.nabu-world-cap.is-hot .nabu-world-cap-use{color:var(--nw-dead)}
+.nabu-world-cap.is-label .nabu-world-bar>i{background:linear-gradient(90deg,rgba(62,224,255,.55),rgba(227,91,255,.45))}
+.nabu-world-cap.is-label .nabu-world-cap-use{color:var(--nw-muted)}
 
 .nabu-world-spark{display:block;width:100%;height:36px;margin-top:10px}
 .nabu-world-neg{color:var(--nw-dead)}

@@ -32,7 +32,9 @@ Without this refresh, the dashboard cannot put the Check région URL inside
 the browser notification.
 
 Field aliases are accepted (ts/timestamp, tx/signature, track/book, …).
-Caps default to the JD: A max $10 open, B max $15 open, $5 tickets.
+Hard cap is a single pool: max 8 tickets × $5 = $40 (`capacity.max_open_usd`).
+A/B are labels only (not independent $40 hard caps). Per-track max_usd in
+example snapshots is a soft share, never summed into utilisation.
 """
 
 from __future__ import annotations
@@ -50,7 +52,9 @@ DEFAULT_OUT = REPO / "assets" / "world-live.json"
 DEFAULT_LEDGERS = Path(os.environ.get("NABU_WORLD_ROOT", "/opt/data/.nabu/world-paper"))
 WALLET = "27bcZ8xT8qWzkmdyjKy7mRXKqRAR9KBphZt3BMyjmac3"
 TICKET_USD = 5.0
-CAP_A = 10.0
+MAX_OPEN = 8
+MAX_OPEN_USD = MAX_OPEN * TICKET_USD
+CAP_A = 10.0  # soft example share — not a hard per-track cap
 CAP_B = 15.0
 
 EXAMPLE = {
@@ -62,9 +66,17 @@ EXAMPLE = {
     "wallet": {"chain": "solana", "address": WALLET, "label": "PayBox"},
     "mode": "LIVE_ONLY",
     "ticket_usd": TICKET_USD,
+    "capacity": {
+        "max_open": MAX_OPEN,
+        "max_open_usd": MAX_OPEN_USD,
+        "ticket": TICKET_USD,
+        "label_only": True,
+        "note": "hard cap = max_open_usd; A/B are labels only",
+    },
     "caps": {
-        "A": {"open_usd": 5.0, "max_usd": CAP_A},
-        "B": {"open_usd": 10.0, "max_usd": CAP_B},
+        "A": {"open_usd": 5.0, "max_usd": CAP_A, "label_only": True},
+        "B": {"open_usd": 10.0, "max_usd": CAP_B, "label_only": True},
+        "note": "A/B labels — do not sum max_usd",
     },
     "positions": [
         {
@@ -370,8 +382,9 @@ def build_snapshot(ledgers: Path) -> dict:
     pending, pend_src = _load_pending(ledgers, auto)
     open_usd = _open_by_track(positions)
     caps_src = auto.get("caps") if auto else None
-    caps = {"A": {"open_usd": open_usd["A"], "max_usd": CAP_A},
-            "B": {"open_usd": open_usd["B"], "max_usd": CAP_B}}
+    caps = {"A": {"open_usd": open_usd["A"], "max_usd": CAP_A, "label_only": True},
+            "B": {"open_usd": open_usd["B"], "max_usd": CAP_B, "label_only": True},
+            "note": "A/B labels — do not sum max_usd"}
     if isinstance(caps_src, dict):
         for key in ("A", "B"):
             raw = caps_src.get(key) or {}
@@ -379,6 +392,8 @@ def build_snapshot(ledgers: Path) -> dict:
                 caps[key]["max_usd"] = float(raw["max_usd"])
             elif isinstance(raw, (int, float)):
                 caps[key]["max_usd"] = float(raw)
+            if isinstance(raw, dict) and raw.get("label_only") is False:
+                caps[key]["label_only"] = False
     sources = [s for s in (pos_src, fill_src, auto_src, pend_src) if s != "absent"]
     pending_out: Any
     if len(pending) == 1:
@@ -396,6 +411,17 @@ def build_snapshot(ledgers: Path) -> dict:
         "wallet": {"chain": "solana", "address": WALLET, "label": "PayBox"},
         "mode": (auto.get("mode") if auto else None) or "LIVE_ONLY",
         "ticket_usd": TICKET_USD,
+        "capacity": {
+            "n_open": sum(1 for p in positions if p),
+            "max_open": MAX_OPEN,
+            "max_open_usd": MAX_OPEN_USD,
+            "remaining_tickets": max(0, MAX_OPEN - sum(1 for p in positions if p)),
+            "ticket": TICKET_USD,
+            "A_open": open_usd["A"],
+            "B_open": open_usd["B"],
+            "label_only": True,
+            "note": "hard cap = max_open_usd (max_open × ticket); A/B are labels only",
+        },
         "caps": caps,
         "positions": positions,
         "fills": fills,

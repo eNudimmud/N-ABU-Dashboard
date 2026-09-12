@@ -89,7 +89,8 @@ promotion live.
 ## Onglet World (additif)
 
 Un cinquième item de navigation (`WD`) ouvre un **panneau isolé** : mode `LIVE_ONLY`,
-caps A ≤ $10 / B ≤ $15, positions, fills (tx Solana), cashflow, dernière note
+plafond unique `capacity.max_open_usd` (A/B = labels, pas deux caps), positions,
+fills (tx Solana), cashflow, dernière note
 d'autonomie, et un bandeau **pending geofence / CH Check région** quand un ticket
 est préparé. La planche d'origine (PF / RK / PX / AN) n'est pas refactorisée.
 Visuellement (World seulement) : champ noir World (grille, orbe, glow
@@ -128,6 +129,9 @@ reste visible sans recouvrir le rail.
 
 Le JS adapte le snapshot live-score (`capacity.A_open` / `open` / `updated_at`)
 vers `caps` / `positions` / `generated_at` — aucun throw.
+Utilisation runway = déployé / `capacity.max_open_usd` (sinon `max_open × ticket`)
+— jamais la somme des `max_usd` A+B. A/B sont des labels : chaque barre affiche
+`open · % du pool` (même `max_open_usd`), pas un plafond dur par track.
 
 `index.html` redirige `/` vers `dashboard.html`. `.nojekyll` empêche Pages de
 servir le README Jekyll à la racine.

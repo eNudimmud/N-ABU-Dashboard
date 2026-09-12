@@ -301,7 +301,9 @@ pas de secret, pas de venue joint. Un snapshot absent s'affiche `UNVERIFIED`
 — jamais un zéro inventé.
 
 Wallet observé (PayBox Solana) : `27bcZ8xT8qWzkmdyjKy7mRXKqRAR9KBphZt3BMyjmac3`.
-Mode : `LIVE_ONLY`. Tickets $5. Caps : A ≤ $10 open, B ≤ $15 open.
+Mode : `LIVE_ONLY`. Tickets $5. Hard open-notional cap : `capacity.max_open_usd`
+(sinon `capacity.max_open × ticket_usd`, sinon bankroll) — **un seul pool**.
+Tracks A / B sont des **labels** (`label_only`), pas deux plafonds $40+$40.
 
 ### Identité visuelle (World seulement)
 
@@ -325,9 +327,17 @@ vert) reste intacte hors `#nabu-world-root`.
   "wallet": { "chain": "solana", "address": "27bc…mac3", "label": "PayBox" },
   "mode": "LIVE_ONLY",
   "ticket_usd": 5,
+  "capacity": {
+    "max_open": 8,                 // hard ticket count
+    "max_open_usd": 40,            // hard $ cap = max_open × ticket (single pool)
+    "ticket": 5,
+    "label_only": true,            // A/B are labels, not independent $ caps
+    "note": "hard cap = max_open_usd; A/B labels"
+  },
   "caps": {
-    "A": { "open_usd": 5, "max_usd": 10 },
-    "B": { "open_usd": 10, "max_usd": 15 }
+    "A": { "open_usd": 5, "label_only": true },   // label / open notional only
+    "B": { "open_usd": 10, "label_only": true },
+    "note": "A/B labels — do not sum max_usd"
   },
   "positions": [{ "market", "track", "side", "size_usd", "mark", "mint", "ticker" }],
   "fills": [{ "ts", "action", "market", "track", "size_usd", "pnl_usd", "tx" }],
@@ -352,15 +362,21 @@ vert) reste intacte hors `#nabu-world-root`.
 
 `world-tab.js` accepte aussi le schéma live-score sans lever :
 
-- `capacity.A_open` / `A_cap` → `caps.A.open_usd` / `max_usd` (idem B)
+- `capacity.A_open` / `A_cap` → `caps.A.open_usd` / `max_usd` (idem B) — `A_cap` / `max_usd` sont des parts soft si `label_only`
+- hard cap runway : `capacity.max_open_usd` (sinon `max_open × ticket_usd`, sinon bankroll). **Ne jamais** sommer `caps.A.max_usd + caps.B.max_usd`
 - `open` → `positions` si `positions` est absent ou vide
 - `updated_at` / `updated_zh` → `generated_at`
 - `mark_usd` → `mark` ; `last_eval` / `autonomy.note` objet → texte
 - `usdc` / `total_usd` top-level → `cashflow` (aucun zéro inventé)
 - cashflow riche : `realized_pnl_usd`, `unrealized_pnl_usd`, `fees_usd`, `net_usd`,
   `volume_usd`, `tickets_*`, `positions_mark_usd` — cellules vides masquées, pas de tirets
-- idle USDC (`usdc`) vs déployé (somme des `size_usd` ou `total − usdc`)
-- World field = runway (bankroll, ticket, utilisation, cible 1 700 CHF sans fx inventé)
+- idle USDC (`idle_usd` / `idle_usdc` / `usdc`) vs déployé (`deployed_usd` / `deployed_cost_usd` / `positions_cost_usd`)
+- World field = runway (bankroll = `cashflow.total_usd` / `bankroll_usd`, ticket, utilisation = déployé / `max_open_usd`, cible 1 700 CHF sans fx inventé)
+- tracks A / B : labels (`label_only`). Affichage `open_usd · % du pool` — **même pool**
+  que l'utilisation (`capacity.max_open_usd`). Barre = `open / max_open_usd` (partagé),
+  jamais un plafond dur par track. Si pas de `max_open_usd` et labels : `% du bankroll`.
+  `A_cap` / `max_usd` ne sont des parts soft que s'ils existent **et** que l'util reste
+  le pool unique. Pas de 40+40.
 
 
 `Ouvrir` / `Copier` n'acceptent que `https://` (PayBox / Pages) ou `data:text/html`
