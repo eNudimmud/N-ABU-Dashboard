@@ -1,9 +1,9 @@
 {
   "schema_version": 2,
   "example": false,
-  "generated_at": "2026-09-12T22:22:57Z",
-  "generated_at_zh": "2026-09-13T00:22:57+02:00",
-  "source": "after ATL+CLE+NO+TB EXIT sells \u2014 dog stack cleared",
+  "generated_at": "2026-09-12T22:27:56Z",
+  "generated_at_zh": "2026-09-13T00:27:56+02:00",
+  "source": "after PIT Steelers YES $5 fill (WEB_OK fav)",
   "venue": "world.xyz",
   "wallet": {
     "chain": "solana",
@@ -12,38 +12,38 @@
   },
   "mode": "LIVE_ONLY",
   "ticket_usd": 5.0,
-  "bankroll_usd": 48.87,
+  "bankroll_usd": 48.63,
   "caps": {
     "A": {
       "open_usd": 5.0,
       "max_usd": 40.0,
       "pool_usd": 40.0,
-      "bankroll_usd": 48.87,
+      "bankroll_usd": 48.63,
       "label_only": true,
       "share_of_pool_pct": 12.5
     },
     "B": {
-      "open_usd": 15.0,
+      "open_usd": 20.0,
       "max_usd": 40.0,
       "pool_usd": 40.0,
-      "bankroll_usd": 48.87,
+      "bankroll_usd": 48.63,
       "label_only": true,
-      "share_of_pool_pct": 37.5
+      "share_of_pool_pct": 50.0
     },
     "pool_usd": 40.0,
-    "bankroll_usd": 48.87
+    "bankroll_usd": 48.63
   },
   "capacity": {
-    "n_open": 4,
+    "n_open": 5,
     "max_open": 8,
-    "remaining_tickets": 4,
+    "remaining_tickets": 3,
     "ticket": 5.0,
     "max_open_usd": 40.0,
-    "bankroll_usd": 48.87,
+    "bankroll_usd": 48.63,
     "deploy_all_cash_ok": true,
     "A_open": 5.0,
-    "B_open": 15.0,
-    "note": "4 dog exits done; hold favs only; room for new DECISION.md buys"
+    "B_open": 20.0,
+    "note": "PIT filled WEB_OK; full-platform scan running for non-sports edges"
   },
   "positions": [
     {
@@ -89,9 +89,32 @@
       "upnl_usd": -0.0878,
       "mint": "9Xop5RNLHfPZZ84dnsUjcDEBTBSYs4BqBr7QpXAFjAPb",
       "status": "open"
+    },
+    {
+      "market": "PIT Steelers YES",
+      "ticker": "WXNFL-26SEP13ATLPIT-PSTE",
+      "track": "B",
+      "side": "YES",
+      "size_usd": 5.0,
+      "mark_usd": 4.9186,
+      "upnl_usd": -0.0814,
+      "mint": "9eVCZW4oUXDo11N6K6TWCuC7BcBccwZTQ7n5aT6MYy9P",
+      "status": "open"
     }
   ],
   "fills": [
+    {
+      "ts": "2026-09-12T22:27:36.290794764Z",
+      "action": "open",
+      "market": "PIT Steelers YES",
+      "track": "B",
+      "side": "buy",
+      "size_usd": 5,
+      "pnl_usd": null,
+      "tx": "28HM8toPR3XrHRJaFRRZqmJXooKAQ8GNUrWdqSUZUFQ9UuH9q3v7mMCu7F8fqGb2GnKZT3b6dvn8MtzYfK96EPqt",
+      "ticker": "WXNFL-26SEP13ATLPIT-PSTE",
+      "note": "filled"
+    },
     {
       "ts": "2026-09-12T22:22:40.542942389Z",
       "action": "close",
@@ -295,38 +318,38 @@
     }
   ],
   "cashflow": {
-    "usdc": 29.04,
-    "idle_usd": 29.04,
-    "idle_usdc": 29.04,
-    "deployed_usd": 20.0,
-    "deployed_cost_usd": 20.0,
-    "positions_mark_usd": 19.83,
-    "positions_cost_usd": 20.0,
-    "total_usd": 48.87,
-    "bankroll_usd": 48.87,
+    "usdc": 23.88,
+    "idle_usd": 23.88,
+    "idle_usdc": 23.88,
+    "deployed_usd": 25.0,
+    "deployed_cost_usd": 25.0,
+    "positions_mark_usd": 24.75,
+    "positions_cost_usd": 25.0,
+    "total_usd": 48.63,
+    "bankroll_usd": 48.63,
     "realized_pnl_usd": 2.85,
-    "unrealized_pnl_usd": -0.1709,
+    "unrealized_pnl_usd": -0.2523,
     "fees_usd": 0.0,
-    "net_usd": 2.6791,
-    "tickets_opened": 9,
+    "net_usd": 2.5977,
+    "tickets_opened": 10,
     "tickets_closed": 5,
-    "volume_usd": 45.0
+    "volume_usd": 50.0
   },
   "autonomy": {
-    "evaluated_at": "2026-09-13T00:22:57+02:00",
-    "note": "4 dog exits done \u00b7 open 4/8 \u00b7 HOLD favs \u00b7 next buy = DECISION.md only"
+    "evaluated_at": "2026-09-13T00:27:56+02:00",
+    "note": "PIT fill \u00b7 open 5/8 \u00b7 next = best edge any family (EDGE-LAB)"
   },
   "pending_geofence": null,
   "awaiting_region_check": false,
   "notify": false,
   "utilization": {
-    "open_usd": 20.0,
+    "open_usd": 25.0,
     "max_usd": 40.0,
     "basis": "deployed_cost / max_open_usd"
   },
   "sub_runway": {
     "target_chf": 1700,
-    "bankroll_usd": 48.87,
+    "bankroll_usd": 48.63,
     "realized_pnl_usd": 2.85
   }
 }
