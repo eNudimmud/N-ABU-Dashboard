@@ -303,6 +303,16 @@ pas de secret, pas de venue joint. Un snapshot absent s'affiche `UNVERIFIED`
 Wallet observé (PayBox Solana) : `27bcZ8xT8qWzkmdyjKy7mRXKqRAR9KBphZt3BMyjmac3`.
 Mode : `LIVE_ONLY`. Tickets $5. Caps : A ≤ $10 open, B ≤ $15 open.
 
+### Identité visuelle (World seulement)
+
+Le panneau **réutilise** les tokens et composants de la planche (§5, `dashboard.html`
+`:root`) : `--paper` / `--paper-3`, `--cobalt`, `--prussian`, `--navy`, `--gold`,
+`--oxblood`, `--ink`, `--mono` / `--sans` / `--serif`, plus les formes `.eyebrow`,
+`.topline`, `.mast`, `.clock`, `.cell`, `.tbl`, `.badge`. Pas de second design
+system. L'accent World (orbe iridescent, grille courbe, glow cyan→magenta,
+wordmark minuscule `world`) est cantonné au mast Prussien et au pending or —
+pas au fond de page, pas aux onglets PF / RK / PX / AN.
+
 ### Format du snapshot
 
 ```jsonc

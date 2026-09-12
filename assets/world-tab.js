@@ -539,15 +539,26 @@
         + "Aucune valeur inventée.</p>";
     }
 
+    var ticketTxt = isBlank(ticket) ? "—" : money(ticket);
     var body = $("#nabu-world-body", root);
     body.innerHTML =
-      '<div class="nabu-world-kicker">World.xyz · PayBox · lecture seule</div>'
-      + '<div class="nabu-world-head"><div>'
+      '<div class="nabu-world-topline"><span>N*ABU · World.xyz</span><strong>Read only</strong>'
+      + '<span class="nabu-world-issue">' + esc(generated) + "</span></div>"
+      + '<div class="nabu-world-mast">'
+      + '<div class="nabu-world-mast-copy">'
+      + '<div class="nabu-world-kicker">World.xyz · PayBox · lecture seule</div>'
       + '<h1 class="nabu-world-title">world</h1>'
-      + '<p class="nabu-world-sub">Activité live World.xyz. La planche d\'origine (book / risk / SOUL) reste la surface paper. '
+      + '<p class="nabu-world-motto">Activité live World.xyz. La planche d\'origine (book / risk / SOUL) reste la surface paper. '
       + "Cet onglet ne signe rien et n'appelle pas PayBox. Un ticket préparé attend le CH Check région.</p>"
-      + "</div><div class=\"nabu-world-badges\">" + badges + "</div></div>"
-      + '<div class="nabu-world-rule"></div>' + warn
+      + '<div class="nabu-world-agent-id">' + esc(mode) + "<i></i>tickets " + ticketTxt
+      + "<i></i>caps A ≤ $10 · B ≤ $15</div>"
+      + "</div>"
+      + '<div class="nabu-world-mast-visual" aria-hidden="true">'
+      + '<div class="nabu-world-grid"></div><div class="nabu-world-orb"></div>'
+      + '<div class="nabu-world-mast-meta">' + badges + "</div>"
+      + '<div class="nabu-world-mast-stamp">WORLD / ORB</div>'
+      + "</div></div>"
+      + warn
       + renderPending(pending)
       + '<div class="nabu-world-meta">'
       + '<div class="nabu-world-card"><span class="nabu-world-card-k">Portefeuille ' + esc(label) + "</span>"
