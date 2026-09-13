@@ -1,8 +1,8 @@
 {
   "schema_version": 2,
   "example": false,
-  "generated_at": "2026-09-13T02:40:31Z",
-  "generated_at_zh": "2026-09-13T04:40:31+02:00",
+  "generated_at": "2026-09-13T02:43:10Z",
+  "generated_at_zh": "2026-09-13T04:43:10+02:00",
   "source": "paybox world positions \u2014 rebuild_and_push_world_live.py",
   "venue": "world.xyz",
   "wallet": {
@@ -12,13 +12,13 @@
   },
   "mode": "LIVE_ONLY",
   "ticket_usd": 5.0,
-  "bankroll_usd": 50.69,
+  "bankroll_usd": 50.66,
   "caps": {
     "A": {
       "open_usd": 5.0,
       "max_usd": 40.0,
       "pool_usd": 40.0,
-      "bankroll_usd": 50.69,
+      "bankroll_usd": 50.66,
       "label_only": true,
       "share_of_pool_pct": 12.5
     },
@@ -26,12 +26,12 @@
       "open_usd": 30.0,
       "max_usd": 40.0,
       "pool_usd": 40.0,
-      "bankroll_usd": 50.69,
+      "bankroll_usd": 50.66,
       "label_only": true,
       "share_of_pool_pct": 75.0
     },
     "pool_usd": 40.0,
-    "bankroll_usd": 50.69
+    "bankroll_usd": 50.66
   },
   "capacity": {
     "n_open": 7,
@@ -39,7 +39,7 @@
     "remaining_tickets": 1,
     "ticket": 5.0,
     "max_open_usd": 40.0,
-    "bankroll_usd": 50.69,
+    "bankroll_usd": 50.66,
     "deploy_all_cash_ok": true,
     "A_open": 5.0,
     "B_open": 30.0
@@ -145,6 +145,18 @@
     }
   ],
   "fills": [
+    {
+      "ts": "2026-09-13T04:43:05+02:00",
+      "action": "close",
+      "market": "MIL Brewers YES",
+      "track": "B",
+      "side": "YES",
+      "size_usd": 5.0,
+      "pnl_usd": null,
+      "tx": null,
+      "ticker": "WXMLB-26SEP121810CINMIL-MBRE",
+      "note": "settled_cashed"
+    },
     {
       "ts": "2026-09-12T23:19:38+02:00",
       "action": "close",
@@ -399,25 +411,25 @@
     }
   ],
   "cashflow": {
-    "usdc": 7.57,
-    "idle_usd": 7.57,
-    "idle_usdc": 7.57,
-    "sol_dust_usd": 0.9988,
+    "usdc": 15.15,
+    "idle_usd": 15.15,
+    "idle_usdc": 15.15,
+    "sol_dust_usd": 0.9879,
     "deployed_usd": 35.0,
     "deployed_cost_usd": 35.0,
     "positions_mark_usd": 34.51,
     "positions_cost_usd": 35.0,
-    "total_usd": 50.69,
-    "bankroll_usd": 50.69,
+    "total_usd": 50.66,
+    "bankroll_usd": 50.66,
     "realized_pnl_usd": 2.85,
     "unrealized_pnl_usd": -0.4857,
     "fees_usd": 0.0,
     "net_usd": 2.3643,
-    "marks_plus_usdc": 42.09,
-    "paybox_total_usd": 50.6912
+    "marks_plus_usdc": 49.67,
+    "paybox_total_usd": 50.6568
   },
   "autonomy": {
-    "evaluated_at": "2026-09-13T04:40:31+02:00",
+    "evaluated_at": "2026-09-13T04:43:10+02:00",
     "note": "PayBox rebuild \u00b7 open 7/8"
   },
   "pending_geofence": null,
@@ -430,8 +442,8 @@
   },
   "sub_runway": {
     "target_chf": 1700,
-    "bankroll_usd": 50.69,
+    "bankroll_usd": 50.66,
     "realized_pnl_usd": 2.85
   },
-  "as_of_paybox": "2026-09-13T02:40:34.918943550+00:00"
+  "as_of_paybox": "2026-09-13T02:43:13.791939121+00:00"
 }
