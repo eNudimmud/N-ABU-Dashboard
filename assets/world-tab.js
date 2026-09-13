@@ -2,7 +2,7 @@
 (function () {
   "use strict";
 
-  var SNAPSHOT_URLS = ["assets/world-live.json", "world-live.json"];
+  var SNAPSHOT_URLS = ["assets/world-live.json?v=" + Date.now(), "world-live.json?v=" + Date.now()];
   var CSS_URL = "assets/world-tab.css?v=utilpool2";
   var WALLET_FALLBACK = "27bcZ8xT8qWzkmdyjKy7mRXKqRAR9KBphZt3BMyjmac3";
   var POLL_MS = 8000;
