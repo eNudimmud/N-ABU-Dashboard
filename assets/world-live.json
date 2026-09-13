@@ -1,8 +1,8 @@
 {
   "schema_version": 2,
   "example": false,
-  "generated_at": "2026-09-13T09:54:58Z",
-  "generated_at_zh": "2026-09-13T11:54:58+02:00",
+  "generated_at": "2026-09-13T09:58:40Z",
+  "generated_at_zh": "2026-09-13T11:58:40+02:00",
   "source": "paybox world positions \u2014 rebuild_and_push_world_live.py",
   "venue": "world.xyz",
   "wallet": {
@@ -318,6 +318,16 @@
   ],
   "settled": [
     {
+      "market": "BTC15M YES",
+      "ticker": "WXBTC15M-26SEP130530-15",
+      "result": "won",
+      "pnl_usd": 0.3583,
+      "size_usd": 5.0,
+      "track": "A",
+      "redeemable": "cashed",
+      "settlement_asset": "CASH"
+    },
+    {
       "market": "MIL Brewers YES",
       "ticker": "WXMLB-26SEP121810CINMIL-MBRE",
       "result": "won",
@@ -336,19 +346,20 @@
       "track": "A",
       "redeemable": "cashed",
       "settlement_asset": "CASH"
-    },
-    {
-      "market": "BTC15M YES",
-      "ticker": "WXBTC15M-26SEP130530-15",
-      "result": "won",
-      "pnl_usd": 0.3583,
-      "size_usd": 5.0,
-      "track": "A",
-      "redeemable": "cashed",
-      "settlement_asset": "CASH"
     }
   ],
   "settled_paybox": [
+    {
+      "held_amount": null,
+      "last_known_amount": "5375697",
+      "market_status": "finalized",
+      "market_ticker": "WXBTC15M-26SEP130530-15",
+      "outcome_mint": "Hj1VrU3zjFMRUVyCmfhWJ1ok5y9Q5Hz4fr2KpT47Wrzt",
+      "position_result": "won",
+      "redeemable": "open",
+      "redemption_value_usd": null,
+      "settlement_asset": "CASH"
+    },
     {
       "held_amount": null,
       "last_known_amount": "7607200",
@@ -370,24 +381,13 @@
       "redeemable": "open",
       "redemption_value_usd": null,
       "settlement_asset": "CASH"
-    },
-    {
-      "held_amount": null,
-      "last_known_amount": "5375697",
-      "market_status": "finalized",
-      "market_ticker": "WXBTC15M-26SEP130530-15",
-      "outcome_mint": "Hj1VrU3zjFMRUVyCmfhWJ1ok5y9Q5Hz4fr2KpT47Wrzt",
-      "position_result": "won",
-      "redeemable": "open",
-      "redemption_value_usd": null,
-      "settlement_asset": "CASH"
     }
   ],
   "cashflow": {
     "usdc": 15.51,
     "idle_usd": 15.51,
     "idle_usdc": 15.51,
-    "sol_dust_usd": 0.9571,
+    "sol_dust_usd": 0.9569,
     "deployed_usd": 35.0,
     "deployed_cost_usd": 35.0,
     "positions_mark_usd": 34.4,
@@ -399,25 +399,15 @@
     "fees_usd": 0.0,
     "net_usd": 3.4922,
     "marks_plus_usdc": 49.91,
-    "paybox_total_usd": 50.8691
+    "paybox_total_usd": 50.8689
   },
   "autonomy": {
-    "evaluated_at": "2026-09-13T11:54:58+02:00",
+    "evaluated_at": "2026-09-13T11:58:40+02:00",
     "note": "PayBox rebuild \u00b7 open 7/8"
   },
-  "pending_geofence": {
-    "request_id": "2da8e174-c49d-4962-b9e8-ee7eebafd6d8",
-    "market": "BTC15M YES",
-    "track": "A",
-    "pages": "https://enudimmud.github.io/N-ABU-Dashboard/assets/geofence-buy-btc15m.html",
-    "geofence_url": "https://api.paybox.sh/iframe/swap/2da8e174-c49d-4962-b9e8-ee7eebafd6d8/geofence",
-    "token_exp_zh": "2026-09-13T12:00:42+02:00",
-    "mid": 0.81308594,
-    "spr": 0.01617194,
-    "move": 0.169
-  },
-  "awaiting_region_check": true,
-  "notify": true,
+  "pending_geofence": null,
+  "awaiting_region_check": false,
+  "notify": false,
   "utilization": {
     "open_usd": 35.0,
     "max_usd": 50.87,
@@ -429,6 +419,5 @@
     "bankroll_usd": 50.87,
     "realized_pnl_usd": 4.0925
   },
-  "as_of_paybox": "2026-09-13T09:55:01.610396959+00:00",
-  "decision": "PREPARE_A"
+  "as_of_paybox": "2026-09-13T09:58:43.505635+00:00"
 }
