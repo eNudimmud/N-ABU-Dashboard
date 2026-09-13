@@ -1,8 +1,8 @@
 {
   "schema_version": 2,
   "example": false,
-  "generated_at": "2026-09-13T04:01:18Z",
-  "generated_at_zh": "2026-09-13T06:01:18+02:00",
+  "generated_at": "2026-09-13T04:33:14Z",
+  "generated_at_zh": "2026-09-13T06:33:14+02:00",
   "source": "paybox world positions \u2014 rebuild_and_push_world_live.py",
   "venue": "world.xyz",
   "wallet": {
@@ -12,13 +12,13 @@
   },
   "mode": "LIVE_ONLY",
   "ticket_usd": 5.0,
-  "bankroll_usd": 50.63,
+  "bankroll_usd": 50.6,
   "caps": {
     "A": {
       "open_usd": 5.0,
       "max_usd": 40.0,
       "pool_usd": 40.0,
-      "bankroll_usd": 50.63,
+      "bankroll_usd": 50.6,
       "label_only": true,
       "share_of_pool_pct": 12.5
     },
@@ -26,21 +26,21 @@
       "open_usd": 30.0,
       "max_usd": 40.0,
       "pool_usd": 40.0,
-      "bankroll_usd": 50.63,
+      "bankroll_usd": 50.6,
       "label_only": true,
       "share_of_pool_pct": 75.0
     },
     "pool_usd": 40.0,
-    "bankroll_usd": 50.63
+    "bankroll_usd": 50.6
   },
   "capacity": {
     "n_open": 7,
     "max_open": 8,
     "remaining_tickets": 1,
     "ticket": 5.0,
-    "max_open_usd": 50.63,
+    "max_open_usd": 50.6,
     "ticket_cap_usd": 40.0,
-    "bankroll_usd": 50.63,
+    "bankroll_usd": 50.6,
     "util_basis": "bankroll_usd",
     "deploy_all_cash_ok": true,
     "A_open": 5.0,
@@ -67,8 +67,8 @@
       "track": "B",
       "side": "YES",
       "size_usd": 5.0,
-      "mark_usd": 4.9664,
-      "upnl_usd": -0.0336,
+      "mark_usd": 4.9376,
+      "upnl_usd": -0.0624,
       "mint": "AzYRWeHmHQbpwoDKJb4A9YgGq7tiwyfwCd4GJJWKeJb4",
       "held_atomic": "5769088",
       "held_shares": 5.769088,
@@ -137,8 +137,8 @@
       "track": "A",
       "side": "YES",
       "size_usd": 5.0,
-      "mark_usd": 4.8627,
-      "upnl_usd": -0.1373,
+      "mark_usd": 4.8628,
+      "upnl_usd": -0.1372,
       "mint": "67r1PciCLNHrT5iK15jy2mj3KEByTbgGHFgqB3eNBE36",
       "held_atomic": "6354866",
       "held_shares": 6.354866,
@@ -226,7 +226,7 @@
       "track": "B",
       "side": "sell",
       "size_usd": 5,
-      "pnl_usd": null,
+      "pnl_usd": -0.3266,
       "tx": "2YWZkMXkjdHLLe7dKRKE412PsEFe65hLfqHGM9ZL3zYMAdV3Th848S3KMgKW1NWn6ToTYaisPiSzujNKNZy55pEX",
       "ticker": "WXNFL-26SEP13TBCIN-TBUC",
       "note": "exited_sold"
@@ -238,7 +238,7 @@
       "track": "B",
       "side": "sell",
       "size_usd": 5,
-      "pnl_usd": null,
+      "pnl_usd": -0.4466,
       "tx": "2ZzNSAo1TaP2B5kSVZ6LKgxAN82pgWCFUPzk2ksh8f61jhzNV2XcTVUZXED7KDQHrmasgrppe8mHaTNJm41DnfrH",
       "ticker": "WXNFL-26SEP13NODET-NSAI",
       "note": "exited_sold"
@@ -250,7 +250,7 @@
       "track": "B",
       "side": "sell",
       "size_usd": 5,
-      "pnl_usd": null,
+      "pnl_usd": -0.537,
       "tx": "5XkFNX7Zpr87qdhtho7z1scyQdH7PkGKPSaeZKEztBpFTYR34myF4sti8qa9WbHHmgVLcGQWybFkStR4pqh6A14U",
       "ticker": "WXNFL-26SEP13CLEJAC-CBRO",
       "note": "exited_sold"
@@ -262,58 +262,10 @@
       "track": "B",
       "side": "sell",
       "size_usd": 5,
-      "pnl_usd": null,
+      "pnl_usd": -0.4082,
       "tx": "5GxEiHZraK4wq2TngNoN9GhkNg34B1CXHSv2YNSqVmt8kzuH4J8vXFiXsFPdhEhC84ik7drShjEPAWQbtagcgeVE",
       "ticker": "WXNFL-26SEP13ATLPIT-AFAL",
       "note": "exited_sold"
-    },
-    {
-      "ts": "2026-09-12T21:48:52.519733890Z",
-      "action": "open",
-      "market": "NO Saints YES",
-      "track": "B",
-      "side": "YES",
-      "size_usd": 5,
-      "pnl_usd": null,
-      "tx": "431CTvNrPuEoXnqR5pU83Nq55ieRhKVZ5unKBs4mqCNTPtQ3jydSRsv6KGLUunMT8J3thcBMrZsKS8rLqPKowXN1",
-      "ticker": "WXNFL-26SEP13NODET-NSAI",
-      "note": "success"
-    },
-    {
-      "ts": "2026-09-12T21:35:44.172786954Z",
-      "action": "open",
-      "market": "TB Buccaneers YES",
-      "track": "B",
-      "side": "YES",
-      "size_usd": 5,
-      "pnl_usd": null,
-      "tx": "2vdSdULCT68HjqEN1GrGc7bL4p11f1vi4VFUpVwDJyEZzYnGySaobLSfE6gp3rMvJqLVrsRzVZTQKwqb1JhjBVfC",
-      "ticker": "WXNFL-26SEP13TBCIN-TBUC",
-      "note": "success"
-    },
-    {
-      "ts": "2026-09-12T21:23:43.640375409Z",
-      "action": "open",
-      "market": "CLE Browns YES",
-      "track": "B",
-      "side": "YES",
-      "size_usd": 5,
-      "pnl_usd": null,
-      "tx": "4n1i563oD57UWSaFHZ3daxCe8NoGviaBTc9Scz2G2XLzi6qU74wndWLEstUeP2MdM7VaMgB59pfEz8e29sLYxs1U",
-      "ticker": "WXNFL-26SEP13CLEJAC-CBRO",
-      "note": "success"
-    },
-    {
-      "ts": "2026-09-12T21:08:41.685538015Z",
-      "action": "open",
-      "market": "ATL Falcons YES",
-      "track": "B",
-      "side": "YES",
-      "size_usd": 5,
-      "pnl_usd": null,
-      "tx": "2PyaaDFjt3gKmprH5ZbPG29ruchmazeLwFWXdANb3QQi2khCPeKPnHcoQy8pS2XtLJDAsWbhSFAFkzJYJrxgjFgL",
-      "ticker": "WXNFL-26SEP13ATLPIT-AFAL",
-      "note": "success"
     },
     {
       "ts": "2026-09-12T16:16:12.541162187Z",
@@ -325,30 +277,6 @@
       "pnl_usd": null,
       "tx": "4DrBNGxyDx9ANAsbGRF1yRXsY2GbHNVGPQVdaXH7r6U1UJHaBMwPiKmVDiSi7LjcjdAtKr7FkseWi2eWPrQtyjM3",
       "ticker": "WXLIG-26SEP131615BARCLEVA-BARC",
-      "note": "success"
-    },
-    {
-      "ts": "2026-09-12T16:05:53.115440728Z",
-      "action": "open",
-      "market": "Milwaukee YES",
-      "track": "B",
-      "side": "YES",
-      "size_usd": 5,
-      "pnl_usd": null,
-      "tx": "4A8TD9mKnppk8V6S53Xn7KqgT2SxqW9yufFdRRxwRCPXCTiZs3BqqpmW5aHbzmFvue4tH7T5bcQE1N8cTjs5jfr4",
-      "ticker": "WXMLB-26SEP121810CINMIL-MBRE",
-      "note": "success"
-    },
-    {
-      "ts": "2026-09-12T15:00:49.280847334Z",
-      "action": "open",
-      "market": "Arsenal YES",
-      "track": "A",
-      "side": "YES",
-      "size_usd": 5,
-      "pnl_usd": null,
-      "tx": "2KDYt4L1pq9Uyqth77ed9XTwrLze3B8oL1rkd1KGnxwHodrciUAp9CLjaCTmSqNMVq9LhK71RfqALFdsFp1paVFR",
-      "ticker": "WXEPL-26SEP122000ARSESUND-ARSE",
       "note": "success"
     },
     {
@@ -426,22 +354,22 @@
     "usdc": 15.15,
     "idle_usd": 15.15,
     "idle_usdc": 15.15,
-    "sol_dust_usd": 0.9849,
+    "sol_dust_usd": 0.9856,
     "deployed_usd": 35.0,
     "deployed_cost_usd": 35.0,
-    "positions_mark_usd": 34.49,
+    "positions_mark_usd": 34.46,
     "positions_cost_usd": 35.0,
-    "total_usd": 50.63,
-    "bankroll_usd": 50.63,
-    "realized_pnl_usd": 5.4526,
-    "unrealized_pnl_usd": -0.5144,
+    "total_usd": 50.6,
+    "bankroll_usd": 50.6,
+    "realized_pnl_usd": 3.7342,
+    "unrealized_pnl_usd": -0.5431,
     "fees_usd": 0.0,
-    "net_usd": 4.9382,
-    "marks_plus_usdc": 49.64,
-    "paybox_total_usd": 50.6253
+    "net_usd": 3.1911,
+    "marks_plus_usdc": 49.61,
+    "paybox_total_usd": 50.5972
   },
   "autonomy": {
-    "evaluated_at": "2026-09-13T06:01:18+02:00",
+    "evaluated_at": "2026-09-13T06:33:14+02:00",
     "note": "PayBox rebuild \u00b7 open 7/8"
   },
   "pending_geofence": null,
@@ -449,14 +377,14 @@
   "notify": false,
   "utilization": {
     "open_usd": 35.0,
-    "max_usd": 50.63,
+    "max_usd": 50.6,
     "basis": "deployed_cost / bankroll_usd",
     "ticket_cap_usd": 40.0
   },
   "sub_runway": {
     "target_chf": 1700,
-    "bankroll_usd": 50.63,
-    "realized_pnl_usd": 5.4526
+    "bankroll_usd": 50.6,
+    "realized_pnl_usd": 3.7342
   },
-  "as_of_paybox": "2026-09-13T04:01:21.098872806+00:00"
+  "as_of_paybox": "2026-09-13T04:33:17.043619620+00:00"
 }
