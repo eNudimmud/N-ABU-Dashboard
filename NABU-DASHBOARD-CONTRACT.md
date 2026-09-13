@@ -340,9 +340,13 @@ vert) reste intacte hors `#nabu-world-root`.
     "note": "A/B labels — do not sum max_usd"
   },
   "positions": [{ "market", "track", "side", "size_usd", "mark", "mint", "ticker" }],
-  "fills": [{ "ts", "action", "market", "track", "size_usd", "pnl_usd", "tx" }],
+  "fills": [{ "ts", "action", "market", "track", "size_usd", "pnl_usd", "tx", "ticker" }],
+  "settled": [{ "market", "ticker", "result", "pnl_usd", "redeemable", "settlement_asset" }],
+  "settled_paybox": [{ "market_ticker", "position_result", "redeemable", "settlement_asset" }],
   "cashflow": { "realized_pnl_usd", "unrealized_pnl_usd", "fees_usd", "net_usd",
-                "tickets_opened", "tickets_closed", "volume_usd" },
+                "tickets_opened", "tickets_closed", "volume_usd",
+                "idle_usd", "deployed_usd", "bankroll_usd", "sol_dust_usd" },
+  "utilization": { "open_usd", "max_usd", "basis", "ticket_cap_usd" },
   "autonomy": { "cycle_id", "evaluated_at", "note" },
 
   // ticket préparé, fill bloqué tant que le CH Check région n'est pas ouvert
@@ -371,13 +375,56 @@ vert) reste intacte hors `#nabu-world-root`.
 - cashflow riche : `realized_pnl_usd`, `unrealized_pnl_usd`, `fees_usd`, `net_usd`,
   `volume_usd`, `tickets_*`, `positions_mark_usd` — cellules vides masquées, pas de tirets
 - idle USDC (`idle_usd` / `idle_usdc` / `usdc`) vs déployé (`deployed_usd` / `deployed_cost_usd` / `positions_cost_usd`)
-- World field = runway (bankroll = `cashflow.total_usd` / `bankroll_usd`, ticket, utilisation = déployé / `max_open_usd`, cible 1 700 CHF sans fx inventé)
+- World field = runway (bankroll = `cashflow.bankroll_usd` / `total_usd`, ticket,
+  **utilisation = déployé / bankroll live**, cible 1 700 CHF sans fx inventé).
+  Le cap ticket (`capacity.ticket_cap_usd`, 8 × $5 = $40) ne sert **jamais** de
+  dénominateur d'utilisation ; sans bankroll, la carte disparaît (pas de faux $40)
 - tracks A / B : labels (`label_only`). Affichage `open_usd · % du pool` — **même pool**
   que l'utilisation (`capacity.max_open_usd`). Barre = `open / max_open_usd` (partagé),
   jamais un plafond dur par track. Si pas de `max_open_usd` et labels : `% du bankroll`.
   `A_cap` / `max_usd` ne sont des parts soft que s'ils existent **et** que l'util reste
   le pool unique. Pas de 40+40.
 
+
+### Fills / closes — le book gagne sur le ledger
+
+Le ledger de fills garde l'historique complet ; le book (`positions`) dit ce qui
+est encore ouvert. WD affiche donc :
+
+- ligne `open` **seulement** si le ticket est encore dans `positions` (match par
+  `ticker`, sinon par `market` — un buy sans ticker reste appariable). Un buy
+  d'un ticket déjà sorti/soldé est un **fantôme** : masqué, jamais affiché
+  `open`. Le kicker compte ce qui est masqué (`… · N buy de ticket clos masqués`)
+- si `positions` est absent (ou non identifiable), repli : un buy est masqué
+  quand un `close` / `settled` du même ticket est daté **après** lui. Un ticket
+  ré-ouvert après un close garde son buy récent
+- `positions` vide **et** `capacity.n_open: 0` = book vide assumé → tous les buys
+  masqués. Book inconnu → rien n'est masqué sans preuve
+- ligne `close` : toujours affichée, PnL réalisé pris dans `pnl_usd`,
+  `realized_pnl_est`, `realized_pnl`, `pnl`, sinon dans la ligne `settled` du
+  même ticket (`pnl_source: "settled"`). Sans aucune source : `PnL UNVERIFIED`
+  — jamais une cellule vide ni un zéro inventé. Un `open` garde son tiret
+
+### Soldés / redeemable (CASH → USDC)
+
+`settled` (vue repo) et `settled_paybox` (vue venue) sont fusionnés par ticket.
+Le venue laisse `redeemable: "open"` après l'encaissement : un marqueur encaissé
+d'un côté (`cashed` / `redeemed` / `claimed`), une note de fill `settled_cashed`,
+ou un `close` avec PnL + tx gagnent → **Encaissé**, plus « à réclamer ».
+`À réclamer` n'apparaît que si rien nulle part ne prouve l'encaissement.
+
+### Contrôles de cohérence au rendu
+
+Avant d'afficher, WD compare (et **signale sans corriger**) :
+
+- bankroll affiché vs `cashflow.bankroll_usd` / `total_usd` / `bankroll_usd` /
+  `capacity.bankroll_usd`
+- `idle + déployé + uPnL (+ sol dust)` vs bankroll
+- `capacity.n_open` vs `positions.length`, et lignes `open` affichées vs
+  `positions.length` (tickets fantômes survivants)
+
+Toute contradiction s'affiche dans un bloc **Cohérence — snapshot
+contradictoire** : la pipeline snapshot doit être corrigée, pas la vitrine.
 
 `Ouvrir` / `Copier` n'acceptent que `https://` (PayBox / Pages) ou `data:text/html`
 (page téléphone). Un `https://` court (`check_region_url` ou `geofence_url`)
