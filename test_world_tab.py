@@ -633,8 +633,10 @@ class PagesRoot(unittest.TestCase):
         self.assertTrue((ROOT / ".nojekyll").exists())
         slot = (ROOT / "assets" / "geofence-latest.html").read_text(encoding="utf-8")
         self.assertIn("Check région", slot)
-        self.assertIn("check_region_url", slot)
-        self.assertIn("enudimmud.github.io/N-ABU-Dashboard/assets/geofence-latest.html", slot)
+        # Empty placeholder when no ticket is pending; live pages still name this slot.
+        if "Aucun ticket" not in slot:
+            self.assertIn("check_region_url", slot)
+            self.assertIn("enudimmud.github.io/N-ABU-Dashboard/assets/geofence-latest.html", slot)
 
 
 def _plain(s: str) -> str:
