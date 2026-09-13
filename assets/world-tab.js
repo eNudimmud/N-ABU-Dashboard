@@ -3,7 +3,7 @@
   "use strict";
 
   var SNAPSHOT_URLS = ["assets/world-live.json?v=" + Date.now(), "world-live.json?v=" + Date.now()];
-  var CSS_URL = "assets/world-tab.css?v=bankroll1";
+  var CSS_URL = "assets/world-tab.css?v=fills2";
   var WALLET_FALLBACK = "27bcZ8xT8qWzkmdyjKy7mRXKqRAR9KBphZt3BMyjmac3";
   var POLL_MS = 8000;
   var URL_KEYS = ["check_region_url", "geofence_url", "url", "data_url", "link", "href"];
@@ -288,6 +288,32 @@
     return cap;
   }
 
+  /* A close must never render empty: take the realized PnL from the fill, else
+     from the settled row of the same ticket. Opens keep a blank PnL (em dash). */
+  function normalizeFills(rows, data) {
+    var src = Array.isArray(rows) ? rows : [];
+    var settled = settledRows(data);
+    var byKey = {};
+    for (var s = 0; s < settled.length; s++) {
+      if (settled[s].pnl_usd != null) byKey[settled[s].key] = settled[s].pnl_usd;
+    }
+    var out = [];
+    for (var i = 0; i < src.length; i++) {
+      if (!src[i] || typeof src[i] !== "object" || Array.isArray(src[i])) continue;
+      var f = copyOwn(src[i]);
+      if (actionKind(pick(f, ["action", "type", "event"], "")) === "close" && isBlank(fillPnl(f))) {
+        var hit = byKey[rowTicker(f)];
+        if (hit == null) hit = byKey[rowMarket(f)];
+        if (hit != null) {
+          f.pnl_usd = hit;
+          f.pnl_source = "settled";
+        }
+      }
+      out.push(f);
+    }
+    return out;
+  }
+
   /* Live score writes capacity.A_open / A_cap / open / updated_at. WD reads caps / positions / generated_at.
      Utilisation denom is live bankroll_usd — never 8×ticket / capacity.max_open_usd.
      Ticket-slot cap stays on track bars / remaining tickets only. A/B are labels. */
@@ -322,7 +348,7 @@
       }
       if (!isBlank(capsIn.note)) out.caps.note = capsIn.note;
       if (!isBlank(capsIn.pool_usd)) out.caps.pool_usd = capsIn.pool_usd;
-      if (!Array.isArray(out.fills)) out.fills = [];
+      out.fills = normalizeFills(out.fills, out);
       out.cashflow = normalizeCashflow(out.cashflow, out);
       out.autonomy = normalizeAutonomy(out.autonomy, out.last_eval);
       return out;
@@ -705,6 +731,275 @@
     return pick(f, ["tx", "tx_hash", "signature", "sig", "cashout_tx"], "");
   }
 
+  /* Ticket identity. A snapshot may name a ticket by ticker, by market, or (old
+     rows) by nothing at all — match on whatever both sides carry. */
+  function ticketKey(v) {
+    return String(v == null ? "" : v).trim().toUpperCase();
+  }
+
+  function rowTicker(row) {
+    return ticketKey(pick(row, ["ticker", "market_ticker", "symbol"], ""));
+  }
+
+  function rowMarket(row) {
+    return ticketKey(pick(row, ["market", "question", "title"], ""));
+  }
+
+  function actionKind(action) {
+    var a = String(action == null ? "" : action).trim().toLowerCase();
+    if (/^(close|closed|sell|sold|settle|settled|exit|exited|redeem|redeemed|cashout|cashed_out)$/.test(a)) {
+      return "close";
+    }
+    if (/^(open|opened|buy|bought|fill|filled|entry|add)$/.test(a)) return "open";
+    return "";
+  }
+
+  function fillTime(f) {
+    var t = Date.parse(String(pick(f, ["ts", "iso", "time", "timestamp"], "")));
+    return isFinite(t) ? t : null;
+  }
+
+  /* Index of what is still open (positions) and what has already been exited
+     (close fills + settled rows), so a buy of a dead ticket can be recognised. */
+  function ticketIndex(data) {
+    data = data || {};
+    var positions = Array.isArray(data.positions) ? data.positions : [];
+    var fills = Array.isArray(data.fills) ? data.fills : [];
+    var cap = (data.capacity && typeof data.capacity === "object" && !Array.isArray(data.capacity))
+      ? data.capacity : {};
+    var idx = {
+      openTickers: {}, openMarkets: {},
+      closedTickers: {}, closedMarkets: {},
+      nOpen: positions.length,
+      hasBook: false
+    };
+    var named = 0;
+    for (var i = 0; i < positions.length; i++) {
+      var t = rowTicker(positions[i]);
+      var m = rowMarket(positions[i]);
+      if (t) idx.openTickers[t] = true;
+      if (m) idx.openMarkets[m] = true;
+      if (t || m) named++;
+    }
+    /* Trust positions as the live book when its rows can be identified, or when
+       the snapshot itself says the book is empty. Never when we know nothing. */
+    idx.hasBook = named === positions.length && (named > 0 || numish(cap.n_open) === 0);
+    for (var j = 0; j < fills.length; j++) {
+      if (actionKind(pick(fills[j], ["action", "type", "event"], "")) !== "close") continue;
+      var ct = rowTicker(fills[j]);
+      var cm = rowMarket(fills[j]);
+      var ts = fillTime(fills[j]);
+      if (ts == null) ts = Infinity;
+      if (ct && (idx.closedTickers[ct] == null || ts > idx.closedTickers[ct])) idx.closedTickers[ct] = ts;
+      if (cm && (idx.closedMarkets[cm] == null || ts > idx.closedMarkets[cm])) idx.closedMarkets[cm] = ts;
+    }
+    var settled = asRowList(data.settled).concat(asRowList(data.settled_paybox));
+    for (var k = 0; k < settled.length; k++) {
+      var st = rowTicker(settled[k]);
+      var sm = rowMarket(settled[k]);
+      if (st && idx.closedTickers[st] == null) idx.closedTickers[st] = Infinity;
+      if (sm && idx.closedMarkets[sm] == null) idx.closedMarkets[sm] = Infinity;
+    }
+    return idx;
+  }
+
+  function closedAt(idx, ticker, market) {
+    var a = ticker && Object.prototype.hasOwnProperty.call(idx.closedTickers, ticker)
+      ? idx.closedTickers[ticker] : null;
+    var b = market && Object.prototype.hasOwnProperty.call(idx.closedMarkets, market)
+      ? idx.closedMarkets[market] : null;
+    if (a == null) return b;
+    if (b == null) return a;
+    return Math.max(a, b);
+  }
+
+  /* A buy row is a ghost when its ticket is not in the live book, or when the
+     same ticket was exited/settled after that buy (an earlier round of a ticket
+     that has since been re-opened). Never label such a buy open. */
+  function isGhostOpenFill(f, idx) {
+    if (!f || !idx) return false;
+    if (actionKind(pick(f, ["action", "type", "event"], "")) !== "open") return false;
+    var ticker = rowTicker(f);
+    var market = rowMarket(f);
+    if (!ticker && !market) return false;
+    var opened = fillTime(f);
+    var exited = closedAt(idx, ticker, market);
+    if (idx.hasBook) {
+      if (!((ticker && idx.openTickers[ticker]) || (market && idx.openMarkets[market]))) return true;
+      /* Live ticket: only a dated exit after this buy retires the row. */
+      return exited != null && isFinite(exited) && opened != null && exited >= opened;
+    }
+    if (exited == null) return false;
+    if (!isFinite(exited)) return true;
+    return opened == null || exited >= opened;
+  }
+
+  /* Rows the table may show: every close, plus buys of tickets still open. */
+  function visibleFills(data) {
+    data = data || {};
+    var fills = Array.isArray(data.fills) ? data.fills : [];
+    var idx = ticketIndex(data);
+    var out = [];
+    for (var i = 0; i < fills.length; i++) {
+      if (!isGhostOpenFill(fills[i], idx)) out.push(fills[i]);
+    }
+    return out;
+  }
+
+  function countFillKind(rows, kind) {
+    var n = 0;
+    for (var i = 0; i < (rows || []).length; i++) {
+      if (actionKind(pick(rows[i], ["action", "type", "event"], "")) === kind) n++;
+    }
+    return n;
+  }
+
+  function cashedWord(v) {
+    return /^(cashed|cashed_out|redeemed|claimed|paid|swept|converted)$/i
+      .test(String(v == null ? "" : v).trim());
+  }
+
+  function cashedNote(v) {
+    return /settled_cashed|cashed|redeemed|claimed|swept/i.test(String(v == null ? "" : v));
+  }
+
+  /* settled (repo view) + settled_paybox (venue view) merged per ticket. The
+     venue view keeps "redeemable":"open" after a CASH→USDC sweep — a cashed
+     marker on either side, or a cashed fill, wins. */
+  function settledRows(data) {
+    data = data || {};
+    var src = asRowList(data.settled).concat(asRowList(data.settled_paybox));
+    var out = [], byKey = {};
+    for (var i = 0; i < src.length; i++) {
+      var row = src[i];
+      var ticker = pick(row, ["ticker", "market_ticker", "symbol"], "");
+      var market = pick(row, ["market", "question", "title"], "");
+      var key = ticketKey(ticker) || ticketKey(market);
+      if (!key) continue;
+      var cur = byKey[key];
+      if (!cur) {
+        cur = {
+          key: key, ticker: ticker || "", market: market || "", track: null,
+          result: null, pnl_usd: null, size_usd: null,
+          settlement_asset: null, redeemable_raw: null, stale_redeemable: false
+        };
+        byKey[key] = cur;
+        out.push(cur);
+      }
+      if (!cur.ticker && ticker) cur.ticker = ticker;
+      if (!cur.market && market) cur.market = market;
+      if (cur.track == null) cur.track = pick(row, ["track", "book"], null);
+      if (cur.result == null) cur.result = pick(row, ["result", "position_result", "outcome"], null);
+      if (cur.pnl_usd == null) cur.pnl_usd = numish(fillPnl(row));
+      if (cur.size_usd == null) cur.size_usd = numish(pick(row, ["size_usd", "size"], null));
+      if (cur.settlement_asset == null) {
+        cur.settlement_asset = pick(row, ["settlement_asset", "asset"], null);
+      }
+      var red = pick(row, ["redeemable", "redeem_state", "claim_state"], null);
+      if (!isBlank(red)) {
+        if (cashedWord(red)) {
+          if (!isBlank(cur.redeemable_raw) && !cashedWord(cur.redeemable_raw)) cur.stale_redeemable = true;
+          cur.redeemable_raw = red;
+        } else if (isBlank(cur.redeemable_raw)) {
+          cur.redeemable_raw = red;
+        } else if (cashedWord(cur.redeemable_raw)) {
+          cur.stale_redeemable = true;
+        }
+      }
+      if (row.cashed === true || cashedNote(row.note)) cur.cashed = true;
+    }
+    return out;
+  }
+
+  /* "cashed" | "open" | "unknown" — money still to claim only when nothing
+     anywhere says it already landed in USDC. */
+  function redeemableState(row, data) {
+    if (!row) return "unknown";
+    if (row.cashed === true || cashedWord(row.redeemable_raw)) return "cashed";
+    var fills = (data && Array.isArray(data.fills)) ? data.fills : [];
+    for (var i = 0; i < fills.length; i++) {
+      var f = fills[i];
+      var k = rowTicker(f) || rowMarket(f);
+      var alt = rowMarket(f);
+      if (k !== row.key && alt !== row.key) continue;
+      if (cashedNote(f.note)) return "cashed";
+      if (actionKind(pick(f, ["action", "type", "event"], "")) === "close"
+          && !isBlank(fillPnl(f)) && !isBlank(fillTx(f))) {
+        return "cashed";
+      }
+    }
+    var raw = String(row.redeemable_raw == null ? "" : row.redeemable_raw).trim().toLowerCase();
+    if (raw === "open" || raw === "pending" || raw === "unclaimed" || raw === "true") return "open";
+    return "unknown";
+  }
+
+  function approxEq(a, b, tol) {
+    return Math.abs(Number(a) - Number(b)) <= tol;
+  }
+
+  /* Cross-checks run at render time: a card must never disagree with the
+     snapshot field behind it. Reported, never silently patched. */
+  function consistencyIssues(data) {
+    data = data || {};
+    var out = [];
+    var cash = (data.cashflow && typeof data.cashflow === "object") ? data.cashflow : {};
+    var cap = (data.capacity && typeof data.capacity === "object" && !Array.isArray(data.capacity))
+      ? data.capacity : {};
+    var bank = bankrollUsd(data);
+    var tol = Math.max(0.05, Math.abs(bank || 0) * 0.01);
+
+    if (bank != null) {
+      var srcs = [
+        ["cashflow.bankroll_usd", numish(cash.bankroll_usd)],
+        ["cashflow.total_usd", numish(cash.total_usd)],
+        ["bankroll_usd", numish(data.bankroll_usd)],
+        ["capacity.bankroll_usd", numish(cap.bankroll_usd)]
+      ];
+      for (var i = 0; i < srcs.length; i++) {
+        if (srcs[i][1] == null || approxEq(srcs[i][1], bank, tol)) continue;
+        out.push({
+          key: "bankroll",
+          msg: "Bankroll affiché " + money(bank) + " ≠ " + srcs[i][0] + " " + money(srcs[i][1])
+        });
+      }
+    }
+
+    var idle = numish(pick(cash, ["idle_usd", "idle_usdc", "usdc"], null));
+    var dep = numish(pick(cash, ["deployed_usd", "deployed_cost_usd", "positions_cost_usd"], null));
+    if (bank != null && idle != null && dep != null) {
+      var upnl = numish(pick(cash, ["unrealized_pnl_usd", "upnl_usd"], null)) || 0;
+      var dust = numish(pick(cash, ["sol_dust_usd", "dust_usd"], null)) || 0;
+      var recon = idle + dep + upnl + dust;
+      if (!approxEq(recon, bank, tol)) {
+        out.push({
+          key: "reconcile",
+          msg: "Idle " + money(idle) + " + déployé " + money(dep)
+            + " + uPnL " + signedMoney(upnl).txt
+            + (dust ? " + dust " + money(dust) : "")
+            + " = " + money(recon) + " ≠ bankroll " + money(bank)
+        });
+      }
+    }
+
+    var positions = Array.isArray(data.positions) ? data.positions : [];
+    var nOpen = numish(cap.n_open);
+    if (nOpen != null && nOpen !== positions.length) {
+      out.push({
+        key: "n_open",
+        msg: "capacity.n_open " + nOpen + " ≠ positions " + positions.length
+      });
+    }
+    var shownOpens = countFillKind(visibleFills(data), "open");
+    if (positions.length && shownOpens > positions.length) {
+      out.push({
+        key: "ghost_open",
+        msg: "Fills open affichés " + shownOpens + " > positions " + positions.length
+          + " — tickets fantômes dans le snapshot"
+      });
+    }
+    return out;
+  }
+
   function fillSeries(fills, key) {
     var out = [];
     var rows = fills || [];
@@ -768,7 +1063,13 @@
       var f = rows[i];
       var track = pick(f, ["track", "book"], "—");
       var tx = fillTx(f);
-      var pnl = signedMoney(fillPnl(f));
+      var raw = fillPnl(f);
+      var pnl = signedMoney(raw);
+      /* A close with no realized PnL anywhere is missing data, not a zero and
+         not an open row — say so instead of a bare dash. */
+      if (isBlank(raw) && actionKind(pick(f, ["action", "type", "event"], "")) === "close") {
+        pnl = { txt: '<span class="nabu-world-pnl-missing">PnL UNVERIFIED</span>', neg: false };
+      }
       var txCell = tx
         ? '<a class="nabu-world-tx" href="' + esc(solscanTx(tx)) + '" target="_blank" rel="noopener">'
           + esc(shortTx(tx)) + "</a>"
@@ -785,6 +1086,72 @@
         + "</tr>";
     }
     html += "</tbody></table></div>";
+    return html;
+  }
+
+  function fillsKicker(data) {
+    var rows = visibleFills(data);
+    var opens = countFillKind(rows, "open");
+    var closes = countFillKind(rows, "close");
+    var hidden = ((data && Array.isArray(data.fills)) ? data.fills.length : 0) - rows.length;
+    var txt = "Fills / closes récents · " + opens + " open · " + closes + " close";
+    if (hidden > 0) txt += " · " + hidden + " buy de ticket clos masqué" + (hidden > 1 ? "s" : "");
+    return txt;
+  }
+
+  function renderSettled(data) {
+    var rows = settledRows(data);
+    if (!rows.length) return "";
+    var anyOpen = false;
+    var html = '<div class="nabu-world-posgrid">';
+    for (var i = 0; i < rows.length; i++) {
+      var r = rows[i];
+      var state = redeemableState(r, data);
+      var pill = state === "cashed"
+        ? '<span class="nabu-world-pill nabu-world-pill--ok">Encaissé</span>'
+        : (state === "open"
+          ? '<span class="nabu-world-pill nabu-world-pill--pending">À réclamer</span>'
+          : '<span class="nabu-world-pill nabu-world-pill--open">état inconnu</span>');
+      if (state === "open") anyOpen = true;
+      var pnl = signedMoney(r.pnl_usd);
+      var track = r.track == null ? "—" : r.track;
+      var staleClaim = state === "cashed"
+        && (r.stale_redeemable || (!isBlank(r.redeemable_raw) && !cashedWord(r.redeemable_raw)));
+      html += '<article class="nabu-world-pos">' + pill + " "
+        + '<span class="nabu-world-track nabu-world-track--' + esc(String(track).toLowerCase()) + '">'
+        + esc(track) + "</span>"
+        + "<h3>" + esc(r.market || r.ticker || "—") + "</h3>"
+        + '<div class="nabu-world-pos-meta">'
+        + "<span>Résultat<b>" + esc(r.result == null ? "—" : r.result) + "</b></span>"
+        + '<span>PnL<b class="' + (pnl.neg ? "nabu-world-neg" : "") + '">' + pnl.txt + "</b></span>"
+        + "<span>Règlement<b>" + esc(r.settlement_asset == null ? "—" : r.settlement_asset) + "</b></span>"
+        + "<span>Ticker<b>" + esc(r.ticker || "—") + "</b></span>"
+        + "</div>"
+        + (staleClaim
+          ? '<p class="nabu-world-settled-note">CASH → USDC encaissé — <code>redeemable</code> '
+            + "du venue encore <code>open</code>, rien n'est bloqué.</p>"
+          : "")
+        + "</article>";
+    }
+    html += "</div>";
+    if (!anyOpen) {
+      html += '<p class="nabu-world-note">Rien à réclamer — tous les tickets soldés sont encaissés en USDC.</p>';
+    }
+    return '<section class="nabu-world-sec"><div class="nabu-world-kicker">Soldés / redeemable</div>'
+      + '<div class="nabu-world-rule"></div>' + html + "</section>";
+  }
+
+  function renderConsistency(data) {
+    var issues = consistencyIssues(data);
+    if (!issues.length) return "";
+    var html = '<section class="nabu-world-sec nabu-world-flags"><div class="nabu-world-kicker">'
+      + "Cohérence — snapshot contradictoire</div>"
+      + '<div class="nabu-world-rule"></div><ul class="nabu-world-flaglist">';
+    for (var i = 0; i < issues.length; i++) {
+      html += '<li data-check="' + esc(issues[i].key) + '">' + esc(issues[i].msg) + "</li>";
+    }
+    html += "</ul><p class=\"nabu-world-note\">Chiffres affichés tels quels — rien n'est corrigé "
+      + "en silence. Corriger la pipeline snapshot.</p></section>";
     return html;
   }
 
@@ -1356,6 +1723,7 @@
       + warn
       + renderPending(pending, snapshot)
       + renderRunway(snapshot)
+      + renderConsistency(snapshot)
       + '<div class="nabu-world-meta">'
       + '<div class="nabu-world-card"><span class="nabu-world-card-k">Portefeuille ' + esc(label) + "</span>"
       + '<span class="nabu-world-card-v"><a href="' + esc(solscanAddr(wallet)) + '" target="_blank" rel="noopener" title="'
@@ -1380,10 +1748,13 @@
       + '<div class="nabu-world-rule"></div>' + renderCaps(snapshot.caps, snapshot) + "</section>"
       + '<section class="nabu-world-sec"><div class="nabu-world-kicker">Cashflow / PnL</div>'
       + '<div class="nabu-world-rule"></div>' + renderCells(snapshot.cashflow) + "</section>"
-      + '<section class="nabu-world-sec"><div class="nabu-world-kicker">Positions ouvertes</div>'
+      + '<section class="nabu-world-sec"><div class="nabu-world-kicker">Positions ouvertes · '
+      + ((snapshot.positions || []).length) + "</div>"
       + '<div class="nabu-world-rule"></div>' + renderPositions(snapshot.positions) + "</section>"
-      + '<section class="nabu-world-sec"><div class="nabu-world-kicker">Fills / closes récents</div>'
-      + '<div class="nabu-world-rule"></div>' + renderFills(snapshot.fills) + "</section>"
+      + '<section class="nabu-world-sec"><div class="nabu-world-kicker">'
+      + esc(fillsKicker(snapshot)) + "</div>"
+      + '<div class="nabu-world-rule"></div>' + renderFills(visibleFills(snapshot)) + "</section>"
+      + renderSettled(snapshot)
       + autoHtml
       + '<p class="nabu-world-foot"><b>Lecture seule.</b> Source : ' + esc(source)
       + ". En cas de conflit, les ledgers world-paper et le wallet PayBox gagnent — "
@@ -1556,6 +1927,14 @@
       bankrollUsd: bankrollUsd,
       fillPnl: fillPnl,
       fillTx: fillTx,
+      actionKind: actionKind,
+      ticketIndex: ticketIndex,
+      isGhostOpenFill: isGhostOpenFill,
+      visibleFills: visibleFills,
+      countFillKind: countFillKind,
+      settledRows: settledRows,
+      redeemableState: redeemableState,
+      consistencyIssues: consistencyIssues,
       poolOpen: poolOpen,
       tracksAreLabels: tracksAreLabels,
       trackShareBasis: trackShareBasis,
