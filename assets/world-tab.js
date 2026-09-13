@@ -3,7 +3,7 @@
   "use strict";
 
   var SNAPSHOT_URLS = ["assets/world-live.json?v=" + Date.now(), "world-live.json?v=" + Date.now()];
-  var CSS_URL = "assets/world-tab.css?v=utilpool2";
+  var CSS_URL = "assets/world-tab.css?v=bankroll1";
   var WALLET_FALLBACK = "27bcZ8xT8qWzkmdyjKy7mRXKqRAR9KBphZt3BMyjmac3";
   var POLL_MS = 8000;
   var URL_KEYS = ["check_region_url", "geofence_url", "url", "data_url", "link", "href"];
@@ -289,8 +289,8 @@
   }
 
   /* Live score writes capacity.A_open / A_cap / open / updated_at. WD reads caps / positions / generated_at.
-     Hard open-notional cap is a single pool: capacity.max_open_usd (else max_open * ticket, else bankroll).
-     A/B are labels — never sum per-track max_usd into a fake 40+40. */
+     Utilisation denom is live bankroll_usd — never 8×ticket / capacity.max_open_usd.
+     Ticket-slot cap stays on track bars / remaining tickets only. A/B are labels. */
   function normalizeSnapshot(raw) {
     try {
       if (!raw || typeof raw !== "object" || Array.isArray(raw)) return {};
@@ -413,24 +413,40 @@
     return false;
   }
 
-  function poolMax(data) {
+  function bankrollUsd(data) {
     data = data || {};
+    var cash = data.cashflow || {};
     var cap = (data.capacity && typeof data.capacity === "object" && !Array.isArray(data.capacity))
       ? data.capacity : {};
-    var cash = data.cashflow || {};
-    var util = (data.utilization && typeof data.utilization === "object") ? data.utilization : {};
-    var m = numish(pick(cap, ["max_open_usd"], null));
-    if (m == null) m = numish(pick(data.caps || {}, ["pool_usd"], null));
-    if (m == null) m = numish(pick(util, ["max_usd", "max_open_usd"], null));
-    if (m != null && m > 0) return m;
-    var n = numish(pick(cap, ["max_open", "max_tickets"], null));
-    var ticket = numish(data.ticket_usd);
-    if (ticket == null) ticket = numish(pick(cap, ["ticket", "ticket_usd"], null));
-    if (n != null && ticket != null && n > 0 && ticket > 0) return n * ticket;
+    var run = (data.sub_runway && typeof data.sub_runway === "object") ? data.sub_runway : {};
     var bank = numish(pick(cash, ["bankroll_usd", "total_usd"], null));
     if (bank == null) bank = numish(data.bankroll_usd);
+    if (bank == null) bank = numish(pick(run, ["bankroll_usd"], null));
     if (bank == null) bank = numish(pick(cap, ["bankroll_usd"], null));
-    if (bank != null && bank > 0) return bank;
+    return (bank != null && bank > 0) ? bank : null;
+  }
+
+  function utilBasisIsBankroll(data) {
+    data = data || {};
+    var util = (data.utilization && typeof data.utilization === "object") ? data.utilization : {};
+    var cap = (data.capacity && typeof data.capacity === "object" && !Array.isArray(data.capacity))
+      ? data.capacity : {};
+    return /bankroll/i.test(String(util.basis || cap.util_basis || ""));
+  }
+
+  /* Utilisation denom: live bankroll. Never ticket-slot capacity (8×$5=$40). */
+  function poolMax(data) {
+    data = data || {};
+    var util = (data.utilization && typeof data.utilization === "object") ? data.utilization : {};
+    var bank = bankrollUsd(data);
+    if (utilBasisIsBankroll(data)) {
+      var um = numish(pick(util, ["max_usd"], null));
+      if (um != null && um > 0) {
+        if (bank != null) return bank;
+        return um;
+      }
+    }
+    if (bank != null) return bank;
     return null;
   }
 
@@ -452,31 +468,33 @@
     return sumField(data.positions, ["size_usd", "size", "notional"]);
   }
 
-  /* Track bar / % : open_usd ÷ capacity.max_open_usd (same pool as utilisation).
-     Bankroll only if A/B are labels and no max_open_usd. Never A_cap + B_cap. */
+  /* Track bar / % : share of ticket-slot pool (ticket_cap / 8×ticket).
+     Never feed that $40 back into the utilisation card. Never A_cap + B_cap. */
   function trackShareBasis(data) {
     data = data || {};
     var cap = (data.capacity && typeof data.capacity === "object" && !Array.isArray(data.capacity))
       ? data.capacity : {};
-    var m = numish(pick(cap, ["max_open_usd"], null));
+    var util = (data.utilization && typeof data.utilization === "object") ? data.utilization : {};
+    var m = numish(pick(cap, ["ticket_cap_usd"], null));
+    if (m == null) m = numish(pick(util, ["ticket_cap_usd"], null));
     if (m == null) m = numish(pick(data.caps || {}, ["pool_usd"], null));
-    if (m == null) {
-      var util = (data.utilization && typeof data.utilization === "object") ? data.utilization : {};
-      m = numish(pick(util, ["max_usd", "max_open_usd"], null));
-    }
     if (m == null) {
       var n = numish(pick(cap, ["max_open", "max_tickets"], null));
       var ticket = numish(data.ticket_usd);
       if (ticket == null) ticket = numish(pick(cap, ["ticket", "ticket_usd"], null));
       if (n != null && ticket != null && n > 0 && ticket > 0) m = n * ticket;
     }
+    if (m == null) {
+      var maxOpen = numish(pick(cap, ["max_open_usd"], null));
+      var bank = bankrollUsd(data);
+      if (maxOpen != null && maxOpen > 0 && (bank == null || Math.abs(maxOpen - bank) > 0.005)) {
+        m = maxOpen;
+      }
+    }
     if (m != null && m > 0) return { max: m, basis: "max_open_usd" };
     if (tracksAreLabels(data)) {
-      var cash = data.cashflow || {};
-      var bank = numish(pick(cash, ["bankroll_usd", "total_usd"], null));
-      if (bank == null) bank = numish(data.bankroll_usd);
-      if (bank == null) bank = numish(pick(cap, ["bankroll_usd"], null));
-      if (bank != null && bank > 0) return { max: bank, basis: "bankroll_usd" };
+      var bank2 = bankrollUsd(data);
+      if (bank2 != null) return { max: bank2, basis: "bankroll_usd" };
     }
     return null;
   }
@@ -536,7 +554,7 @@
     return html;
   }
 
-  /* Single pool: deployed cost vs capacity.max_open_usd. Never A.max + B.max. */
+  /* Single pool: deployed cost vs live bankroll. Never 8×ticket. Never A.max + B.max. */
   function capUtil(data) {
     var open = poolOpen(data);
     var max = poolMax(data);
@@ -636,7 +654,7 @@
         neg = Number(v) < 0;
       }
       var spark = "";
-      if (k === "realized_pnl_usd") spark = sparkline(fillSeries(snapshot && snapshot.fills, "pnl_usd"));
+      if (k === "realized_pnl_usd") spark = sparkline(fillSeries(snapshot && snapshot.fills, "pnl"));
       else if (k === "unrealized_pnl_usd") {
         var marks = [];
         var pos = (snapshot && snapshot.positions) || [];
@@ -679,11 +697,20 @@
       + '" fill="none" stroke="#3EE0FF" stroke-width="1.6"/></svg>';
   }
 
+  function fillPnl(f) {
+    return pick(f, ["pnl_usd", "realized_pnl_est", "realized_pnl", "pnl"], null);
+  }
+
+  function fillTx(f) {
+    return pick(f, ["tx", "tx_hash", "signature", "sig", "cashout_tx"], "");
+  }
+
   function fillSeries(fills, key) {
     var out = [];
     var rows = fills || [];
     for (var i = rows.length - 1; i >= 0; i--) {
-      if (!isBlank(rows[i][key])) out.push(rows[i][key]);
+      var v = (key === "pnl" || key === "pnl_usd") ? fillPnl(rows[i]) : rows[i][key];
+      if (!isBlank(v)) out.push(v);
     }
     return out;
   }
@@ -740,8 +767,8 @@
     for (var i = 0; i < rows.length; i++) {
       var f = rows[i];
       var track = pick(f, ["track", "book"], "—");
-      var tx = pick(f, ["tx", "tx_hash", "signature", "sig"], "");
-      var pnl = signedMoney(f.pnl_usd);
+      var tx = fillTx(f);
+      var pnl = signedMoney(fillPnl(f));
       var txCell = tx
         ? '<a class="nabu-world-tx" href="' + esc(solscanTx(tx)) + '" target="_blank" rel="noopener">'
           + esc(shortTx(tx)) + "</a>"
@@ -1526,6 +1553,9 @@
       normalizeSnapshot: normalizeSnapshot,
       capUtil: capUtil,
       poolMax: poolMax,
+      bankrollUsd: bankrollUsd,
+      fillPnl: fillPnl,
+      fillTx: fillTx,
       poolOpen: poolOpen,
       tracksAreLabels: tracksAreLabels,
       trackShareBasis: trackShareBasis,
