@@ -1,9 +1,9 @@
 {
   "schema_version": 2,
   "example": false,
-  "generated_at": "2026-09-13T02:15:47Z",
-  "generated_at_zh": "2026-09-13T04:15:47+02:00",
-  "source": "paybox world positions \u2014 rebuild_and_push_world_live.py",
+  "generated_at": "2026-09-13T02:15:54Z",
+  "generated_at_zh": "2026-09-13T04:15:54+02:00",
+  "source": "live-score 20260913-0411-LIVE \u2014 HOLD_FULL 8/8 + rebuild marks + score mids",
   "venue": "world.xyz",
   "wallet": {
     "chain": "solana",
@@ -73,7 +73,8 @@
       "held_atomic": "5769088",
       "held_shares": 5.769088,
       "status": "open",
-      "position_result": "pending"
+      "position_result": "pending",
+      "mid": 0.8658
     },
     {
       "market": "PIT Steelers YES",
@@ -87,7 +88,8 @@
       "held_atomic": "6878950",
       "held_shares": 6.87895,
       "status": "open",
-      "position_result": "pending"
+      "position_result": "pending",
+      "mid": 0.725
     },
     {
       "market": "JAC Jaguars YES",
@@ -101,7 +103,8 @@
       "held_atomic": "6277560",
       "held_shares": 6.27756,
       "status": "open",
-      "position_result": "pending"
+      "position_result": "pending",
+      "mid": 0.785
     },
     {
       "market": "DET Lions YES",
@@ -115,7 +118,8 @@
       "held_atomic": "6607747",
       "held_shares": 6.607747,
       "status": "open",
-      "position_result": "pending"
+      "position_result": "pending",
+      "mid": 0.745
     },
     {
       "market": "PHI Eagles YES",
@@ -129,7 +133,8 @@
       "held_atomic": "7277070",
       "held_shares": 7.27707,
       "status": "open",
-      "position_result": "pending"
+      "position_result": "pending",
+      "mid": 0.675
     },
     {
       "market": "CIN Bengals YES",
@@ -143,7 +148,8 @@
       "held_atomic": "7726164",
       "held_shares": 7.726164,
       "status": "open",
-      "position_result": "pending"
+      "position_result": "pending",
+      "mid": 0.635
     },
     {
       "market": "Real Madrid YES",
@@ -157,7 +163,8 @@
       "held_atomic": "6354866",
       "held_shares": 6.354866,
       "status": "open",
-      "position_result": "pending"
+      "position_result": "pending",
+      "mid": 0.7652
     }
   ],
   "fills": [
