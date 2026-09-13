@@ -56,6 +56,15 @@ class RefreshFromLedgers(unittest.TestCase):
                     "size_usd": 5,
                     "pnl_usd": 0.8,
                     "tx": "SigExample222",
+                }) + "\n" + json.dumps({
+                    "ts": "2026-09-12T12:00:00Z",
+                    "action": "close",
+                    "market": "Cashed market",
+                    "track": "A",
+                    "size_usd": 5,
+                    "realized_pnl_est": 2.85,
+                    "cashout_tx": "CashoutSig333",
+                    "note": "settled_cashed",
                 }) + "\n",
                 encoding="utf-8",
             )
@@ -88,9 +97,12 @@ class RefreshFromLedgers(unittest.TestCase):
         self.assertEqual(snap["capacity"]["max_open_usd"], 40.0)
         self.assertEqual(snap["capacity"]["max_open"], 8)
         self.assertEqual(snap["fills"][0]["action"], "close")
+        cashed = next(f for f in snap["fills"] if f.get("market") == "Cashed market")
+        self.assertEqual(cashed["pnl_usd"], 2.85)
+        self.assertEqual(cashed["tx"], "CashoutSig333")
         self.assertEqual(snap["autonomy"]["note"], "Stand down. B has room.")
         self.assertEqual(snap["cashflow"]["tickets_opened"], 1)
-        self.assertEqual(snap["cashflow"]["tickets_closed"], 1)
+        self.assertEqual(snap["cashflow"]["tickets_closed"], 2)
         self.assertIsNone(snap.get("pending_geofence"))
 
     def test_pending_geofence_from_ledger_file(self):
@@ -230,6 +242,10 @@ class AdditiveHook(unittest.TestCase):
         self.assertIn("label_only", js)
         self.assertIn("function capUtil", js)
         self.assertIn("function trackShareBasis", js)
+        self.assertIn("function bankrollUsd", js)
+        self.assertIn("function fillPnl", js)
+        self.assertIn("realized_pnl_est", js)
+        self.assertIn("cashout_tx", js)
         self.assertIn("du pool", js)
         self.assertIn("if (skip[k] || isBlank(v)) continue;", js)
         self.assertIn("renderRunway", js)
@@ -306,12 +322,21 @@ def _eval_gate(expr: str):
         "trackShareBasis",
         "poolMax",
         "poolOpen",
+        "bankrollUsd",
+        "utilBasisIsBankroll",
         "capUtil",
         "pct",
         "capStatus",
         "esc",
+        "signedMoney",
+        "actionPill",
+        "shortTx",
+        "solscanTx",
+        "fillPnl",
+        "fillTx",
         "renderCaps",
         "renderRunway",
+        "renderFills",
     ]
     preamble = (
         "var URL_KEYS=['check_region_url','geofence_url','url','data_url','link','href'];\n"
@@ -617,7 +642,7 @@ def _plain(s: str) -> str:
 
 
 class RunwayUtilPool(unittest.TestCase):
-    """Utilisation is a single pool — never A.max + B.max (fake 80)."""
+    """Utilisation = deployed / live bankroll — never 8×ticket ($40) or A.max+B.max."""
 
     DOUBLE_TRACK = {
         "ticket_usd": 5,
@@ -646,29 +671,92 @@ class RunwayUtilPool(unittest.TestCase):
         },
     }
 
-    def test_double_track_max_renders_util_35_over_40_not_80(self):
+    # Phone WD screenshot: bankroll 50.66 · idle 15.15 · deployed 35 · fake $40 cap.
+    JD_PHONE = {
+        "ticket_usd": 5,
+        "bankroll_usd": 50.66,
+        "caps": {
+            "A": {"open_usd": 5.0, "max_usd": 40.0, "label_only": True},
+            "B": {"open_usd": 30.0, "max_usd": 40.0, "label_only": True},
+            "pool_usd": 40.0,
+        },
+        "capacity": {
+            "n_open": 7,
+            "max_open": 8,
+            "remaining_tickets": 1,
+            "max_open_usd": 40.0,
+            "ticket": 5.0,
+            "bankroll_usd": 50.66,
+        },
+        "cashflow": {
+            "usdc": 15.15,
+            "idle_usd": 15.15,
+            "idle_usdc": 15.15,
+            "deployed_usd": 35.0,
+            "deployed_cost_usd": 35.0,
+            "total_usd": 50.66,
+            "bankroll_usd": 50.66,
+        },
+    }
+
+    def test_utilisation_uses_bankroll_not_ticket_capacity(self):
+        snap = _eval_gate("normalizeSnapshot(" + json.dumps(self.JD_PHONE) + ")")
+        got = _eval_gate("capUtil(" + json.dumps(snap) + ")")
+        self.assertEqual(got["open"], 35)
+        self.assertAlmostEqual(got["max"], 50.66)
+        self.assertNotEqual(got["max"], 40)
+        html = _plain(_eval_gate("renderRunway(" + json.dumps(snap) + ")"))
+        self.assertIn("35.00", html)
+        self.assertIn("50.66", html)
+        self.assertIn("15.15", html)
+        self.assertIn("69 %", html)  # 35 / 50.66
+        self.assertNotIn("/ 40.00", html)
+        self.assertNotIn("40.00", html)
+
+    def test_utilization_basis_bankroll_prefers_published_max(self):
+        raw = {
+            "capacity": {"max_open_usd": 40.0, "bankroll_usd": 48.0},
+            "cashflow": {"deployed_usd": 35, "bankroll_usd": 48.0},
+            "utilization": {
+                "open_usd": 35,
+                "max_usd": 50.66,
+                "basis": "deployed_cost / bankroll",
+            },
+        }
+        snap = _eval_gate("normalizeSnapshot(" + json.dumps(raw) + ")")
+        self.assertTrue(_eval_gate("utilBasisIsBankroll(" + json.dumps(snap) + ")"))
+        got = _eval_gate("capUtil(" + json.dumps(snap) + ")")
+        self.assertAlmostEqual(got["max"], 48.0)
+        self.assertNotEqual(got["max"], 40)
+
+    def test_double_track_max_renders_util_vs_bankroll_not_40_or_80(self):
         snap = _eval_gate("normalizeSnapshot(" + json.dumps(self.DOUBLE_TRACK) + ")")
         got = _eval_gate("capUtil(" + json.dumps(snap) + ")")
         self.assertEqual(got["open"], 35)
-        self.assertEqual(got["max"], 40)
+        self.assertAlmostEqual(got["max"], 48.57)
+        self.assertNotEqual(got["max"], 40)
         self.assertNotEqual(got["max"], 80)
         html = _plain(_eval_gate("renderRunway(" + json.dumps(snap) + ")"))
         self.assertIn("35.00", html)
-        self.assertIn("40.00", html)
-        self.assertNotIn("80.00", html)
         self.assertIn("48.57", html)
+        self.assertNotIn("/ 40.00", html)
+        self.assertNotIn("80.00", html)
         self.assertIn("14.29", html)
 
-    def test_max_open_times_ticket_when_max_open_usd_absent(self):
+    def test_max_open_times_ticket_is_not_utilisation_denom(self):
         raw = {
             "ticket_usd": 5,
             "caps": {"A": {"open_usd": 5, "max_usd": 40}, "B": {"open_usd": 30, "max_usd": 40}},
             "capacity": {"max_open": 8, "ticket": 5},
             "cashflow": {"deployed_usd": 35, "total_usd": 48.57},
         }
-        got = _eval_gate("capUtil(normalizeSnapshot(" + json.dumps(raw) + "))")
+        snap = _eval_gate("normalizeSnapshot(" + json.dumps(raw) + ")")
+        got = _eval_gate("capUtil(" + json.dumps(snap) + ")")
         self.assertEqual(got["open"], 35)
-        self.assertEqual(got["max"], 40)
+        self.assertAlmostEqual(got["max"], 48.57)
+        basis = _eval_gate("trackShareBasis(" + json.dumps(snap) + ")")
+        self.assertEqual(basis["max"], 40)
+        self.assertEqual(basis["basis"], "max_open_usd")
 
     def test_label_only_caps_show_open_not_hard_per_track_max(self):
         raw = {
@@ -691,11 +779,13 @@ class RunwayUtilPool(unittest.TestCase):
         self.assertIn("5.00", html)
         self.assertIn("30.00", html)
         self.assertIn("du pool", html)
-        self.assertIn("13 %", html)  # 5/40
+        self.assertIn("13 %", html)  # 5/40 ticket slots
         self.assertIn("75 %", html)  # 30/40
         self.assertIn("is-label", html)
         self.assertNotIn("/ 40.00", html)
         self.assertNotIn("/ 80.00", html)
+        util = _eval_gate("capUtil(" + json.dumps(snap) + ")")
+        self.assertAlmostEqual(util["max"], 48.57)
 
     def test_label_note_without_flag_still_skips_track_max_sum(self):
         raw = {
@@ -709,7 +799,7 @@ class RunwayUtilPool(unittest.TestCase):
         snap = _eval_gate("normalizeSnapshot(" + json.dumps(raw) + ")")
         self.assertTrue(snap["caps"]["A"].get("label_only"))
         got = _eval_gate("capUtil(" + json.dumps(snap) + ")")
-        self.assertEqual(got["max"], 40)
+        self.assertAlmostEqual(got["max"], 48.57)
         html = _plain(_eval_gate(
             "renderCaps(" + json.dumps(snap["caps"]) + ", " + json.dumps(snap) + ")"
         ))
@@ -732,40 +822,100 @@ class RunwayUtilPool(unittest.TestCase):
         self.assertNotIn("/ 40.00", html)
         self.assertNotIn("/ 80.00", html)
         util = _eval_gate("capUtil(" + json.dumps(snap) + ")")
-        self.assertEqual(util["max"], 40)
+        self.assertAlmostEqual(util["max"], 48.57)
 
     def test_prefer_deployed_cost_over_track_open_sum(self):
+        raw = {
+            "caps": {"A": {"open_usd": 5}, "B": {"open_usd": 10}},
+            "capacity": {"max_open_usd": 40, "bankroll_usd": 50.66},
+            "cashflow": {
+                "deployed_cost_usd": 35,
+                "positions_cost_usd": 35,
+                "bankroll_usd": 50.66,
+            },
+        }
+        got = _eval_gate("capUtil(normalizeSnapshot(" + json.dumps(raw) + "))")
+        self.assertEqual(got["open"], 35)
+        self.assertAlmostEqual(got["max"], 50.66)
+
+    def test_no_bankroll_hides_utilisation_instead_of_fake_40(self):
         raw = {
             "caps": {"A": {"open_usd": 5}, "B": {"open_usd": 10}},
             "capacity": {"max_open_usd": 40},
             "cashflow": {"deployed_cost_usd": 35, "positions_cost_usd": 35},
         }
         got = _eval_gate("capUtil(normalizeSnapshot(" + json.dumps(raw) + "))")
-        self.assertEqual(got["open"], 35)
-        self.assertEqual(got["max"], 40)
+        self.assertIsNone(got)
 
-    def test_checked_in_live_snapshot_util_is_single_pool(self):
-        snap = json.loads((ROOT / "assets" / "world-live.json").read_text())
-        got = _eval_gate("capUtil(normalizeSnapshot(" + json.dumps(snap) + "))")
-        self.assertAlmostEqual(got["open"], 35.0)
-        self.assertAlmostEqual(got["max"], 40.0)
+    def test_checked_in_live_snapshot_util_uses_bankroll(self):
+        raw = json.loads((ROOT / "assets" / "world-live.json").read_text())
+        snap = _eval_gate("normalizeSnapshot(" + json.dumps(raw) + ")")
+        got = _eval_gate("capUtil(" + json.dumps(snap) + ")")
+        bank = snap["cashflow"]["bankroll_usd"]
+        dep = snap["cashflow"].get("deployed_usd") or snap["cashflow"].get("deployed_cost_usd")
+        self.assertAlmostEqual(got["open"], dep)
+        self.assertAlmostEqual(got["max"], bank)
+        self.assertNotEqual(got["max"], 40)
         self.assertNotEqual(got["max"], 80)
-        html = _plain(_eval_gate(
-            "renderRunway(normalizeSnapshot(" + json.dumps(snap) + "))"
-        ))
-        self.assertIn("35.00", html)
-        self.assertIn("40.00", html)
+        html = _plain(_eval_gate("renderRunway(" + json.dumps(snap) + ")"))
+        self.assertIn(f"{dep:.2f}", html)
+        self.assertIn(f"{bank:.2f}", html)
+        self.assertNotIn("/ 40.00", html)
         self.assertNotIn("80.00", html)
-        self.assertIn("48.57", html)
         tracks = _plain(_eval_gate(
-            "renderCaps(normalizeSnapshot(" + json.dumps(snap) + ").caps, "
-            "normalizeSnapshot(" + json.dumps(snap) + "))"
+            "renderCaps(" + json.dumps(snap["caps"]) + ", " + json.dumps(snap) + ")"
         ))
         self.assertIn("du pool", tracks)
         self.assertIn("5.00", tracks)
         self.assertIn("30.00", tracks)
         self.assertNotIn("/ 40.00", tracks)
         self.assertNotIn("/ 80.00", tracks)
+
+
+class FillPnlAliases(unittest.TestCase):
+    """Fills table picks realized PnL / cashout_tx when pnl_usd / tx are omitted."""
+
+    def test_realized_pnl_est_renders_signed_money(self):
+        rows = [{
+            "ts": "2026-09-12T23:19:38+02:00",
+            "action": "close",
+            "market": "Arsenal YES",
+            "track": "A",
+            "size_usd": 5,
+            "pnl_usd": None,
+            "realized_pnl_est": 2.85,
+            "note": "settled_cashed",
+        }]
+        self.assertEqual(_eval_gate("fillPnl(" + json.dumps(rows[0]) + ")"), 2.85)
+        html = _plain(_eval_gate("renderFills(" + json.dumps(rows) + ")"))
+        self.assertIn("2.85", html)
+        self.assertIn("Arsenal YES", html)
+        self.assertNotIn("— $", html)
+
+    def test_fill_tx_falls_back_to_cashout_tx(self):
+        row = {
+            "action": "close",
+            "market": "Milwaukee YES",
+            "pnl_usd": None,
+            "realized_pnl": -0.4,
+            "tx": None,
+            "tx_hash": None,
+            "cashout_tx": "CashoutSigABCDEF1234567890",
+        }
+        self.assertEqual(
+            _eval_gate("fillTx(" + json.dumps(row) + ")"),
+            "CashoutSigABCDEF1234567890",
+        )
+        html = _eval_gate("renderFills(" + json.dumps([row]) + ")")
+        self.assertIn("solscan.io/tx/CashoutSigABCDEF1234567890", html)
+        self.assertIn("0.40", _plain(html))
+
+    def test_missing_pnl_is_em_dash_only(self):
+        rows = [{"action": "open", "market": "CIN Bengals YES", "size_usd": 5, "pnl_usd": None}]
+        self.assertIsNone(_eval_gate("fillPnl(" + json.dumps(rows[0]) + ")"))
+        html = _eval_gate("renderFills(" + json.dumps(rows) + ")")
+        self.assertIn("\u2014", html)
+        self.assertNotIn("0.00", html)
 
 
 class OverlayClose(unittest.TestCase):

@@ -222,8 +222,8 @@ def _norm_fill(row: dict) -> dict:
         "side": _pick(row, ["side", "outcome"]),
         "size_usd": _num(_pick(row, ["size_usd", "size", "notional", "ticket"])),
         "price": _num(_pick(row, ["price", "px", "mark"])),
-        "pnl_usd": _num(_pick(row, ["pnl_usd", "pnl", "realized_pnl"])),
-        "tx": _pick(row, ["tx", "tx_hash", "signature", "sig"]),
+        "pnl_usd": _num(_pick(row, ["pnl_usd", "realized_pnl_est", "realized_pnl", "pnl"])),
+        "tx": _pick(row, ["tx", "tx_hash", "signature", "sig", "cashout_tx"]),
         "ticker": _pick(row, ["ticker", "symbol"]),
         "note": _pick(row, ["note", "reason"]),
     }
