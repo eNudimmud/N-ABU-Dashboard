@@ -1,8 +1,8 @@
 {
   "schema_version": 2,
   "example": false,
-  "generated_at": "2026-09-13T03:36:39Z",
-  "generated_at_zh": "2026-09-13T05:36:39+02:00",
+  "generated_at": "2026-09-13T03:39:09Z",
+  "generated_at_zh": "2026-09-13T05:39:09+02:00",
   "source": "paybox world positions \u2014 rebuild_and_push_world_live.py",
   "venue": "world.xyz",
   "wallet": {
@@ -12,13 +12,13 @@
   },
   "mode": "LIVE_ONLY",
   "ticket_usd": 5.0,
-  "bankroll_usd": 50.63,
+  "bankroll_usd": 45.7,
   "caps": {
     "A": {
       "open_usd": 5.0,
       "max_usd": 40.0,
       "pool_usd": 40.0,
-      "bankroll_usd": 50.63,
+      "bankroll_usd": 45.7,
       "label_only": true,
       "share_of_pool_pct": 12.5
     },
@@ -26,21 +26,21 @@
       "open_usd": 30.0,
       "max_usd": 40.0,
       "pool_usd": 40.0,
-      "bankroll_usd": 50.63,
+      "bankroll_usd": 45.7,
       "label_only": true,
       "share_of_pool_pct": 75.0
     },
     "pool_usd": 40.0,
-    "bankroll_usd": 50.63
+    "bankroll_usd": 45.7
   },
   "capacity": {
     "n_open": 7,
     "max_open": 8,
     "remaining_tickets": 1,
     "ticket": 5.0,
-    "max_open_usd": 50.63,
+    "max_open_usd": 45.7,
     "ticket_cap_usd": 40.0,
-    "bankroll_usd": 50.63,
+    "bankroll_usd": 45.7,
     "util_basis": "bankroll_usd",
     "deploy_all_cash_ok": true,
     "A_open": 5.0,
@@ -67,8 +67,8 @@
       "track": "B",
       "side": "YES",
       "size_usd": 5.0,
-      "mark_usd": 4.9663,
-      "upnl_usd": -0.0337,
+      "mark_usd": 4.9664,
+      "upnl_usd": -0.0336,
       "mint": "AzYRWeHmHQbpwoDKJb4A9YgGq7tiwyfwCd4GJJWKeJb4",
       "held_atomic": "5769088",
       "held_shares": 5.769088,
@@ -86,20 +86,6 @@
       "mint": "D4SQxgvMhq53k7CWkc3Ck1muUyQWKvG3TQ537tuftxhm",
       "held_atomic": "6277560",
       "held_shares": 6.27756,
-      "status": "open",
-      "position_result": "pending"
-    },
-    {
-      "market": "DET Lions YES",
-      "ticker": "WXNFL-26SEP13NODET-DLIO",
-      "track": "B",
-      "side": "YES",
-      "size_usd": 5.0,
-      "mark_usd": 4.9228,
-      "upnl_usd": -0.0772,
-      "mint": "5mNmJVCvPYhXJtXziCHgvjohwn6giyLo4Jirza46uw1C",
-      "held_atomic": "6607747",
-      "held_shares": 6.607747,
       "status": "open",
       "position_result": "pending"
     },
@@ -144,6 +130,22 @@
       "held_shares": 6.354866,
       "status": "open",
       "position_result": "pending"
+    },
+    {
+      "market": "DET Lions YES",
+      "ticker": "WXNFL-26SEP13NODET-DLIO",
+      "track": "B",
+      "side": "YES",
+      "size_usd": 5.0,
+      "mark_usd": 4.5594,
+      "upnl_usd": -0.4406,
+      "mint": "5mNmJVCvPYhXJtXziCHgvjohwn6giyLo4Jirza46uw1C",
+      "held_atomic": "6607747",
+      "held_shares": 6.607747,
+      "status": "open",
+      "position_result": "pending",
+      "mid": 0.69,
+      "mark_note": "ob_proxy_world_price_unavailable"
     }
   ],
   "fills": [
@@ -426,22 +428,22 @@
     "usdc": 15.15,
     "idle_usd": 15.15,
     "idle_usdc": 15.15,
-    "sol_dust_usd": 0.987,
+    "sol_dust_usd": 0.9871,
     "deployed_usd": 35.0,
     "deployed_cost_usd": 35.0,
-    "positions_mark_usd": 34.49,
+    "positions_mark_usd": 34.12,
     "positions_cost_usd": 35.0,
-    "total_usd": 50.63,
-    "bankroll_usd": 50.63,
+    "total_usd": 45.7,
+    "bankroll_usd": 45.7,
     "realized_pnl_usd": 5.4526,
-    "unrealized_pnl_usd": -0.5145,
+    "unrealized_pnl_usd": -0.8778,
     "fees_usd": 0.0,
-    "net_usd": 4.9381,
-    "marks_plus_usdc": 49.64,
-    "paybox_total_usd": 50.6269
+    "net_usd": 4.5748,
+    "marks_plus_usdc": 49.28,
+    "paybox_total_usd": 45.7043
   },
   "autonomy": {
-    "evaluated_at": "2026-09-13T05:36:39+02:00",
+    "evaluated_at": "2026-09-13T05:39:09+02:00",
     "note": "PayBox rebuild \u00b7 open 7/8"
   },
   "pending_geofence": null,
@@ -449,14 +451,14 @@
   "notify": false,
   "utilization": {
     "open_usd": 35.0,
-    "max_usd": 50.63,
+    "max_usd": 45.7,
     "basis": "deployed_cost / bankroll_usd",
     "ticket_cap_usd": 40.0
   },
   "sub_runway": {
     "target_chf": 1700,
-    "bankroll_usd": 50.63,
+    "bankroll_usd": 45.7,
     "realized_pnl_usd": 5.4526
   },
-  "as_of_paybox": "2026-09-13T03:36:42.935170798+00:00"
+  "as_of_paybox": "2026-09-13T03:39:14.381204358+00:00"
 }
