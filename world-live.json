@@ -1,8 +1,8 @@
 {
   "schema_version": 2,
   "example": false,
-  "generated_at": "2026-09-13T05:38:20Z",
-  "generated_at_zh": "2026-09-13T07:38:20+02:00",
+  "generated_at": "2026-09-13T05:39:57Z",
+  "generated_at_zh": "2026-09-13T07:39:57+02:00",
   "source": "paybox world positions \u2014 rebuild_and_push_world_live.py",
   "venue": "world.xyz",
   "wallet": {
@@ -12,39 +12,39 @@
   },
   "mode": "LIVE_ONLY",
   "ticket_usd": 5.0,
-  "bankroll_usd": 50.6,
+  "bankroll_usd": 50.37,
   "caps": {
     "A": {
       "open_usd": 5.0,
       "max_usd": 40.0,
       "pool_usd": 40.0,
-      "bankroll_usd": 50.6,
+      "bankroll_usd": 50.37,
       "label_only": true,
       "share_of_pool_pct": 12.5
     },
     "B": {
-      "open_usd": 30.0,
+      "open_usd": 35.0,
       "max_usd": 40.0,
       "pool_usd": 40.0,
-      "bankroll_usd": 50.6,
+      "bankroll_usd": 50.37,
       "label_only": true,
-      "share_of_pool_pct": 75.0
+      "share_of_pool_pct": 87.5
     },
     "pool_usd": 40.0,
-    "bankroll_usd": 50.6
+    "bankroll_usd": 50.37
   },
   "capacity": {
-    "n_open": 7,
+    "n_open": 8,
     "max_open": 8,
-    "remaining_tickets": 1,
+    "remaining_tickets": 0,
     "ticket": 5.0,
-    "max_open_usd": 50.6,
+    "max_open_usd": 50.37,
     "ticket_cap_usd": 40.0,
-    "bankroll_usd": 50.6,
+    "bankroll_usd": 50.37,
     "util_basis": "bankroll_usd",
     "deploy_all_cash_ok": true,
     "A_open": 5.0,
-    "B_open": 30.0
+    "B_open": 35.0
   },
   "positions": [
     {
@@ -86,6 +86,20 @@
       "mint": "D4SQxgvMhq53k7CWkc3Ck1muUyQWKvG3TQ537tuftxhm",
       "held_atomic": "6277560",
       "held_shares": 6.27756,
+      "status": "open",
+      "position_result": "pending"
+    },
+    {
+      "market": "WXBTC15M-26SEP130530-15 YES",
+      "ticker": "WXBTC15M-26SEP130530-15",
+      "track": "B",
+      "side": "YES",
+      "size_usd": 5.0,
+      "mark_usd": 4.9267,
+      "upnl_usd": -0.0733,
+      "mint": "Hj1VrU3zjFMRUVyCmfhWJ1ok5y9Q5Hz4fr2KpT47Wrzt",
+      "held_atomic": "5375697",
+      "held_shares": 5.375697,
       "status": "open",
       "position_result": "pending"
     },
@@ -147,6 +161,18 @@
     }
   ],
   "fills": [
+    {
+      "ts": "2026-09-13T05:39:50.206136335Z",
+      "action": "open",
+      "market": "BTC15M YES",
+      "track": "A",
+      "side": "YES",
+      "size_usd": 5,
+      "pnl_usd": null,
+      "tx": "596bhfCfbDWiBwY9ougFqeAa2YH5TEomrxL3LFp21gyNuRN9Vk1jby5kMsrjBWjLWGHhnZXgrrG8gw9Fku91v3qQ",
+      "ticker": "WXBTC15M-26SEP130530",
+      "note": "success"
+    },
     {
       "ts": "2026-09-13T04:43:05+02:00",
       "action": "close",
@@ -351,40 +377,40 @@
     }
   ],
   "cashflow": {
-    "usdc": 15.15,
-    "idle_usd": 15.15,
-    "idle_usdc": 15.15,
-    "sol_dust_usd": 0.9872,
-    "deployed_usd": 35.0,
-    "deployed_cost_usd": 35.0,
-    "positions_mark_usd": 34.46,
-    "positions_cost_usd": 35.0,
-    "total_usd": 50.6,
-    "bankroll_usd": 50.6,
+    "usdc": 10.16,
+    "idle_usd": 10.16,
+    "idle_usdc": 10.16,
+    "sol_dust_usd": 0.83,
+    "deployed_usd": 40.0,
+    "deployed_cost_usd": 40.0,
+    "positions_mark_usd": 39.38,
+    "positions_cost_usd": 40.0,
+    "total_usd": 50.37,
+    "bankroll_usd": 50.37,
     "realized_pnl_usd": 3.7342,
-    "unrealized_pnl_usd": -0.5431,
+    "unrealized_pnl_usd": -0.6164,
     "fees_usd": 0.0,
-    "net_usd": 3.1911,
-    "marks_plus_usdc": 49.61,
-    "paybox_total_usd": 50.5983
+    "net_usd": 3.1178,
+    "marks_plus_usdc": 49.54,
+    "paybox_total_usd": 50.3687
   },
   "autonomy": {
-    "evaluated_at": "2026-09-13T07:38:20+02:00",
-    "note": "PayBox rebuild \u00b7 open 7/8"
+    "evaluated_at": "2026-09-13T07:39:57+02:00",
+    "note": "PayBox rebuild \u00b7 open 8/8"
   },
   "pending_geofence": null,
   "awaiting_region_check": false,
   "notify": false,
   "utilization": {
-    "open_usd": 35.0,
-    "max_usd": 50.6,
+    "open_usd": 40.0,
+    "max_usd": 50.37,
     "basis": "deployed_cost / bankroll_usd",
     "ticket_cap_usd": 40.0
   },
   "sub_runway": {
     "target_chf": 1700,
-    "bankroll_usd": 50.6,
+    "bankroll_usd": 50.37,
     "realized_pnl_usd": 3.7342
   },
-  "as_of_paybox": "2026-09-13T05:38:24.224725508+00:00"
+  "as_of_paybox": "2026-09-13T05:40:01.851374461+00:00"
 }
