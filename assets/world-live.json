@@ -1,8 +1,8 @@
 {
   "schema_version": 2,
   "example": false,
-  "generated_at": "2026-09-13T01:07:49Z",
-  "generated_at_zh": "2026-09-13T03:07:49+02:00",
+  "generated_at": "2026-09-13T01:20:27Z",
+  "generated_at_zh": "2026-09-13T03:20:27+02:00",
   "source": "paybox world positions \u2014 rebuild_and_push_world_live.py",
   "venue": "world.xyz",
   "wallet": {
@@ -45,6 +45,22 @@
     "B_open": 35.0
   },
   "positions": [
+    {
+      "market": "Milwaukee YES",
+      "ticker": "WXMLB-26SEP121810CINMIL-MBRE",
+      "track": "B",
+      "side": "YES",
+      "size_usd": 5.0,
+      "mark_usd": 7.4917,
+      "upnl_usd": 2.4917,
+      "mint": "8yz5Yxzw9nYLnFZb27J9FCZuGmyp3J9tcL5XRyJbCHPe",
+      "held_atomic": "7607200",
+      "held_shares": 7.6072,
+      "status": "open",
+      "position_result": "pending",
+      "mid": 0.9848,
+      "mark_note": "ob_proxy_world_price_unavailable"
+    },
     {
       "market": "Barcelona YES",
       "ticker": "WXLIG-26SEP131615BARCLEVA-BARC",
@@ -140,20 +156,6 @@
       "mint": "67r1PciCLNHrT5iK15jy2mj3KEByTbgGHFgqB3eNBE36",
       "held_atomic": "6354866",
       "held_shares": 6.354866,
-      "status": "open",
-      "position_result": "pending"
-    },
-    {
-      "market": "Milwaukee YES",
-      "ticker": "WXMLB-26SEP121810CINMIL-MBRE",
-      "track": "B",
-      "side": "YES",
-      "size_usd": 5.0,
-      "mark_usd": 0,
-      "upnl_usd": -5.0,
-      "mint": "8yz5Yxzw9nYLnFZb27J9FCZuGmyp3J9tcL5XRyJbCHPe",
-      "held_atomic": "7607200",
-      "held_shares": 7.6072,
       "status": "open",
       "position_result": "pending"
     }
@@ -405,22 +407,22 @@
     "usdc": 7.57,
     "idle_usd": 7.57,
     "idle_usdc": 7.57,
-    "sol_dust_usd": 0.841,
+    "sol_dust_usd": 0.842,
     "deployed_usd": 40.0,
     "deployed_cost_usd": 40.0,
-    "positions_mark_usd": 34.51,
+    "positions_mark_usd": 42.01,
     "positions_cost_usd": 40.0,
     "total_usd": 42.93,
     "bankroll_usd": 42.93,
     "realized_pnl_usd": 2.85,
-    "unrealized_pnl_usd": -5.4857,
+    "unrealized_pnl_usd": 2.006,
     "fees_usd": 0.0,
-    "net_usd": -2.6357,
-    "marks_plus_usdc": 42.09,
-    "paybox_total_usd": 42.9283
+    "net_usd": 4.856,
+    "marks_plus_usdc": 49.58,
+    "paybox_total_usd": 42.9294
   },
   "autonomy": {
-    "evaluated_at": "2026-09-13T03:07:49+02:00",
+    "evaluated_at": "2026-09-13T03:20:27+02:00",
     "note": "PayBox rebuild \u00b7 open 8/8"
   },
   "pending_geofence": null,
@@ -436,5 +438,5 @@
     "bankroll_usd": 42.93,
     "realized_pnl_usd": 2.85
   },
-  "as_of_paybox": "2026-09-13T01:07:52.621585082+00:00"
+  "as_of_paybox": "2026-09-13T01:20:31.916185217+00:00"
 }
