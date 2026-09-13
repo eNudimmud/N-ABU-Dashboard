@@ -1,8 +1,8 @@
 {
   "schema_version": 2,
   "example": false,
-  "generated_at": "2026-09-13T16:33:38Z",
-  "generated_at_zh": "2026-09-13T18:33:38+02:00",
+  "generated_at": "2026-09-13T16:43:42Z",
+  "generated_at_zh": "2026-09-13T18:43:42+02:00",
   "source": "paybox world positions \u2014 rebuild_and_push_world_live.py",
   "venue": "world.xyz",
   "wallet": {
@@ -12,13 +12,13 @@
   },
   "mode": "LIVE_ONLY",
   "ticket_usd": 5.0,
-  "bankroll_usd": 52.02,
+  "bankroll_usd": 46.41,
   "caps": {
     "A": {
       "open_usd": 5.0,
       "max_usd": 40.0,
       "pool_usd": 40.0,
-      "bankroll_usd": 52.02,
+      "bankroll_usd": 46.41,
       "label_only": true,
       "share_of_pool_pct": 12.5
     },
@@ -26,43 +26,27 @@
       "open_usd": 30.0,
       "max_usd": 40.0,
       "pool_usd": 40.0,
-      "bankroll_usd": 52.02,
+      "bankroll_usd": 46.41,
       "label_only": true,
       "share_of_pool_pct": 75.0
     },
     "pool_usd": 40.0,
-    "bankroll_usd": 52.02
+    "bankroll_usd": 46.41
   },
   "capacity": {
     "n_open": 7,
     "max_open": 8,
     "remaining_tickets": 1,
     "ticket": 5.0,
-    "max_open_usd": 52.02,
+    "max_open_usd": 46.41,
     "ticket_cap_usd": 40.0,
-    "bankroll_usd": 52.02,
+    "bankroll_usd": 46.41,
     "util_basis": "bankroll_usd",
     "deploy_all_cash_ok": true,
     "A_open": 5.0,
     "B_open": 30.0
   },
   "positions": [
-    {
-      "market": "Barcelona YES",
-      "ticker": "WXLIG-26SEP131615BARCLEVA-BARC",
-      "track": "B",
-      "side": "YES",
-      "size_usd": 5.0,
-      "mark_usd": 5.6902,
-      "upnl_usd": 0.6902,
-      "mint": "AzYRWeHmHQbpwoDKJb4A9YgGq7tiwyfwCd4GJJWKeJb4",
-      "held_atomic": "5769088",
-      "held_shares": 5.769088,
-      "status": "open",
-      "position_result": "pending",
-      "mid": 0.9863,
-      "mark_note": "ob_proxy_world_price_unavailable"
-    },
     {
       "market": "PHI Eagles YES",
       "ticker": "WXNFL-26SEP13WASPHI-PEAG",
@@ -120,6 +104,20 @@
       "position_result": "pending"
     },
     {
+      "market": "CIN Bengals YES",
+      "ticker": "WXNFL-26SEP13TBCIN-CBEN",
+      "track": "B",
+      "side": "YES",
+      "size_usd": 5.0,
+      "mark_usd": 4.9834,
+      "upnl_usd": -0.0166,
+      "mint": "ExcaH6fdw9ujzyKUfVD8uBEdA4ciipQQG2LgbU7mVTmr",
+      "held_atomic": "7726164",
+      "held_shares": 7.726164,
+      "status": "open",
+      "position_result": "pending"
+    },
+    {
       "market": "DET Lions YES",
       "ticker": "WXNFL-26SEP13NODET-DLIO",
       "track": "B",
@@ -134,16 +132,16 @@
       "position_result": "pending"
     },
     {
-      "market": "CIN Bengals YES",
-      "ticker": "WXNFL-26SEP13TBCIN-CBEN",
+      "market": "Barcelona YES",
+      "ticker": "WXLIG-26SEP131615BARCLEVA-BARC",
       "track": "B",
       "side": "YES",
       "size_usd": 5.0,
-      "mark_usd": 4.9061,
-      "upnl_usd": -0.0939,
-      "mint": "ExcaH6fdw9ujzyKUfVD8uBEdA4ciipQQG2LgbU7mVTmr",
-      "held_atomic": "7726164",
-      "held_shares": 7.726164,
+      "mark_usd": 0.0,
+      "upnl_usd": -5.0,
+      "mint": "AzYRWeHmHQbpwoDKJb4A9YgGq7tiwyfwCd4GJJWKeJb4",
+      "held_atomic": "5769088",
+      "held_shares": 5.769088,
       "status": "open",
       "position_result": "pending"
     }
@@ -320,10 +318,10 @@
   ],
   "settled": [
     {
-      "market": "BTC15M YES",
-      "ticker": "WXBTC15M-26SEP130530-15",
+      "market": "Arsenal YES",
+      "ticker": "WXEPL-26SEP122000ARSESUND-ARSE",
       "result": "won",
-      "pnl_usd": 0.3583,
+      "pnl_usd": 2.8454,
       "size_usd": 5.0,
       "track": "A",
       "redeemable": "cashed",
@@ -340,10 +338,10 @@
       "settlement_asset": "CASH"
     },
     {
-      "market": "Arsenal YES",
-      "ticker": "WXEPL-26SEP122000ARSESUND-ARSE",
+      "market": "BTC15M YES",
+      "ticker": "WXBTC15M-26SEP130530-15",
       "result": "won",
-      "pnl_usd": 2.8454,
+      "pnl_usd": 0.3583,
       "size_usd": 5.0,
       "track": "A",
       "redeemable": "cashed",
@@ -353,10 +351,10 @@
   "settled_paybox": [
     {
       "held_amount": null,
-      "last_known_amount": "5375697",
+      "last_known_amount": "7845429",
       "market_status": "finalized",
-      "market_ticker": "WXBTC15M-26SEP130530-15",
-      "outcome_mint": "Hj1VrU3zjFMRUVyCmfhWJ1ok5y9Q5Hz4fr2KpT47Wrzt",
+      "market_ticker": "WXEPL-26SEP122000ARSESUND-ARSE",
+      "outcome_mint": "7m6EfZGRaD1riwQJjtvGVZH2PQ1r6W8V5HPoD52HTHE7",
       "position_result": "won",
       "redeemable": "open",
       "redemption_value_usd": null,
@@ -375,10 +373,10 @@
     },
     {
       "held_amount": null,
-      "last_known_amount": "7845429",
+      "last_known_amount": "5375697",
       "market_status": "finalized",
-      "market_ticker": "WXEPL-26SEP122000ARSESUND-ARSE",
-      "outcome_mint": "7m6EfZGRaD1riwQJjtvGVZH2PQ1r6W8V5HPoD52HTHE7",
+      "market_ticker": "WXBTC15M-26SEP130530-15",
+      "outcome_mint": "Hj1VrU3zjFMRUVyCmfhWJ1ok5y9Q5Hz4fr2KpT47Wrzt",
       "position_result": "won",
       "redeemable": "open",
       "redemption_value_usd": null,
@@ -389,24 +387,24 @@
     "usdc": 15.51,
     "idle_usd": 15.51,
     "idle_usdc": 15.51,
-    "sol_dust_usd": 0.9644,
+    "sol_dust_usd": 0.965,
     "deployed_usd": 35.0,
     "deployed_cost_usd": 35.0,
-    "positions_mark_usd": 35.55,
+    "positions_mark_usd": 29.93,
     "positions_cost_usd": 35.0,
-    "total_usd": 52.02,
-    "bankroll_usd": 52.02,
+    "total_usd": 46.41,
+    "bankroll_usd": 46.41,
     "realized_pnl_usd": 4.0925,
-    "unrealized_pnl_usd": 0.5459,
+    "unrealized_pnl_usd": -5.067,
     "fees_usd": 0.0,
-    "net_usd": 4.6384,
-    "marks_plus_usdc": 51.06,
-    "paybox_total_usd": 46.33,
-    "equity_components_usd": 52.02,
+    "net_usd": -0.9745,
+    "marks_plus_usdc": 45.45,
+    "paybox_total_usd": 46.41,
+    "equity_components_usd": 46.41,
     "bankroll_basis": "usdc+marks+sol_dust"
   },
   "autonomy": {
-    "evaluated_at": "2026-09-13T18:33:38+02:00",
+    "evaluated_at": "2026-09-13T18:43:42+02:00",
     "note": "PayBox rebuild \u00b7 open 7/8"
   },
   "pending_geofence": null,
@@ -414,14 +412,14 @@
   "notify": false,
   "utilization": {
     "open_usd": 35.0,
-    "max_usd": 52.02,
+    "max_usd": 46.41,
     "basis": "deployed_cost / bankroll_usd",
     "ticket_cap_usd": 40.0
   },
   "sub_runway": {
     "target_chf": 1700,
-    "bankroll_usd": 52.02,
+    "bankroll_usd": 46.41,
     "realized_pnl_usd": 4.0925
   },
-  "as_of_paybox": "2026-09-13T16:33:41.372488491+00:00"
+  "as_of_paybox": "2026-09-13T16:43:45.890077035+00:00"
 }
