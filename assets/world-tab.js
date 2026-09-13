@@ -615,9 +615,11 @@
     var cards = [];
     if (bank != null) cards.push(["Bankroll", money(bank)]);
     if (ticket != null) cards.push(["Ticket", money(ticket)]);
-    if (idle != null || dep != null) {
-      cards.push(["Idle / déployé",
-        (idle != null ? money(idle) : "—") + " · " + (dep != null ? money(dep) : "—")]);
+    var wcashR = numish(pick(cash, ["world_cash_usd", "cash_usd", "cash_held_usd"], null));
+    if (idle != null || dep != null || wcashR != null) {
+      var idleDep = (idle != null ? money(idle) : "—") + " · " + (dep != null ? money(dep) : "—");
+      if (wcashR != null && wcashR > 0.005) idleDep += " · CASH " + money(wcashR);
+      cards.push(["Idle / déployé", idleDep]);
     }
     if (util) {
       cards.push(["Utilisation",
@@ -973,13 +975,15 @@
     if (bank != null && idle != null && dep != null) {
       var upnl = numish(pick(cash, ["unrealized_pnl_usd", "upnl_usd"], null)) || 0;
       var dust = numish(pick(cash, ["sol_dust_usd", "dust_usd"], null)) || 0;
-      var recon = idle + dep + upnl + dust;
+      var wcash = numish(pick(cash, ["world_cash_usd", "cash_usd", "cash_held_usd"], null)) || 0;
+      var recon = idle + dep + upnl + dust + wcash;
       if (!approxEq(recon, bank, tol)) {
         out.push({
           key: "reconcile",
           msg: "Idle " + money(idle) + " + déployé " + money(dep)
             + " + uPnL " + signedMoney(upnl).txt
             + (dust ? " + dust " + money(dust) : "")
+            + (wcash ? " + CASH " + money(wcash) : "")
             + " = " + money(recon) + " ≠ bankroll " + money(bank)
         });
       }
