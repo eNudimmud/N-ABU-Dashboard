@@ -3,7 +3,7 @@
   "example": false,
   "generated_at": "2026-09-13T06:08:05Z",
   "generated_at_zh": "2026-09-13T08:08:05+02:00",
-  "source": "paybox world positions \u2014 rebuild_and_push_world_live.py",
+  "source": "crypto-watch PREPARE_A WXBTC15M-26SEP130600 YES $5",
   "venue": "world.xyz",
   "wallet": {
     "chain": "solana",
@@ -405,9 +405,22 @@
     "evaluated_at": "2026-09-13T08:08:05+02:00",
     "note": "PayBox rebuild \u00b7 open 7/8"
   },
-  "pending_geofence": null,
-  "awaiting_region_check": false,
-  "notify": false,
+  "pending_geofence": {
+    "request_id": "2dc9480f-a776-47ea-aef4-25b5ffe3d98e",
+    "ticker": "WXBTC15M-26SEP130600-15",
+    "side": "YES",
+    "track": "A",
+    "size_usd": 5,
+    "mid": 0.535,
+    "spr": 0.0101,
+    "move": 0.0842,
+    "pages": "https://enudimmud.github.io/N-ABU-Dashboard/assets/geofence-buy-btc15m.html",
+    "geofence_url": "https://api.paybox.sh/iframe/swap/2dc9480f-a776-47ea-aef4-25b5ffe3d98e/geofence",
+    "token_exp_zh": "2026-09-13T08:22:23+02:00",
+    "eval_id": "20260913-0804-CRYPTO"
+  },
+  "awaiting_region_check": true,
+  "notify": true,
   "utilization": {
     "open_usd": 35.0,
     "max_usd": 50.94,
@@ -419,5 +432,6 @@
     "bankroll_usd": 50.94,
     "realized_pnl_usd": 4.0925
   },
-  "as_of_paybox": "2026-09-13T06:08:09.070510767+00:00"
+  "as_of_paybox": "2026-09-13T06:08:09.070510767+00:00",
+  "decision": "PREPARE_A"
 }
