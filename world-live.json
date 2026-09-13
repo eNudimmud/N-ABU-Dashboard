@@ -1,8 +1,8 @@
 {
   "schema_version": 2,
   "example": false,
-  "generated_at": "2026-09-13T13:29:33Z",
-  "generated_at_zh": "2026-09-13T15:29:33+02:00",
+  "generated_at": "2026-09-13T13:52:56Z",
+  "generated_at_zh": "2026-09-13T15:52:56+02:00",
   "source": "paybox world positions \u2014 rebuild_and_push_world_live.py",
   "venue": "world.xyz",
   "wallet": {
@@ -12,13 +12,13 @@
   },
   "mode": "LIVE_ONLY",
   "ticket_usd": 5.0,
-  "bankroll_usd": 50.95,
+  "bankroll_usd": 51.03,
   "caps": {
     "A": {
       "open_usd": 5.0,
       "max_usd": 40.0,
       "pool_usd": 40.0,
-      "bankroll_usd": 50.95,
+      "bankroll_usd": 51.03,
       "label_only": true,
       "share_of_pool_pct": 12.5
     },
@@ -26,27 +26,41 @@
       "open_usd": 30.0,
       "max_usd": 40.0,
       "pool_usd": 40.0,
-      "bankroll_usd": 50.95,
+      "bankroll_usd": 51.03,
       "label_only": true,
       "share_of_pool_pct": 75.0
     },
     "pool_usd": 40.0,
-    "bankroll_usd": 50.95
+    "bankroll_usd": 51.03
   },
   "capacity": {
     "n_open": 7,
     "max_open": 8,
     "remaining_tickets": 1,
     "ticket": 5.0,
-    "max_open_usd": 50.95,
+    "max_open_usd": 51.03,
     "ticket_cap_usd": 40.0,
-    "bankroll_usd": 50.95,
+    "bankroll_usd": 51.03,
     "util_basis": "bankroll_usd",
     "deploy_all_cash_ok": true,
     "A_open": 5.0,
     "B_open": 30.0
   },
   "positions": [
+    {
+      "market": "PHI Eagles YES",
+      "ticker": "WXNFL-26SEP13WASPHI-PEAG",
+      "track": "B",
+      "side": "YES",
+      "size_usd": 5.0,
+      "mark_usd": 5.0578,
+      "upnl_usd": 0.0578,
+      "mint": "9Xop5RNLHfPZZ84dnsUjcDEBTBSYs4BqBr7QpXAFjAPb",
+      "held_atomic": "7277070",
+      "held_shares": 7.27707,
+      "status": "open",
+      "position_result": "pending"
+    },
     {
       "market": "PIT Steelers YES",
       "ticker": "WXNFL-26SEP13ATLPIT-PSTE",
@@ -58,20 +72,6 @@
       "mint": "9eVCZW4oUXDo11N6K6TWCuC7BcBccwZTQ7n5aT6MYy9P",
       "held_atomic": "6878950",
       "held_shares": 6.87895,
-      "status": "open",
-      "position_result": "pending"
-    },
-    {
-      "market": "PHI Eagles YES",
-      "ticker": "WXNFL-26SEP13WASPHI-PEAG",
-      "track": "B",
-      "side": "YES",
-      "size_usd": 5.0,
-      "mark_usd": 4.985,
-      "upnl_usd": -0.015,
-      "mint": "9Xop5RNLHfPZZ84dnsUjcDEBTBSYs4BqBr7QpXAFjAPb",
-      "held_atomic": "7277070",
-      "held_shares": 7.27707,
       "status": "open",
       "position_result": "pending"
     },
@@ -137,8 +137,8 @@
       "track": "B",
       "side": "YES",
       "size_usd": 5.0,
-      "mark_usd": 4.8246,
-      "upnl_usd": -0.1754,
+      "mark_usd": 4.8248,
+      "upnl_usd": -0.1752,
       "mint": "AzYRWeHmHQbpwoDKJb4A9YgGq7tiwyfwCd4GJJWKeJb4",
       "held_atomic": "5769088",
       "held_shares": 5.769088,
@@ -387,22 +387,22 @@
     "usdc": 15.51,
     "idle_usd": 15.51,
     "idle_usdc": 15.51,
-    "sol_dust_usd": 0.9539,
+    "sol_dust_usd": 0.9596,
     "deployed_usd": 35.0,
     "deployed_cost_usd": 35.0,
-    "positions_mark_usd": 34.48,
+    "positions_mark_usd": 34.55,
     "positions_cost_usd": 35.0,
-    "total_usd": 50.95,
-    "bankroll_usd": 50.95,
+    "total_usd": 51.03,
+    "bankroll_usd": 51.03,
     "realized_pnl_usd": 4.0925,
-    "unrealized_pnl_usd": -0.519,
+    "unrealized_pnl_usd": -0.446,
     "fees_usd": 0.0,
-    "net_usd": 3.5735,
-    "marks_plus_usdc": 49.99,
-    "paybox_total_usd": 50.9472
+    "net_usd": 3.6465,
+    "marks_plus_usdc": 50.07,
+    "paybox_total_usd": 51.0265
   },
   "autonomy": {
-    "evaluated_at": "2026-09-13T15:29:33+02:00",
+    "evaluated_at": "2026-09-13T15:52:56+02:00",
     "note": "PayBox rebuild \u00b7 open 7/8"
   },
   "pending_geofence": null,
@@ -410,14 +410,14 @@
   "notify": false,
   "utilization": {
     "open_usd": 35.0,
-    "max_usd": 50.95,
+    "max_usd": 51.03,
     "basis": "deployed_cost / bankroll_usd",
     "ticket_cap_usd": 40.0
   },
   "sub_runway": {
     "target_chf": 1700,
-    "bankroll_usd": 50.95,
+    "bankroll_usd": 51.03,
     "realized_pnl_usd": 4.0925
   },
-  "as_of_paybox": "2026-09-13T13:29:36.621402827+00:00"
+  "as_of_paybox": "2026-09-13T13:52:59.440643574+00:00"
 }
