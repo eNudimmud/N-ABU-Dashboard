@@ -1,8 +1,8 @@
 {
   "schema_version": 2,
   "example": false,
-  "generated_at": "2026-09-13T12:59:34Z",
-  "generated_at_zh": "2026-09-13T14:59:34+02:00",
+  "generated_at": "2026-09-13T13:04:42Z",
+  "generated_at_zh": "2026-09-13T15:04:42+02:00",
   "source": "paybox world positions \u2014 rebuild_and_push_world_live.py",
   "venue": "world.xyz",
   "wallet": {
@@ -137,8 +137,8 @@
       "track": "B",
       "side": "YES",
       "size_usd": 5.0,
-      "mark_usd": 4.8821,
-      "upnl_usd": -0.1179,
+      "mark_usd": 4.8824,
+      "upnl_usd": -0.1176,
       "mint": "AzYRWeHmHQbpwoDKJb4A9YgGq7tiwyfwCd4GJJWKeJb4",
       "held_atomic": "5769088",
       "held_shares": 5.769088,
@@ -318,16 +318,6 @@
   ],
   "settled": [
     {
-      "market": "Arsenal YES",
-      "ticker": "WXEPL-26SEP122000ARSESUND-ARSE",
-      "result": "won",
-      "pnl_usd": 2.8454,
-      "size_usd": 5.0,
-      "track": "A",
-      "redeemable": "cashed",
-      "settlement_asset": "CASH"
-    },
-    {
       "market": "BTC15M YES",
       "ticker": "WXBTC15M-26SEP130530-15",
       "result": "won",
@@ -346,20 +336,19 @@
       "track": "B",
       "redeemable": "cashed",
       "settlement_asset": "CASH"
+    },
+    {
+      "market": "Arsenal YES",
+      "ticker": "WXEPL-26SEP122000ARSESUND-ARSE",
+      "result": "won",
+      "pnl_usd": 2.8454,
+      "size_usd": 5.0,
+      "track": "A",
+      "redeemable": "cashed",
+      "settlement_asset": "CASH"
     }
   ],
   "settled_paybox": [
-    {
-      "held_amount": null,
-      "last_known_amount": "7845429",
-      "market_status": "finalized",
-      "market_ticker": "WXEPL-26SEP122000ARSESUND-ARSE",
-      "outcome_mint": "7m6EfZGRaD1riwQJjtvGVZH2PQ1r6W8V5HPoD52HTHE7",
-      "position_result": "won",
-      "redeemable": "open",
-      "redemption_value_usd": null,
-      "settlement_asset": "CASH"
-    },
     {
       "held_amount": null,
       "last_known_amount": "5375697",
@@ -381,6 +370,17 @@
       "redeemable": "open",
       "redemption_value_usd": null,
       "settlement_asset": "CASH"
+    },
+    {
+      "held_amount": null,
+      "last_known_amount": "7845429",
+      "market_status": "finalized",
+      "market_ticker": "WXEPL-26SEP122000ARSESUND-ARSE",
+      "outcome_mint": "7m6EfZGRaD1riwQJjtvGVZH2PQ1r6W8V5HPoD52HTHE7",
+      "position_result": "won",
+      "redeemable": "open",
+      "redemption_value_usd": null,
+      "settlement_asset": "CASH"
     }
   ],
   "cashflow": {
@@ -395,14 +395,14 @@
     "total_usd": 51.01,
     "bankroll_usd": 51.01,
     "realized_pnl_usd": 4.0925,
-    "unrealized_pnl_usd": -0.4616,
+    "unrealized_pnl_usd": -0.4613,
     "fees_usd": 0.0,
-    "net_usd": 3.6309,
+    "net_usd": 3.6312,
     "marks_plus_usdc": 50.05,
     "paybox_total_usd": 51.0063
   },
   "autonomy": {
-    "evaluated_at": "2026-09-13T14:59:34+02:00",
+    "evaluated_at": "2026-09-13T15:04:42+02:00",
     "note": "PayBox rebuild \u00b7 open 7/8"
   },
   "pending_geofence": null,
@@ -419,5 +419,5 @@
     "bankroll_usd": 51.01,
     "realized_pnl_usd": 4.0925
   },
-  "as_of_paybox": "2026-09-13T12:59:37.786681675+00:00"
+  "as_of_paybox": "2026-09-13T13:04:45.957001435+00:00"
 }
