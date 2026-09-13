@@ -1,8 +1,8 @@
 {
   "schema_version": 2,
   "example": false,
-  "generated_at": "2026-09-13T05:43:05Z",
-  "generated_at_zh": "2026-09-13T07:43:05+02:00",
+  "generated_at": "2026-09-13T05:51:35Z",
+  "generated_at_zh": "2026-09-13T07:51:35+02:00",
   "source": "paybox world positions \u2014 rebuild_and_push_world_live.py",
   "venue": "world.xyz",
   "wallet": {
@@ -12,57 +12,41 @@
   },
   "mode": "LIVE_ONLY",
   "ticket_usd": 5.0,
-  "bankroll_usd": 45.44,
+  "bankroll_usd": 50.95,
   "caps": {
     "A": {
       "open_usd": 5.0,
       "max_usd": 40.0,
       "pool_usd": 40.0,
-      "bankroll_usd": 45.44,
+      "bankroll_usd": 50.95,
       "label_only": true,
       "share_of_pool_pct": 12.5
     },
     "B": {
-      "open_usd": 35.0,
+      "open_usd": 30.0,
       "max_usd": 40.0,
       "pool_usd": 40.0,
-      "bankroll_usd": 45.44,
+      "bankroll_usd": 50.95,
       "label_only": true,
-      "share_of_pool_pct": 87.5
+      "share_of_pool_pct": 75.0
     },
     "pool_usd": 40.0,
-    "bankroll_usd": 45.44
+    "bankroll_usd": 50.95
   },
   "capacity": {
-    "n_open": 8,
+    "n_open": 7,
     "max_open": 8,
-    "remaining_tickets": 0,
+    "remaining_tickets": 1,
     "ticket": 5.0,
-    "max_open_usd": 45.44,
+    "max_open_usd": 50.95,
     "ticket_cap_usd": 40.0,
-    "bankroll_usd": 45.44,
+    "bankroll_usd": 50.95,
     "util_basis": "bankroll_usd",
     "deploy_all_cash_ok": true,
     "A_open": 5.0,
-    "B_open": 35.0
+    "B_open": 30.0
   },
   "positions": [
-    {
-      "market": "WXBTC15M-26SEP130530-15 YES",
-      "ticker": "WXBTC15M-26SEP130530-15",
-      "track": "B",
-      "side": "YES",
-      "size_usd": 5.0,
-      "mark_usd": 5.3075,
-      "upnl_usd": 0.3075,
-      "mint": "Hj1VrU3zjFMRUVyCmfhWJ1ok5y9Q5Hz4fr2KpT47Wrzt",
-      "held_atomic": "5375697",
-      "held_shares": 5.375697,
-      "status": "open",
-      "position_result": "pending",
-      "mid": 0.9873,
-      "mark_note": "ob_proxy_world_price_unavailable"
-    },
     {
       "market": "PIT Steelers YES",
       "ticker": "WXNFL-26SEP13ATLPIT-PSTE",
@@ -164,16 +148,16 @@
   ],
   "fills": [
     {
-      "ts": "2026-09-13T05:39:50.206136335Z",
-      "action": "open",
+      "ts": "2026-09-13T07:48:10+02:00",
+      "action": "close",
       "market": "BTC15M YES",
       "track": "A",
       "side": "YES",
-      "size_usd": 5,
-      "pnl_usd": null,
-      "tx": "596bhfCfbDWiBwY9ougFqeAa2YH5TEomrxL3LFp21gyNuRN9Vk1jby5kMsrjBWjLWGHhnZXgrrG8gw9Fku91v3qQ",
-      "ticker": "WXBTC15M-26SEP130530",
-      "note": "success"
+      "size_usd": 5.0,
+      "pnl_usd": 0.3583,
+      "tx": "3PZwMv9GSGYHt5syvfYjchTKubci9TUBgZWoLnGsbkJG22saGPC5Ff3aPWAmn413DUf63NZHCutZaBrDtuuCW3RL",
+      "ticker": "WXBTC15M-26SEP130530-15",
+      "note": "settled_cashed"
     },
     {
       "ts": "2026-09-13T04:43:05+02:00",
@@ -344,6 +328,16 @@
       "settlement_asset": "CASH"
     },
     {
+      "market": "BTC15M YES",
+      "ticker": "WXBTC15M-26SEP130530-15",
+      "result": "won",
+      "pnl_usd": 0.3583,
+      "size_usd": 5.0,
+      "track": "A",
+      "redeemable": "cashed",
+      "settlement_asset": "CASH"
+    },
+    {
       "market": "Arsenal YES",
       "ticker": "WXEPL-26SEP122000ARSESUND-ARSE",
       "result": "won",
@@ -368,6 +362,17 @@
     },
     {
       "held_amount": null,
+      "last_known_amount": "5375697",
+      "market_status": "finalized",
+      "market_ticker": "WXBTC15M-26SEP130530-15",
+      "outcome_mint": "Hj1VrU3zjFMRUVyCmfhWJ1ok5y9Q5Hz4fr2KpT47Wrzt",
+      "position_result": "won",
+      "redeemable": "open",
+      "redemption_value_usd": null,
+      "settlement_asset": "CASH"
+    },
+    {
+      "held_amount": null,
       "last_known_amount": "7845429",
       "market_status": "finalized",
       "market_ticker": "WXEPL-26SEP122000ARSESUND-ARSE",
@@ -379,40 +384,40 @@
     }
   ],
   "cashflow": {
-    "usdc": 10.16,
-    "idle_usd": 10.16,
-    "idle_usdc": 10.16,
-    "sol_dust_usd": 0.83,
-    "deployed_usd": 40.0,
-    "deployed_cost_usd": 40.0,
-    "positions_mark_usd": 39.76,
-    "positions_cost_usd": 40.0,
-    "total_usd": 45.44,
-    "bankroll_usd": 45.44,
-    "realized_pnl_usd": 3.7342,
-    "unrealized_pnl_usd": -0.2356,
+    "usdc": 15.51,
+    "idle_usd": 15.51,
+    "idle_usdc": 15.51,
+    "sol_dust_usd": 0.9762,
+    "deployed_usd": 35.0,
+    "deployed_cost_usd": 35.0,
+    "positions_mark_usd": 34.46,
+    "positions_cost_usd": 35.0,
+    "total_usd": 50.95,
+    "bankroll_usd": 50.95,
+    "realized_pnl_usd": 4.0925,
+    "unrealized_pnl_usd": -0.5431,
     "fees_usd": 0.0,
-    "net_usd": 3.4986,
-    "marks_plus_usdc": 49.92,
-    "paybox_total_usd": 45.442
+    "net_usd": 3.5494,
+    "marks_plus_usdc": 49.97,
+    "paybox_total_usd": 50.9456
   },
   "autonomy": {
-    "evaluated_at": "2026-09-13T07:43:05+02:00",
-    "note": "PayBox rebuild \u00b7 open 8/8"
+    "evaluated_at": "2026-09-13T07:51:35+02:00",
+    "note": "PayBox rebuild \u00b7 open 7/8"
   },
   "pending_geofence": null,
   "awaiting_region_check": false,
   "notify": false,
   "utilization": {
-    "open_usd": 40.0,
-    "max_usd": 45.44,
+    "open_usd": 35.0,
+    "max_usd": 50.95,
     "basis": "deployed_cost / bankroll_usd",
     "ticket_cap_usd": 40.0
   },
   "sub_runway": {
     "target_chf": 1700,
-    "bankroll_usd": 45.44,
-    "realized_pnl_usd": 3.7342
+    "bankroll_usd": 50.95,
+    "realized_pnl_usd": 4.0925
   },
-  "as_of_paybox": "2026-09-13T05:43:08.223267426+00:00"
+  "as_of_paybox": "2026-09-13T05:51:38.767628310+00:00"
 }
