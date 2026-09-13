@@ -1,9 +1,9 @@
 {
   "schema_version": 2,
   "example": false,
-  "generated_at": "2026-09-13T02:15:54Z",
-  "generated_at_zh": "2026-09-13T04:15:54+02:00",
-  "source": "live-score 20260913-0411-LIVE \u2014 HOLD_FULL 8/8 + rebuild marks + score mids",
+  "generated_at": "2026-09-13T02:17:25Z",
+  "generated_at_zh": "2026-09-13T04:17:25+02:00",
+  "source": "paybox world positions \u2014 rebuild_and_push_world_live.py",
   "venue": "world.xyz",
   "wallet": {
     "chain": "solana",
@@ -73,8 +73,7 @@
       "held_atomic": "5769088",
       "held_shares": 5.769088,
       "status": "open",
-      "position_result": "pending",
-      "mid": 0.8658
+      "position_result": "pending"
     },
     {
       "market": "PIT Steelers YES",
@@ -88,8 +87,7 @@
       "held_atomic": "6878950",
       "held_shares": 6.87895,
       "status": "open",
-      "position_result": "pending",
-      "mid": 0.725
+      "position_result": "pending"
     },
     {
       "market": "JAC Jaguars YES",
@@ -103,8 +101,7 @@
       "held_atomic": "6277560",
       "held_shares": 6.27756,
       "status": "open",
-      "position_result": "pending",
-      "mid": 0.785
+      "position_result": "pending"
     },
     {
       "market": "DET Lions YES",
@@ -118,8 +115,7 @@
       "held_atomic": "6607747",
       "held_shares": 6.607747,
       "status": "open",
-      "position_result": "pending",
-      "mid": 0.745
+      "position_result": "pending"
     },
     {
       "market": "PHI Eagles YES",
@@ -133,8 +129,7 @@
       "held_atomic": "7277070",
       "held_shares": 7.27707,
       "status": "open",
-      "position_result": "pending",
-      "mid": 0.675
+      "position_result": "pending"
     },
     {
       "market": "CIN Bengals YES",
@@ -148,8 +143,7 @@
       "held_atomic": "7726164",
       "held_shares": 7.726164,
       "status": "open",
-      "position_result": "pending",
-      "mid": 0.635
+      "position_result": "pending"
     },
     {
       "market": "Real Madrid YES",
@@ -163,8 +157,7 @@
       "held_atomic": "6354866",
       "held_shares": 6.354866,
       "status": "open",
-      "position_result": "pending",
-      "mid": 0.7652
+      "position_result": "pending"
     }
   ],
   "fills": [
@@ -426,10 +419,10 @@
     "fees_usd": 0.0,
     "net_usd": 4.9201,
     "marks_plus_usdc": 49.64,
-    "paybox_total_usd": 42.931
+    "paybox_total_usd": 42.9309
   },
   "autonomy": {
-    "evaluated_at": "2026-09-13T04:15:47+02:00",
+    "evaluated_at": "2026-09-13T04:17:25+02:00",
     "note": "PayBox rebuild \u00b7 open 8/8"
   },
   "pending_geofence": null,
@@ -445,5 +438,5 @@
     "bankroll_usd": 42.93,
     "realized_pnl_usd": 2.85
   },
-  "as_of_paybox": "2026-09-13T02:15:50.705953417+00:00"
+  "as_of_paybox": "2026-09-13T02:17:28.219622296+00:00"
 }
