@@ -1,8 +1,8 @@
 {
   "schema_version": 2,
   "example": false,
-  "generated_at": "2026-09-13T02:52:16Z",
-  "generated_at_zh": "2026-09-13T04:52:16+02:00",
+  "generated_at": "2026-09-13T02:53:45Z",
+  "generated_at_zh": "2026-09-13T04:53:45+02:00",
   "source": "paybox world positions \u2014 rebuild_and_push_world_live.py",
   "venue": "world.xyz",
   "wallet": {
@@ -38,8 +38,10 @@
     "max_open": 8,
     "remaining_tickets": 1,
     "ticket": 5.0,
-    "max_open_usd": 40.0,
+    "max_open_usd": 50.66,
+    "ticket_cap_usd": 40.0,
     "bankroll_usd": 50.66,
+    "util_basis": "bankroll_usd",
     "deploy_all_cash_ok": true,
     "A_open": 5.0,
     "B_open": 30.0
@@ -152,8 +154,8 @@
       "track": "B",
       "side": "YES",
       "size_usd": 5.0,
-      "pnl_usd": null,
-      "tx": null,
+      "pnl_usd": 2.6072,
+      "tx": "2w7VdypR3BXBgAE56kzT4Nv6XVweRApQ1VGHKSo8aobBgKJEhDh8K3WErmAqkmXLxBY6kZVpVfJPidrR7ZTSwbqR",
       "ticker": "WXMLB-26SEP121810CINMIL-MBRE",
       "note": "settled_cashed"
     },
@@ -164,8 +166,8 @@
       "track": "A",
       "side": "YES",
       "size_usd": 5.0,
-      "pnl_usd": null,
-      "tx": null,
+      "pnl_usd": 2.8454,
+      "tx": "2F2fH5h6crEaCHBLdfNNWgXK8Sz2cG1ThoecnRoFLvruuD7RCGQnBdg9h4LpFeAPkWy34tKuwowFKMBZXWW74R7J",
       "ticker": "WXEPL-26SEP122000ARSESUND-ARSE",
       "note": "settled_cashed"
     },
@@ -376,28 +378,27 @@
   ],
   "settled": [
     {
+      "market": "MIL Brewers YES",
+      "ticker": "WXMLB-26SEP121810CINMIL-MBRE",
+      "result": "won",
+      "pnl_usd": 2.6072,
+      "size_usd": 5.0,
+      "track": "B",
+      "redeemable": "cashed",
+      "settlement_asset": "CASH"
+    },
+    {
       "market": "Arsenal YES",
       "ticker": "WXEPL-26SEP122000ARSESUND-ARSE",
       "result": "won",
-      "pnl_usd": 2.85,
+      "pnl_usd": 2.8454,
       "size_usd": 5.0,
       "track": "A",
-      "redeemable": "open",
+      "redeemable": "cashed",
       "settlement_asset": "CASH"
     }
   ],
   "settled_paybox": [
-    {
-      "held_amount": null,
-      "last_known_amount": "7845429",
-      "market_status": "finalized",
-      "market_ticker": "WXEPL-26SEP122000ARSESUND-ARSE",
-      "outcome_mint": "7m6EfZGRaD1riwQJjtvGVZH2PQ1r6W8V5HPoD52HTHE7",
-      "position_result": "won",
-      "redeemable": "open",
-      "redemption_value_usd": null,
-      "settlement_asset": "CASH"
-    },
     {
       "held_amount": null,
       "last_known_amount": "7607200",
@@ -408,28 +409,39 @@
       "redeemable": "open",
       "redemption_value_usd": null,
       "settlement_asset": "CASH"
+    },
+    {
+      "held_amount": null,
+      "last_known_amount": "7845429",
+      "market_status": "finalized",
+      "market_ticker": "WXEPL-26SEP122000ARSESUND-ARSE",
+      "outcome_mint": "7m6EfZGRaD1riwQJjtvGVZH2PQ1r6W8V5HPoD52HTHE7",
+      "position_result": "won",
+      "redeemable": "open",
+      "redemption_value_usd": null,
+      "settlement_asset": "CASH"
     }
   ],
   "cashflow": {
     "usdc": 15.15,
     "idle_usd": 15.15,
     "idle_usdc": 15.15,
-    "sol_dust_usd": 0.9893,
+    "sol_dust_usd": 0.9881,
     "deployed_usd": 35.0,
     "deployed_cost_usd": 35.0,
     "positions_mark_usd": 34.51,
     "positions_cost_usd": 35.0,
     "total_usd": 50.66,
     "bankroll_usd": 50.66,
-    "realized_pnl_usd": 2.85,
+    "realized_pnl_usd": 5.4526,
     "unrealized_pnl_usd": -0.4856,
     "fees_usd": 0.0,
-    "net_usd": 2.3644,
+    "net_usd": 4.967,
     "marks_plus_usdc": 49.67,
-    "paybox_total_usd": 50.6583
+    "paybox_total_usd": 50.6569
   },
   "autonomy": {
-    "evaluated_at": "2026-09-13T04:52:16+02:00",
+    "evaluated_at": "2026-09-13T04:53:45+02:00",
     "note": "PayBox rebuild \u00b7 open 7/8"
   },
   "pending_geofence": null,
@@ -437,13 +449,14 @@
   "notify": false,
   "utilization": {
     "open_usd": 35.0,
-    "max_usd": 40.0,
-    "basis": "deployed_cost / max_open_usd"
+    "max_usd": 50.66,
+    "basis": "deployed_cost / bankroll_usd",
+    "ticket_cap_usd": 40.0
   },
   "sub_runway": {
     "target_chf": 1700,
     "bankroll_usd": 50.66,
-    "realized_pnl_usd": 2.85
+    "realized_pnl_usd": 5.4526
   },
-  "as_of_paybox": "2026-09-13T02:52:19.082506636+00:00"
+  "as_of_paybox": "2026-09-13T02:53:48.561396768+00:00"
 }
