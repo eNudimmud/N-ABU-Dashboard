@@ -1,8 +1,8 @@
 {
   "schema_version": 2,
   "example": false,
-  "generated_at": "2026-09-13T16:29:03Z",
-  "generated_at_zh": "2026-09-13T18:29:03+02:00",
+  "generated_at": "2026-09-13T16:33:38Z",
+  "generated_at_zh": "2026-09-13T18:33:38+02:00",
   "source": "paybox world positions \u2014 rebuild_and_push_world_live.py",
   "venue": "world.xyz",
   "wallet": {
@@ -12,13 +12,13 @@
   },
   "mode": "LIVE_ONLY",
   "ticket_usd": 5.0,
-  "bankroll_usd": 51.96,
+  "bankroll_usd": 52.02,
   "caps": {
     "A": {
       "open_usd": 5.0,
       "max_usd": 40.0,
       "pool_usd": 40.0,
-      "bankroll_usd": 51.96,
+      "bankroll_usd": 52.02,
       "label_only": true,
       "share_of_pool_pct": 12.5
     },
@@ -26,21 +26,21 @@
       "open_usd": 30.0,
       "max_usd": 40.0,
       "pool_usd": 40.0,
-      "bankroll_usd": 51.96,
+      "bankroll_usd": 52.02,
       "label_only": true,
       "share_of_pool_pct": 75.0
     },
     "pool_usd": 40.0,
-    "bankroll_usd": 51.96
+    "bankroll_usd": 52.02
   },
   "capacity": {
     "n_open": 7,
     "max_open": 8,
     "remaining_tickets": 1,
     "ticket": 5.0,
-    "max_open_usd": 51.96,
+    "max_open_usd": 52.02,
     "ticket_cap_usd": 40.0,
-    "bankroll_usd": 51.96,
+    "bankroll_usd": 52.02,
     "util_basis": "bankroll_usd",
     "deploy_all_cash_ok": true,
     "A_open": 5.0,
@@ -53,8 +53,8 @@
       "track": "B",
       "side": "YES",
       "size_usd": 5.0,
-      "mark_usd": 5.6903,
-      "upnl_usd": 0.6903,
+      "mark_usd": 5.6902,
+      "upnl_usd": 0.6902,
       "mint": "AzYRWeHmHQbpwoDKJb4A9YgGq7tiwyfwCd4GJJWKeJb4",
       "held_atomic": "5769088",
       "held_shares": 5.769088,
@@ -74,6 +74,20 @@
       "mint": "9Xop5RNLHfPZZ84dnsUjcDEBTBSYs4BqBr7QpXAFjAPb",
       "held_atomic": "7277070",
       "held_shares": 7.27707,
+      "status": "open",
+      "position_result": "pending"
+    },
+    {
+      "market": "JAC Jaguars YES",
+      "ticker": "WXNFL-26SEP13CLEJAC-JJAG",
+      "track": "B",
+      "side": "YES",
+      "size_usd": 5.0,
+      "mark_usd": 4.991,
+      "upnl_usd": -0.009,
+      "mint": "D4SQxgvMhq53k7CWkc3Ck1muUyQWKvG3TQ537tuftxhm",
+      "held_atomic": "6277560",
+      "held_shares": 6.27756,
       "status": "open",
       "position_result": "pending"
     },
@@ -102,20 +116,6 @@
       "mint": "9eVCZW4oUXDo11N6K6TWCuC7BcBccwZTQ7n5aT6MYy9P",
       "held_atomic": "6878950",
       "held_shares": 6.87895,
-      "status": "open",
-      "position_result": "pending"
-    },
-    {
-      "market": "JAC Jaguars YES",
-      "ticker": "WXNFL-26SEP13CLEJAC-JJAG",
-      "track": "B",
-      "side": "YES",
-      "size_usd": 5.0,
-      "mark_usd": 4.9282,
-      "upnl_usd": -0.0718,
-      "mint": "D4SQxgvMhq53k7CWkc3Ck1muUyQWKvG3TQ537tuftxhm",
-      "held_atomic": "6277560",
-      "held_shares": 6.27756,
       "status": "open",
       "position_result": "pending"
     },
@@ -320,16 +320,6 @@
   ],
   "settled": [
     {
-      "market": "Arsenal YES",
-      "ticker": "WXEPL-26SEP122000ARSESUND-ARSE",
-      "result": "won",
-      "pnl_usd": 2.8454,
-      "size_usd": 5.0,
-      "track": "A",
-      "redeemable": "cashed",
-      "settlement_asset": "CASH"
-    },
-    {
       "market": "BTC15M YES",
       "ticker": "WXBTC15M-26SEP130530-15",
       "result": "won",
@@ -348,20 +338,19 @@
       "track": "B",
       "redeemable": "cashed",
       "settlement_asset": "CASH"
+    },
+    {
+      "market": "Arsenal YES",
+      "ticker": "WXEPL-26SEP122000ARSESUND-ARSE",
+      "result": "won",
+      "pnl_usd": 2.8454,
+      "size_usd": 5.0,
+      "track": "A",
+      "redeemable": "cashed",
+      "settlement_asset": "CASH"
     }
   ],
   "settled_paybox": [
-    {
-      "held_amount": null,
-      "last_known_amount": "7845429",
-      "market_status": "finalized",
-      "market_ticker": "WXEPL-26SEP122000ARSESUND-ARSE",
-      "outcome_mint": "7m6EfZGRaD1riwQJjtvGVZH2PQ1r6W8V5HPoD52HTHE7",
-      "position_result": "won",
-      "redeemable": "open",
-      "redemption_value_usd": null,
-      "settlement_asset": "CASH"
-    },
     {
       "held_amount": null,
       "last_known_amount": "5375697",
@@ -383,30 +372,41 @@
       "redeemable": "open",
       "redemption_value_usd": null,
       "settlement_asset": "CASH"
+    },
+    {
+      "held_amount": null,
+      "last_known_amount": "7845429",
+      "market_status": "finalized",
+      "market_ticker": "WXEPL-26SEP122000ARSESUND-ARSE",
+      "outcome_mint": "7m6EfZGRaD1riwQJjtvGVZH2PQ1r6W8V5HPoD52HTHE7",
+      "position_result": "won",
+      "redeemable": "open",
+      "redemption_value_usd": null,
+      "settlement_asset": "CASH"
     }
   ],
   "cashflow": {
     "usdc": 15.51,
     "idle_usd": 15.51,
     "idle_usdc": 15.51,
-    "sol_dust_usd": 0.9655,
+    "sol_dust_usd": 0.9644,
     "deployed_usd": 35.0,
     "deployed_cost_usd": 35.0,
-    "positions_mark_usd": 35.48,
+    "positions_mark_usd": 35.55,
     "positions_cost_usd": 35.0,
-    "total_usd": 51.96,
-    "bankroll_usd": 51.96,
+    "total_usd": 52.02,
+    "bankroll_usd": 52.02,
     "realized_pnl_usd": 4.0925,
-    "unrealized_pnl_usd": 0.4832,
+    "unrealized_pnl_usd": 0.5459,
     "fees_usd": 0.0,
-    "net_usd": 4.5757,
-    "marks_plus_usdc": 51.0,
-    "paybox_total_usd": 46.27,
-    "equity_components_usd": 51.96,
+    "net_usd": 4.6384,
+    "marks_plus_usdc": 51.06,
+    "paybox_total_usd": 46.33,
+    "equity_components_usd": 52.02,
     "bankroll_basis": "usdc+marks+sol_dust"
   },
   "autonomy": {
-    "evaluated_at": "2026-09-13T18:29:03+02:00",
+    "evaluated_at": "2026-09-13T18:33:38+02:00",
     "note": "PayBox rebuild \u00b7 open 7/8"
   },
   "pending_geofence": null,
@@ -414,14 +414,14 @@
   "notify": false,
   "utilization": {
     "open_usd": 35.0,
-    "max_usd": 51.96,
+    "max_usd": 52.02,
     "basis": "deployed_cost / bankroll_usd",
     "ticket_cap_usd": 40.0
   },
   "sub_runway": {
     "target_chf": 1700,
-    "bankroll_usd": 51.96,
+    "bankroll_usd": 52.02,
     "realized_pnl_usd": 4.0925
   },
-  "as_of_paybox": "2026-09-13T16:29:06.950522828+00:00"
+  "as_of_paybox": "2026-09-13T16:33:41.372488491+00:00"
 }
