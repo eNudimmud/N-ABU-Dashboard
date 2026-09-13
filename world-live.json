@@ -1,8 +1,8 @@
 {
   "schema_version": 2,
   "example": false,
-  "generated_at": "2026-09-13T20:47:11Z",
-  "generated_at_zh": "2026-09-13T22:47:11+02:00",
+  "generated_at": "2026-09-13T20:52:00Z",
+  "generated_at_zh": "2026-09-13T22:52:00+02:00",
   "source": "paybox world positions \u2014 rebuild_and_push_world_live.py",
   "venue": "world.xyz",
   "wallet": {
@@ -12,13 +12,13 @@
   },
   "mode": "LIVE_ONLY",
   "ticket_usd": 5.0,
-  "bankroll_usd": 60.3,
+  "bankroll_usd": 60.51,
   "caps": {
     "A": {
       "open_usd": 5.0,
       "max_usd": 40.0,
       "pool_usd": 40.0,
-      "bankroll_usd": 60.3,
+      "bankroll_usd": 60.51,
       "label_only": true,
       "share_of_pool_pct": 12.5
     },
@@ -26,21 +26,21 @@
       "open_usd": 10.0,
       "max_usd": 40.0,
       "pool_usd": 40.0,
-      "bankroll_usd": 60.3,
+      "bankroll_usd": 60.51,
       "label_only": true,
       "share_of_pool_pct": 25.0
     },
     "pool_usd": 40.0,
-    "bankroll_usd": 60.3
+    "bankroll_usd": 60.51
   },
   "capacity": {
     "n_open": 3,
     "max_open": 8,
     "remaining_tickets": 5,
     "ticket": 5.0,
-    "max_open_usd": 60.3,
+    "max_open_usd": 60.51,
     "ticket_cap_usd": 40.0,
-    "bankroll_usd": 60.3,
+    "bankroll_usd": 60.51,
     "util_basis": "bankroll_usd",
     "deploy_all_cash_ok": true,
     "A_open": 5.0,
@@ -83,8 +83,8 @@
       "track": "B",
       "side": "YES",
       "size_usd": 5.0,
-      "mark_usd": 4.5488,
-      "upnl_usd": -0.4512,
+      "mark_usd": 4.767,
+      "upnl_usd": -0.233,
       "mint": "9Xop5RNLHfPZZ84dnsUjcDEBTBSYs4BqBr7QpXAFjAPb",
       "held_atomic": "7277070",
       "held_shares": 7.27707,
@@ -320,16 +320,6 @@
       "settlement_asset": "CASH"
     },
     {
-      "market": "Arsenal YES",
-      "ticker": "WXEPL-26SEP122000ARSESUND-ARSE",
-      "result": "won",
-      "pnl_usd": 2.8454,
-      "size_usd": 5.0,
-      "track": "A",
-      "redeemable": "cashed",
-      "settlement_asset": "CASH"
-    },
-    {
       "market": "WXNFL-26SEP13ATLPIT-PSTE",
       "ticker": "WXNFL-26SEP13ATLPIT-PSTE",
       "result": "won",
@@ -340,8 +330,8 @@
       "settlement_asset": "CASH"
     },
     {
-      "market": "WXNFL-26SEP13TBCIN-CBEN",
-      "ticker": "WXNFL-26SEP13TBCIN-CBEN",
+      "market": "WXNFL-26SEP13CLEJAC-JJAG",
+      "ticker": "WXNFL-26SEP13CLEJAC-JJAG",
       "result": "won",
       "pnl_usd": null,
       "size_usd": null,
@@ -360,13 +350,23 @@
       "settlement_asset": "CASH"
     },
     {
-      "market": "WXNFL-26SEP13CLEJAC-JJAG",
-      "ticker": "WXNFL-26SEP13CLEJAC-JJAG",
+      "market": "WXNFL-26SEP13TBCIN-CBEN",
+      "ticker": "WXNFL-26SEP13TBCIN-CBEN",
       "result": "won",
       "pnl_usd": null,
       "size_usd": null,
       "track": null,
       "redeemable": "open",
+      "settlement_asset": "CASH"
+    },
+    {
+      "market": "Arsenal YES",
+      "ticker": "WXEPL-26SEP122000ARSESUND-ARSE",
+      "result": "won",
+      "pnl_usd": 2.8454,
+      "size_usd": 5.0,
+      "track": "A",
+      "redeemable": "cashed",
       "settlement_asset": "CASH"
     }
   ],
@@ -395,17 +395,6 @@
     },
     {
       "held_amount": null,
-      "last_known_amount": "7845429",
-      "market_status": "finalized",
-      "market_ticker": "WXEPL-26SEP122000ARSESUND-ARSE",
-      "outcome_mint": "7m6EfZGRaD1riwQJjtvGVZH2PQ1r6W8V5HPoD52HTHE7",
-      "position_result": "won",
-      "redeemable": "open",
-      "redemption_value_usd": null,
-      "settlement_asset": "CASH"
-    },
-    {
-      "held_amount": null,
       "last_known_amount": "6878950",
       "market_status": "finalized",
       "market_ticker": "WXNFL-26SEP13ATLPIT-PSTE",
@@ -417,10 +406,10 @@
     },
     {
       "held_amount": null,
-      "last_known_amount": "7726164",
+      "last_known_amount": "6277560",
       "market_status": "finalized",
-      "market_ticker": "WXNFL-26SEP13TBCIN-CBEN",
-      "outcome_mint": "ExcaH6fdw9ujzyKUfVD8uBEdA4ciipQQG2LgbU7mVTmr",
+      "market_ticker": "WXNFL-26SEP13CLEJAC-JJAG",
+      "outcome_mint": "D4SQxgvMhq53k7CWkc3Ck1muUyQWKvG3TQ537tuftxhm",
       "position_result": "won",
       "redeemable": "open",
       "redemption_value_usd": null,
@@ -439,10 +428,21 @@
     },
     {
       "held_amount": null,
-      "last_known_amount": "6277560",
+      "last_known_amount": "7726164",
       "market_status": "finalized",
-      "market_ticker": "WXNFL-26SEP13CLEJAC-JJAG",
-      "outcome_mint": "D4SQxgvMhq53k7CWkc3Ck1muUyQWKvG3TQ537tuftxhm",
+      "market_ticker": "WXNFL-26SEP13TBCIN-CBEN",
+      "outcome_mint": "ExcaH6fdw9ujzyKUfVD8uBEdA4ciipQQG2LgbU7mVTmr",
+      "position_result": "won",
+      "redeemable": "open",
+      "redemption_value_usd": null,
+      "settlement_asset": "CASH"
+    },
+    {
+      "held_amount": null,
+      "last_known_amount": "7845429",
+      "market_status": "finalized",
+      "market_ticker": "WXEPL-26SEP122000ARSESUND-ARSE",
+      "outcome_mint": "7m6EfZGRaD1riwQJjtvGVZH2PQ1r6W8V5HPoD52HTHE7",
       "position_result": "won",
       "redeemable": "open",
       "redemption_value_usd": null,
@@ -453,24 +453,24 @@
     "usdc": 21.26,
     "idle_usd": 21.26,
     "idle_usdc": 21.26,
-    "sol_dust_usd": 2.0533,
+    "sol_dust_usd": 2.0534,
     "deployed_usd": 15.0,
     "deployed_cost_usd": 15.0,
-    "positions_mark_usd": 16.1,
+    "positions_mark_usd": 16.32,
     "positions_cost_usd": 15.0,
-    "total_usd": 60.3,
-    "bankroll_usd": 60.3,
+    "total_usd": 60.51,
+    "bankroll_usd": 60.51,
     "realized_pnl_usd": 4.8431,
-    "unrealized_pnl_usd": 1.1034,
+    "unrealized_pnl_usd": 1.3216,
     "fees_usd": 0.0,
-    "net_usd": 5.9465,
-    "marks_plus_usdc": 37.37,
-    "paybox_total_usd": 53.73,
-    "equity_components_usd": 60.3,
+    "net_usd": 6.1647,
+    "marks_plus_usdc": 37.58,
+    "paybox_total_usd": 53.95,
+    "equity_components_usd": 60.51,
     "bankroll_basis": "usdc+marks+sol_dust+world_cash"
   },
   "autonomy": {
-    "evaluated_at": "2026-09-13T22:47:11+02:00",
+    "evaluated_at": "2026-09-13T22:52:00+02:00",
     "note": "PayBox rebuild \u00b7 open 3/8"
   },
   "pending_geofence": null,
@@ -478,14 +478,14 @@
   "notify": false,
   "utilization": {
     "open_usd": 15.0,
-    "max_usd": 60.3,
+    "max_usd": 60.51,
     "basis": "deployed_cost / bankroll_usd",
     "ticket_cap_usd": 40.0
   },
   "sub_runway": {
     "target_chf": 1700,
-    "bankroll_usd": 60.3,
+    "bankroll_usd": 60.51,
     "realized_pnl_usd": 4.8431
   },
-  "as_of_paybox": "2026-09-13T20:47:14.287099976+00:00"
+  "as_of_paybox": "2026-09-13T20:52:03.336377580+00:00"
 }
