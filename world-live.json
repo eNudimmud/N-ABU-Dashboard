@@ -1,8 +1,8 @@
 {
   "schema_version": 2,
   "example": false,
-  "generated_at": "2026-09-13T03:24:06Z",
-  "generated_at_zh": "2026-09-13T05:24:06+02:00",
+  "generated_at": "2026-09-13T03:26:32Z",
+  "generated_at_zh": "2026-09-13T05:26:32+02:00",
   "source": "paybox world positions \u2014 rebuild_and_push_world_live.py",
   "venue": "world.xyz",
   "wallet": {
@@ -426,7 +426,7 @@
     "usdc": 15.15,
     "idle_usd": 15.15,
     "idle_usdc": 15.15,
-    "sol_dust_usd": 0.9883,
+    "sol_dust_usd": 0.9885,
     "deployed_usd": 35.0,
     "deployed_cost_usd": 35.0,
     "positions_mark_usd": 34.49,
@@ -438,10 +438,10 @@
     "fees_usd": 0.0,
     "net_usd": 4.9382,
     "marks_plus_usdc": 49.64,
-    "paybox_total_usd": 50.6284
+    "paybox_total_usd": 50.6285
   },
   "autonomy": {
-    "evaluated_at": "2026-09-13T05:24:06+02:00",
+    "evaluated_at": "2026-09-13T05:26:32+02:00",
     "note": "PayBox rebuild \u00b7 open 7/8"
   },
   "pending_geofence": null,
@@ -458,5 +458,5 @@
     "bankroll_usd": 50.63,
     "realized_pnl_usd": 5.4526
   },
-  "as_of_paybox": "2026-09-13T03:24:09.296737635+00:00"
+  "as_of_paybox": "2026-09-13T03:26:35.712711979+00:00"
 }
