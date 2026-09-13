@@ -7,22 +7,18 @@ button{width:100%;padding:16px;font-size:1.1rem;border:0;border-radius:12px;back
 #o{margin-top:14px;white-space:pre-wrap}.ok{color:#1a7f37}.bad{color:#c62828}
 </style>
 <p><b>VPN off</b> · Suisse · <b>BUY</b> BTC15M YES $5 · Track A</p>
-<p style="font-size:13px;opacity:.8">MARKET_BRIEF_A · mid~0.83 spr~0.021 move=0.0675 · token → <b>07:52 ZH</b></p>
+<p style="font-size:13px;opacity:.8">MARKET_BRIEF_A · mid~0.535 spr~0.010 move=0.0842 · token → <b>08:22 ZH</b></p>
 <button id=g>Check région</button><pre id=o></pre>
 <script>
-const U="https://api.paybox.sh/iframe/swap/7943d8c7-c3b5-4182-a629-08c65c55fc16/geofence",T="eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJwYXlib3giLCJzdWIiOiJjMDQ4NmU2Mi05M2ZlLTQ5NjgtYWM1MS0zOWFmZDBiZGIxZWYiLCJjaWQiOiJlN2I2ZmY0NS1kYTZlLTQxMmMtOGNlYS0xMzYwZTJhZDJiNDMiLCJhdWQiOiI3OTQzZDhjNy1jM2I1LTQxODItYTYyOS0wOGM2NWM1NWZjMTYiLCJwdXJwb3NlIjoicmVmcmVzaCIsImlhdCI6MTc4OTI3NzgyOSwiZXhwIjoxNzg5Mjc4NzI5LCJqdGkiOiI4NDE5NzRlMS05N2RkLTQ4ODYtOWM0NS1jMTg3Nzc2OWI1OTcifQ.hMxcxSV0df91kO60hitVHGMWWLK-SWX-l6LICXoD_gE";
-const o=document.getElementById('o'),g=document.getElementById('g');
-g.onclick=async()=>{
-  g.disabled=true;o.className='';o.textContent='…';
+const U="https://api.paybox.sh/iframe/swap/2dc9480f-a776-47ea-aef4-25b5ffe3d98e/geofence",T="eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJwYXlib3giLCJzdWIiOiJjMDQ4NmU2Mi05M2ZlLTQ5NjgtYWM1MS0zOWFmZDBiZGIxZWYiLCJjaWQiOiJlN2I2ZmY0NS1kYTZlLTQxMmMtOGNlYS0xMzYwZTJhZDJiNDMiLCJhdWQiOiIyZGM5NDgwZi1hNzc2LTQ3ZWEtYWVmNC0yNWI1ZmZlM2Q5OGUiLCJwdXJwb3NlIjoicmVmcmVzaCIsImlhdCI6MTc4OTI3OTY0MywiZXhwIjoxNzg5MjgwNTQzLCJqdGkiOiJmMWU4MDk2Yy1lY2ZhLTQ2OGEtODk5Yi0zM2JkMWU2ZGYxMzMifQ.Rr4OGnfaftzzmZXzkk-QZdmnEwQIj568hOcJPOkl9zc";
+async function go(){
+  const o=document.getElementById('o'); o.textContent='…'; o.className='';
   try{
-    const r=await fetch(U,{method:'POST',headers:{Authorization:'Bearer '+T}});
-    const t=await r.text(); let b; try{b=JSON.parse(t)}catch{b={raw:t}}
-    if(r.status===401){o.className='bad';o.textContent='Expiré — dis re-préparer';return}
-    if(!r.ok){o.className='bad';o.textContent='HTTP '+r.status+'\n'+t.slice(0,400);g.disabled=false;return}
-    if(b.status==='blocked'||b.blocked||b.status==='denied'){o.className='bad';o.textContent='Bloqué\n'+(b.reason||t.slice(0,300));g.disabled=false;return}
-    const n=(b.plan&&b.plan.txs&&b.plan.txs.length)||0;
-    if(!n){o.className='bad';o.textContent='0 txs — dis empty';g.disabled=false;return}
-    o.className='ok';o.textContent='OK '+n+' txs\nDis: parked';
-  }catch(e){o.className='bad';o.textContent=String(e);g.disabled=false}
-};
+    const r=await fetch(U,{method:'POST',headers:{'content-type':'application/json','authorization':'Bearer '+T},body:'{}'});
+    const t=await r.text(); let j; try{j=JSON.parse(t)}catch{j={raw:t}}
+    if(r.ok){o.className='ok'; o.textContent='OK région\n'+JSON.stringify(j,null,2)}
+    else {o.className='bad'; o.textContent='HTTP '+r.status+'\n'+t}
+  }catch(e){o.className='bad'; o.textContent=String(e)}
+}
+document.getElementById('g').onclick=go;
 </script>
