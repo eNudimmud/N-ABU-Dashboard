@@ -190,6 +190,32 @@ function check(name, ok, detail) {
   check("tab title flash keeps the original title in the rotation",
     titles.some((t) => t === "N-ABU · Dashboard"));
 
+  // Opening World from the banner must still raise the toast (unchanged behavior).
+  win.location.hash = "#world";
+  await POLLS(2);
+  const card = win.document.querySelector("#nabu-world-toast .nabu-world-toast-card");
+  check("opening World raises the Check région toast",
+    !!card && win.document.getElementById("nabu-world-toast").hidden === false);
+  check("toast carries the geofence URL and a dismiss button",
+    !!(card && card.querySelector("[data-copy]") && card.querySelector("[data-dismiss-toast]")));
+  if (card) card.querySelector("[data-dismiss-toast]").click();
+  await POLLS(3);
+  check("dismissing the toast hides it",
+    win.document.getElementById("nabu-world-toast").hidden === true);
+  check("dismissing the toast restores the tab title",
+    win.document.title === "N-ABU · Dashboard", win.document.title);
+  const tonesAfterDismiss = state.tones;
+  await POLLS(3);
+  check("dismissing the toast silences the chime", state.tones === tonesAfterDismiss,
+    tonesAfterDismiss + " -> " + state.tones);
+  win.location.hash = "#portfolio";
+  await POLLS(2);
+
+  state.snap = snapshot(Object.assign({}, PENDING, { request_id: "pbx-btc15m-1201" }));
+  await POLLS(4);
+  check("a later ticket alerts again after a dismissal",
+    badge() && badge().hidden === false, JSON.stringify(badge()));
+
   const tonesBefore = state.tones;
   const notifsBefore = state.notifications.length;
   Object.defineProperty(win.document, "hidden", { value: true, configurable: true });
