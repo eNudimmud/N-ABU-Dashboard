@@ -1374,12 +1374,38 @@ class ConsistencyChecks(unittest.TestCase):
         self.assertIn("n_open", keys)
         self.assertIn("13", " ".join(i["msg"] for i in issues))
 
+    def test_realized_pnl_missing_a_close_is_flagged(self):
+        raw = json.loads(json.dumps(WORLD_GHOSTS))
+        raw["cashflow"]["realized_pnl_usd"] = 1.13  # forgot the two settled wins
+        keys = [i["key"] for i in _eval_gate("consistencyIssues(" + json.dumps(_norm(raw)) + ")")]
+        self.assertIn("realized", keys)
+
+    def test_closes_outside_the_fills_window_are_not_flagged(self):
+        raw = json.loads(json.dumps(WORLD_GHOSTS))
+        raw["cashflow"]["realized_pnl_usd"] = 41.0  # older closes, dropped from the window
+        keys = [i["key"] for i in _eval_gate("consistencyIssues(" + json.dumps(_norm(raw)) + ")")]
+        self.assertNotIn("realized", keys)
+
     def test_duplicate_buy_of_live_ticket_is_flagged(self):
         raw = json.loads(json.dumps(WORLD_GHOSTS))
         raw["fills"].insert(0, _fill("open", "PIT Steelers YES", "WXNFL-26SEP13ATLPIT-PSTE",
                                      "2026-09-13T00:00:00Z"))
         keys = [i["key"] for i in _eval_gate("consistencyIssues(" + json.dumps(_norm(raw)) + ")")]
         self.assertIn("ghost_open", keys)
+
+    def test_garbage_snapshots_never_throw(self):
+        for raw in (None, 1, "x", [], {"fills": "nope", "positions": 3},
+                    {"fills": [None, 7, {"action": "close"}], "settled": "no",
+                     "settled_paybox": {"a": {"market_ticker": "T", "redeemable": "open"}},
+                     "capacity": "nope", "cashflow": []}):
+            snap = _norm(raw)
+            self.assertIsInstance(snap, dict)
+            self.assertIsInstance(_eval_gate("visibleFills(" + json.dumps(snap) + ")"), list)
+            self.assertIsInstance(_eval_gate("consistencyIssues(" + json.dumps(snap) + ")"), list)
+            self.assertIsInstance(_eval_gate("renderSettled(" + json.dumps(snap) + ")"), str)
+            self.assertIsInstance(
+                _eval_gate("renderFills(visibleFills(" + json.dumps(snap) + "))"), str
+            )
 
     def test_checked_in_snapshot_is_self_consistent(self):
         raw = json.loads((ROOT / "assets" / "world-live.json").read_text())

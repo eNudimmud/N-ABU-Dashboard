@@ -981,6 +981,26 @@
       }
     }
 
+    var shown = visibleFills(data);
+    var realized = numish(cash.realized_pnl_usd);
+    if (realized != null) {
+      var seen = 0, any = false;
+      for (var c = 0; c < shown.length; c++) {
+        if (actionKind(pick(shown[c], ["action", "type", "event"], "")) !== "close") continue;
+        var p = numish(fillPnl(shown[c]));
+        if (p != null) { seen += p; any = true; }
+      }
+      /* Older closes can fall outside the fills window, so realized may exceed
+         what is on screen — the reverse means a close never reached it. */
+      if (any && seen - realized > Math.max(0.05, Math.abs(realized) * 0.01)) {
+        out.push({
+          key: "realized",
+          msg: "Closes affichés " + signedMoney(seen).txt + " > PnL réalisé "
+            + signedMoney(realized).txt
+        });
+      }
+    }
+
     var positions = Array.isArray(data.positions) ? data.positions : [];
     var nOpen = numish(cap.n_open);
     if (nOpen != null && nOpen !== positions.length) {
@@ -989,7 +1009,7 @@
         msg: "capacity.n_open " + nOpen + " ≠ positions " + positions.length
       });
     }
-    var shownOpens = countFillKind(visibleFills(data), "open");
+    var shownOpens = countFillKind(shown, "open");
     if (positions.length && shownOpens > positions.length) {
       out.push({
         key: "ghost_open",
