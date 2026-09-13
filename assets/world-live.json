@@ -1,8 +1,8 @@
 {
   "schema_version": 2,
   "example": false,
-  "generated_at": "2026-09-13T03:12:24Z",
-  "generated_at_zh": "2026-09-13T05:12:24+02:00",
+  "generated_at": "2026-09-13T03:19:37Z",
+  "generated_at_zh": "2026-09-13T05:19:37+02:00",
   "source": "paybox world positions \u2014 rebuild_and_push_world_live.py",
   "venue": "world.xyz",
   "wallet": {
@@ -12,13 +12,13 @@
   },
   "mode": "LIVE_ONLY",
   "ticket_usd": 5.0,
-  "bankroll_usd": 50.66,
+  "bankroll_usd": 50.6,
   "caps": {
     "A": {
       "open_usd": 5.0,
       "max_usd": 40.0,
       "pool_usd": 40.0,
-      "bankroll_usd": 50.66,
+      "bankroll_usd": 50.6,
       "label_only": true,
       "share_of_pool_pct": 12.5
     },
@@ -26,41 +26,27 @@
       "open_usd": 30.0,
       "max_usd": 40.0,
       "pool_usd": 40.0,
-      "bankroll_usd": 50.66,
+      "bankroll_usd": 50.6,
       "label_only": true,
       "share_of_pool_pct": 75.0
     },
     "pool_usd": 40.0,
-    "bankroll_usd": 50.66
+    "bankroll_usd": 50.6
   },
   "capacity": {
     "n_open": 7,
     "max_open": 8,
     "remaining_tickets": 1,
     "ticket": 5.0,
-    "max_open_usd": 50.66,
+    "max_open_usd": 50.6,
     "ticket_cap_usd": 40.0,
-    "bankroll_usd": 50.66,
+    "bankroll_usd": 50.6,
     "util_basis": "bankroll_usd",
     "deploy_all_cash_ok": true,
     "A_open": 5.0,
     "B_open": 30.0
   },
   "positions": [
-    {
-      "market": "Barcelona YES",
-      "ticker": "WXLIG-26SEP131615BARCLEVA-BARC",
-      "track": "B",
-      "side": "YES",
-      "size_usd": 5.0,
-      "mark_usd": 4.9951,
-      "upnl_usd": -0.0049,
-      "mint": "AzYRWeHmHQbpwoDKJb4A9YgGq7tiwyfwCd4GJJWKeJb4",
-      "held_atomic": "5769088",
-      "held_shares": 5.769088,
-      "status": "open",
-      "position_result": "pending"
-    },
     {
       "market": "PIT Steelers YES",
       "ticker": "WXNFL-26SEP13ATLPIT-PSTE",
@@ -72,6 +58,20 @@
       "mint": "9eVCZW4oUXDo11N6K6TWCuC7BcBccwZTQ7n5aT6MYy9P",
       "held_atomic": "6878950",
       "held_shares": 6.87895,
+      "status": "open",
+      "position_result": "pending"
+    },
+    {
+      "market": "Barcelona YES",
+      "ticker": "WXLIG-26SEP131615BARCLEVA-BARC",
+      "track": "B",
+      "side": "YES",
+      "size_usd": 5.0,
+      "mark_usd": 4.9375,
+      "upnl_usd": -0.0625,
+      "mint": "AzYRWeHmHQbpwoDKJb4A9YgGq7tiwyfwCd4GJJWKeJb4",
+      "held_atomic": "5769088",
+      "held_shares": 5.769088,
       "status": "open",
       "position_result": "pending"
     },
@@ -426,22 +426,22 @@
     "usdc": 15.15,
     "idle_usd": 15.15,
     "idle_usdc": 15.15,
-    "sol_dust_usd": 0.9882,
+    "sol_dust_usd": 0.9878,
     "deployed_usd": 35.0,
     "deployed_cost_usd": 35.0,
-    "positions_mark_usd": 34.51,
+    "positions_mark_usd": 34.46,
     "positions_cost_usd": 35.0,
-    "total_usd": 50.66,
-    "bankroll_usd": 50.66,
+    "total_usd": 50.6,
+    "bankroll_usd": 50.6,
     "realized_pnl_usd": 5.4526,
-    "unrealized_pnl_usd": -0.4856,
+    "unrealized_pnl_usd": -0.5432,
     "fees_usd": 0.0,
-    "net_usd": 4.967,
-    "marks_plus_usdc": 49.67,
-    "paybox_total_usd": 50.6573
+    "net_usd": 4.9094,
+    "marks_plus_usdc": 49.61,
+    "paybox_total_usd": 50.599
   },
   "autonomy": {
-    "evaluated_at": "2026-09-13T05:12:24+02:00",
+    "evaluated_at": "2026-09-13T05:19:37+02:00",
     "note": "PayBox rebuild \u00b7 open 7/8"
   },
   "pending_geofence": null,
@@ -449,14 +449,14 @@
   "notify": false,
   "utilization": {
     "open_usd": 35.0,
-    "max_usd": 50.66,
+    "max_usd": 50.6,
     "basis": "deployed_cost / bankroll_usd",
     "ticket_cap_usd": 40.0
   },
   "sub_runway": {
     "target_chf": 1700,
-    "bankroll_usd": 50.66,
+    "bankroll_usd": 50.6,
     "realized_pnl_usd": 5.4526
   },
-  "as_of_paybox": "2026-09-13T03:12:27.374930570+00:00"
+  "as_of_paybox": "2026-09-13T03:19:40.365935525+00:00"
 }
