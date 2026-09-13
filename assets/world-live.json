@@ -1,8 +1,8 @@
 {
   "schema_version": 2,
   "example": false,
-  "generated_at": "2026-09-13T12:00:03Z",
-  "generated_at_zh": "2026-09-13T14:00:03+02:00",
+  "generated_at": "2026-09-13T12:10:30Z",
+  "generated_at_zh": "2026-09-13T14:10:30+02:00",
   "source": "paybox world positions \u2014 rebuild_and_push_world_live.py",
   "venue": "world.xyz",
   "wallet": {
@@ -12,13 +12,13 @@
   },
   "mode": "LIVE_ONLY",
   "ticket_usd": 5.0,
-  "bankroll_usd": 40.96,
+  "bankroll_usd": 50.93,
   "caps": {
     "A": {
       "open_usd": 5.0,
       "max_usd": 40.0,
       "pool_usd": 40.0,
-      "bankroll_usd": 40.96,
+      "bankroll_usd": 50.93,
       "label_only": true,
       "share_of_pool_pct": 12.5
     },
@@ -26,21 +26,21 @@
       "open_usd": 30.0,
       "max_usd": 40.0,
       "pool_usd": 40.0,
-      "bankroll_usd": 40.96,
+      "bankroll_usd": 50.93,
       "label_only": true,
       "share_of_pool_pct": 75.0
     },
     "pool_usd": 40.0,
-    "bankroll_usd": 40.96
+    "bankroll_usd": 50.93
   },
   "capacity": {
     "n_open": 7,
     "max_open": 8,
     "remaining_tickets": 1,
     "ticket": 5.0,
-    "max_open_usd": 40.96,
+    "max_open_usd": 50.93,
     "ticket_cap_usd": 40.0,
-    "bankroll_usd": 40.96,
+    "bankroll_usd": 50.93,
     "util_basis": "bankroll_usd",
     "deploy_all_cash_ok": true,
     "A_open": 5.0,
@@ -59,9 +59,7 @@
       "held_atomic": "6878950",
       "held_shares": 6.87895,
       "status": "open",
-      "position_result": "pending",
-      "mid": 0.7251,
-      "mark_note": "ob_proxy_world_price_unavailable"
+      "position_result": "pending"
     },
     {
       "market": "JAC Jaguars YES",
@@ -78,6 +76,20 @@
       "position_result": "pending"
     },
     {
+      "market": "Real Madrid YES",
+      "ticker": "WXLIG-26SEP152130RMADELCH-RMAD",
+      "track": "A",
+      "side": "YES",
+      "size_usd": 5.0,
+      "mark_usd": 4.9264,
+      "upnl_usd": -0.0736,
+      "mint": "67r1PciCLNHrT5iK15jy2mj3KEByTbgGHFgqB3eNBE36",
+      "held_atomic": "6354866",
+      "held_shares": 6.354866,
+      "status": "open",
+      "position_result": "pending"
+    },
+    {
       "market": "DET Lions YES",
       "ticker": "WXNFL-26SEP13NODET-DLIO",
       "track": "B",
@@ -89,9 +101,7 @@
       "held_atomic": "6607747",
       "held_shares": 6.607747,
       "status": "open",
-      "position_result": "pending",
-      "mid": 0.745,
-      "mark_note": "ob_proxy_world_price_unavailable"
+      "position_result": "pending"
     },
     {
       "market": "PHI Eagles YES",
@@ -127,25 +137,11 @@
       "track": "B",
       "side": "YES",
       "size_usd": 5.0,
-      "mark_usd": 4.8803,
-      "upnl_usd": -0.1197,
+      "mark_usd": 4.8804,
+      "upnl_usd": -0.1196,
       "mint": "AzYRWeHmHQbpwoDKJb4A9YgGq7tiwyfwCd4GJJWKeJb4",
       "held_atomic": "5769088",
       "held_shares": 5.769088,
-      "status": "open",
-      "position_result": "pending"
-    },
-    {
-      "market": "Real Madrid YES",
-      "ticker": "WXLIG-26SEP152130RMADELCH-RMAD",
-      "track": "A",
-      "side": "YES",
-      "size_usd": 5.0,
-      "mark_usd": 4.8628,
-      "upnl_usd": -0.1372,
-      "mint": "67r1PciCLNHrT5iK15jy2mj3KEByTbgGHFgqB3eNBE36",
-      "held_atomic": "6354866",
-      "held_shares": 6.354866,
       "status": "open",
       "position_result": "pending"
     }
@@ -391,22 +387,22 @@
     "usdc": 15.51,
     "idle_usd": 15.51,
     "idle_usdc": 15.51,
-    "sol_dust_usd": 0.9565,
+    "sol_dust_usd": 0.9559,
     "deployed_usd": 35.0,
     "deployed_cost_usd": 35.0,
-    "positions_mark_usd": 34.4,
+    "positions_mark_usd": 34.46,
     "positions_cost_usd": 35.0,
-    "total_usd": 40.96,
-    "bankroll_usd": 40.96,
+    "total_usd": 50.93,
+    "bankroll_usd": 50.93,
     "realized_pnl_usd": 4.0925,
-    "unrealized_pnl_usd": -0.5998,
+    "unrealized_pnl_usd": -0.5361,
     "fees_usd": 0.0,
-    "net_usd": 3.4927,
-    "marks_plus_usdc": 49.91,
-    "paybox_total_usd": 40.9593
+    "net_usd": 3.5564,
+    "marks_plus_usdc": 49.98,
+    "paybox_total_usd": 50.9331
   },
   "autonomy": {
-    "evaluated_at": "2026-09-13T14:00:03+02:00",
+    "evaluated_at": "2026-09-13T14:10:30+02:00",
     "note": "PayBox rebuild \u00b7 open 7/8"
   },
   "pending_geofence": null,
@@ -414,14 +410,14 @@
   "notify": false,
   "utilization": {
     "open_usd": 35.0,
-    "max_usd": 40.96,
+    "max_usd": 50.93,
     "basis": "deployed_cost / bankroll_usd",
     "ticket_cap_usd": 40.0
   },
   "sub_runway": {
     "target_chf": 1700,
-    "bankroll_usd": 40.96,
+    "bankroll_usd": 50.93,
     "realized_pnl_usd": 4.0925
   },
-  "as_of_paybox": "2026-09-13T12:00:11.060746735+00:00"
+  "as_of_paybox": "2026-09-13T12:10:34.755476514+00:00"
 }
