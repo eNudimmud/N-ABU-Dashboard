@@ -1,8 +1,8 @@
 {
   "schema_version": 2,
   "example": false,
-  "generated_at": "2026-09-13T08:21:28Z",
-  "generated_at_zh": "2026-09-13T10:21:28+02:00",
+  "generated_at": "2026-09-13T08:28:19Z",
+  "generated_at_zh": "2026-09-13T10:28:19+02:00",
   "source": "paybox world positions \u2014 rebuild_and_push_world_live.py",
   "venue": "world.xyz",
   "wallet": {
@@ -12,13 +12,13 @@
   },
   "mode": "LIVE_ONLY",
   "ticket_usd": 5.0,
-  "bankroll_usd": 50.88,
+  "bankroll_usd": 50.87,
   "caps": {
     "A": {
       "open_usd": 5.0,
       "max_usd": 40.0,
       "pool_usd": 40.0,
-      "bankroll_usd": 50.88,
+      "bankroll_usd": 50.87,
       "label_only": true,
       "share_of_pool_pct": 12.5
     },
@@ -26,21 +26,21 @@
       "open_usd": 30.0,
       "max_usd": 40.0,
       "pool_usd": 40.0,
-      "bankroll_usd": 50.88,
+      "bankroll_usd": 50.87,
       "label_only": true,
       "share_of_pool_pct": 75.0
     },
     "pool_usd": 40.0,
-    "bankroll_usd": 50.88
+    "bankroll_usd": 50.87
   },
   "capacity": {
     "n_open": 7,
     "max_open": 8,
     "remaining_tickets": 1,
     "ticket": 5.0,
-    "max_open_usd": 50.88,
+    "max_open_usd": 50.87,
     "ticket_cap_usd": 40.0,
-    "bankroll_usd": 50.88,
+    "bankroll_usd": 50.87,
     "util_basis": "bankroll_usd",
     "deploy_all_cash_ok": true,
     "A_open": 5.0,
@@ -387,22 +387,22 @@
     "usdc": 15.51,
     "idle_usd": 15.51,
     "idle_usdc": 15.51,
-    "sol_dust_usd": 0.9632,
+    "sol_dust_usd": 0.9625,
     "deployed_usd": 35.0,
     "deployed_cost_usd": 35.0,
     "positions_mark_usd": 34.4,
     "positions_cost_usd": 35.0,
-    "total_usd": 50.88,
-    "bankroll_usd": 50.88,
+    "total_usd": 50.87,
+    "bankroll_usd": 50.87,
     "realized_pnl_usd": 4.0925,
     "unrealized_pnl_usd": -0.6003,
     "fees_usd": 0.0,
     "net_usd": 3.4922,
     "marks_plus_usdc": 49.91,
-    "paybox_total_usd": 50.8755
+    "paybox_total_usd": 50.8748
   },
   "autonomy": {
-    "evaluated_at": "2026-09-13T10:21:28+02:00",
+    "evaluated_at": "2026-09-13T10:28:19+02:00",
     "note": "PayBox rebuild \u00b7 open 7/8"
   },
   "pending_geofence": null,
@@ -410,14 +410,14 @@
   "notify": false,
   "utilization": {
     "open_usd": 35.0,
-    "max_usd": 50.88,
+    "max_usd": 50.87,
     "basis": "deployed_cost / bankroll_usd",
     "ticket_cap_usd": 40.0
   },
   "sub_runway": {
     "target_chf": 1700,
-    "bankroll_usd": 50.88,
+    "bankroll_usd": 50.87,
     "realized_pnl_usd": 4.0925
   },
-  "as_of_paybox": "2026-09-13T08:21:33.762797686+00:00"
+  "as_of_paybox": "2026-09-13T08:28:22.061319594+00:00"
 }
