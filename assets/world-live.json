@@ -1,8 +1,8 @@
 {
   "schema_version": 2,
   "example": false,
-  "generated_at": "2026-09-13T07:00:52Z",
-  "generated_at_zh": "2026-09-13T09:00:52+02:00",
+  "generated_at": "2026-09-13T07:06:05Z",
+  "generated_at_zh": "2026-09-13T09:06:05+02:00",
   "source": "paybox world positions \u2014 rebuild_and_push_world_live.py",
   "venue": "world.xyz",
   "wallet": {
@@ -328,20 +328,20 @@
       "settlement_asset": "CASH"
     },
     {
-      "market": "Arsenal YES",
-      "ticker": "WXEPL-26SEP122000ARSESUND-ARSE",
+      "market": "BTC15M YES",
+      "ticker": "WXBTC15M-26SEP130530-15",
       "result": "won",
-      "pnl_usd": 2.8454,
+      "pnl_usd": 0.3583,
       "size_usd": 5.0,
       "track": "A",
       "redeemable": "cashed",
       "settlement_asset": "CASH"
     },
     {
-      "market": "BTC15M YES",
-      "ticker": "WXBTC15M-26SEP130530-15",
+      "market": "Arsenal YES",
+      "ticker": "WXEPL-26SEP122000ARSESUND-ARSE",
       "result": "won",
-      "pnl_usd": 0.3583,
+      "pnl_usd": 2.8454,
       "size_usd": 5.0,
       "track": "A",
       "redeemable": "cashed",
@@ -362,10 +362,10 @@
     },
     {
       "held_amount": null,
-      "last_known_amount": "7845429",
+      "last_known_amount": "5375697",
       "market_status": "finalized",
-      "market_ticker": "WXEPL-26SEP122000ARSESUND-ARSE",
-      "outcome_mint": "7m6EfZGRaD1riwQJjtvGVZH2PQ1r6W8V5HPoD52HTHE7",
+      "market_ticker": "WXBTC15M-26SEP130530-15",
+      "outcome_mint": "Hj1VrU3zjFMRUVyCmfhWJ1ok5y9Q5Hz4fr2KpT47Wrzt",
       "position_result": "won",
       "redeemable": "open",
       "redemption_value_usd": null,
@@ -373,10 +373,10 @@
     },
     {
       "held_amount": null,
-      "last_known_amount": "5375697",
+      "last_known_amount": "7845429",
       "market_status": "finalized",
-      "market_ticker": "WXBTC15M-26SEP130530-15",
-      "outcome_mint": "Hj1VrU3zjFMRUVyCmfhWJ1ok5y9Q5Hz4fr2KpT47Wrzt",
+      "market_ticker": "WXEPL-26SEP122000ARSESUND-ARSE",
+      "outcome_mint": "7m6EfZGRaD1riwQJjtvGVZH2PQ1r6W8V5HPoD52HTHE7",
       "position_result": "won",
       "redeemable": "open",
       "redemption_value_usd": null,
@@ -387,7 +387,7 @@
     "usdc": 15.51,
     "idle_usd": 15.51,
     "idle_usdc": 15.51,
-    "sol_dust_usd": 0.97,
+    "sol_dust_usd": 0.9707,
     "deployed_usd": 35.0,
     "deployed_cost_usd": 35.0,
     "positions_mark_usd": 34.4,
@@ -399,10 +399,10 @@
     "fees_usd": 0.0,
     "net_usd": 3.4919,
     "marks_plus_usdc": 49.91,
-    "paybox_total_usd": 50.882
+    "paybox_total_usd": 50.883
   },
   "autonomy": {
-    "evaluated_at": "2026-09-13T09:00:52+02:00",
+    "evaluated_at": "2026-09-13T09:06:05+02:00",
     "note": "PayBox rebuild \u00b7 open 7/8"
   },
   "pending_geofence": null,
@@ -419,5 +419,5 @@
     "bankroll_usd": 50.88,
     "realized_pnl_usd": 4.0925
   },
-  "as_of_paybox": "2026-09-13T07:00:55.541975219+00:00"
+  "as_of_paybox": "2026-09-13T07:06:08.366600074+00:00"
 }
