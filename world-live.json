@@ -1,8 +1,8 @@
 {
   "schema_version": 2,
   "example": false,
-  "generated_at": "2026-09-13T01:34:01Z",
-  "generated_at_zh": "2026-09-13T03:34:01+02:00",
+  "generated_at": "2026-09-13T01:37:20Z",
+  "generated_at_zh": "2026-09-13T03:37:20+02:00",
   "source": "paybox world positions \u2014 rebuild_and_push_world_live.py",
   "venue": "world.xyz",
   "wallet": {
@@ -12,13 +12,13 @@
   },
   "mode": "LIVE_ONLY",
   "ticket_usd": 5.0,
-  "bankroll_usd": 42.93,
+  "bankroll_usd": 50.12,
   "caps": {
     "A": {
       "open_usd": 5.0,
       "max_usd": 40.0,
       "pool_usd": 40.0,
-      "bankroll_usd": 42.93,
+      "bankroll_usd": 50.12,
       "label_only": true,
       "share_of_pool_pct": 12.5
     },
@@ -26,12 +26,12 @@
       "open_usd": 35.0,
       "max_usd": 40.0,
       "pool_usd": 40.0,
-      "bankroll_usd": 42.93,
+      "bankroll_usd": 50.12,
       "label_only": true,
       "share_of_pool_pct": 87.5
     },
     "pool_usd": 40.0,
-    "bankroll_usd": 42.93
+    "bankroll_usd": 50.12
   },
   "capacity": {
     "n_open": 8,
@@ -39,7 +39,7 @@
     "remaining_tickets": 0,
     "ticket": 5.0,
     "max_open_usd": 40.0,
-    "bankroll_usd": 42.93,
+    "bankroll_usd": 50.12,
     "deploy_all_cash_ok": true,
     "A_open": 5.0,
     "B_open": 35.0
@@ -51,15 +51,13 @@
       "track": "B",
       "side": "YES",
       "size_usd": 5.0,
-      "mark_usd": 7.4917,
-      "upnl_usd": 2.4917,
+      "mark_usd": 7.1895,
+      "upnl_usd": 2.1895,
       "mint": "8yz5Yxzw9nYLnFZb27J9FCZuGmyp3J9tcL5XRyJbCHPe",
       "held_atomic": "7607200",
       "held_shares": 7.6072,
       "status": "open",
-      "position_result": "pending",
-      "mid": 0.9848,
-      "mark_note": "ob_proxy_world_price_unavailable"
+      "position_result": "pending"
     },
     {
       "market": "Barcelona YES",
@@ -407,22 +405,22 @@
     "usdc": 7.57,
     "idle_usd": 7.57,
     "idle_usdc": 7.57,
-    "sol_dust_usd": 0.8424,
+    "sol_dust_usd": 0.842,
     "deployed_usd": 40.0,
     "deployed_cost_usd": 40.0,
-    "positions_mark_usd": 42.01,
+    "positions_mark_usd": 41.7,
     "positions_cost_usd": 40.0,
-    "total_usd": 42.93,
-    "bankroll_usd": 42.93,
+    "total_usd": 50.12,
+    "bankroll_usd": 50.12,
     "realized_pnl_usd": 2.85,
-    "unrealized_pnl_usd": 2.006,
+    "unrealized_pnl_usd": 1.7038,
     "fees_usd": 0.0,
-    "net_usd": 4.856,
-    "marks_plus_usdc": 49.58,
-    "paybox_total_usd": 42.9298
+    "net_usd": 4.5538,
+    "marks_plus_usdc": 49.28,
+    "paybox_total_usd": 50.1189
   },
   "autonomy": {
-    "evaluated_at": "2026-09-13T03:34:01+02:00",
+    "evaluated_at": "2026-09-13T03:37:20+02:00",
     "note": "PayBox rebuild \u00b7 open 8/8"
   },
   "pending_geofence": null,
@@ -435,8 +433,8 @@
   },
   "sub_runway": {
     "target_chf": 1700,
-    "bankroll_usd": 42.93,
+    "bankroll_usd": 50.12,
     "realized_pnl_usd": 2.85
   },
-  "as_of_paybox": "2026-09-13T01:34:04.191403323+00:00"
+  "as_of_paybox": "2026-09-13T01:37:24.316157465+00:00"
 }
