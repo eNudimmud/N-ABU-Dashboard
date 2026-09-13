@@ -665,10 +665,14 @@ class PagesRoot(unittest.TestCase):
         self.assertTrue((ROOT / ".nojekyll").exists())
         slot = (ROOT / "assets" / "geofence-latest.html").read_text(encoding="utf-8")
         self.assertIn("Check région", slot)
-        # Empty placeholder when no ticket is pending; live pages still name this slot.
+        # Empty placeholder when no ticket is pending. Otherwise the slot holds a
+        # real phone page: the live pipeline writes the PayBox geofence call into
+        # it, older hand-written slots documented the snapshot field instead.
         if "Aucun ticket" not in slot:
-            self.assertIn("check_region_url", slot)
-            self.assertIn("enudimmud.github.io/N-ABU-Dashboard/assets/geofence-latest.html", slot)
+            self.assertTrue(
+                "/geofence" in slot or "check_region_url" in slot,
+                "geofence-latest.html must carry a real Check région call",
+            )
 
 
 def _plain(s: str) -> str:
