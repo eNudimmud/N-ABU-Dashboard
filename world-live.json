@@ -1,8 +1,8 @@
 {
   "schema_version": 2,
   "example": false,
-  "generated_at": "2026-09-13T04:16:25Z",
-  "generated_at_zh": "2026-09-13T06:16:25+02:00",
+  "generated_at": "2026-09-13T04:22:48Z",
+  "generated_at_zh": "2026-09-13T06:22:48+02:00",
   "source": "paybox world positions \u2014 rebuild_and_push_world_live.py",
   "venue": "world.xyz",
   "wallet": {
@@ -12,13 +12,13 @@
   },
   "mode": "LIVE_ONLY",
   "ticket_usd": 5.0,
-  "bankroll_usd": 50.65,
+  "bankroll_usd": 50.6,
   "caps": {
     "A": {
       "open_usd": 5.0,
       "max_usd": 40.0,
       "pool_usd": 40.0,
-      "bankroll_usd": 50.65,
+      "bankroll_usd": 50.6,
       "label_only": true,
       "share_of_pool_pct": 12.5
     },
@@ -26,41 +26,27 @@
       "open_usd": 30.0,
       "max_usd": 40.0,
       "pool_usd": 40.0,
-      "bankroll_usd": 50.65,
+      "bankroll_usd": 50.6,
       "label_only": true,
       "share_of_pool_pct": 75.0
     },
     "pool_usd": 40.0,
-    "bankroll_usd": 50.65
+    "bankroll_usd": 50.6
   },
   "capacity": {
     "n_open": 7,
     "max_open": 8,
     "remaining_tickets": 1,
     "ticket": 5.0,
-    "max_open_usd": 50.65,
+    "max_open_usd": 50.6,
     "ticket_cap_usd": 40.0,
-    "bankroll_usd": 50.65,
+    "bankroll_usd": 50.6,
     "util_basis": "bankroll_usd",
     "deploy_all_cash_ok": true,
     "A_open": 5.0,
     "B_open": 30.0
   },
   "positions": [
-    {
-      "market": "Barcelona YES",
-      "ticker": "WXLIG-26SEP131615BARCLEVA-BARC",
-      "track": "B",
-      "side": "YES",
-      "size_usd": 5.0,
-      "mark_usd": 4.9953,
-      "upnl_usd": -0.0047,
-      "mint": "AzYRWeHmHQbpwoDKJb4A9YgGq7tiwyfwCd4GJJWKeJb4",
-      "held_atomic": "5769088",
-      "held_shares": 5.769088,
-      "status": "open",
-      "position_result": "pending"
-    },
     {
       "market": "PIT Steelers YES",
       "ticker": "WXNFL-26SEP13ATLPIT-PSTE",
@@ -72,6 +58,20 @@
       "mint": "9eVCZW4oUXDo11N6K6TWCuC7BcBccwZTQ7n5aT6MYy9P",
       "held_atomic": "6878950",
       "held_shares": 6.87895,
+      "status": "open",
+      "position_result": "pending"
+    },
+    {
+      "market": "Barcelona YES",
+      "ticker": "WXLIG-26SEP131615BARCLEVA-BARC",
+      "track": "B",
+      "side": "YES",
+      "size_usd": 5.0,
+      "mark_usd": 4.9376,
+      "upnl_usd": -0.0624,
+      "mint": "AzYRWeHmHQbpwoDKJb4A9YgGq7tiwyfwCd4GJJWKeJb4",
+      "held_atomic": "5769088",
+      "held_shares": 5.769088,
       "status": "open",
       "position_result": "pending"
     },
@@ -226,7 +226,7 @@
       "track": "B",
       "side": "sell",
       "size_usd": 5,
-      "pnl_usd": null,
+      "pnl_usd": -0.3266,
       "tx": "2YWZkMXkjdHLLe7dKRKE412PsEFe65hLfqHGM9ZL3zYMAdV3Th848S3KMgKW1NWn6ToTYaisPiSzujNKNZy55pEX",
       "ticker": "WXNFL-26SEP13TBCIN-TBUC",
       "note": "exited_sold"
@@ -238,7 +238,7 @@
       "track": "B",
       "side": "sell",
       "size_usd": 5,
-      "pnl_usd": null,
+      "pnl_usd": -0.4466,
       "tx": "2ZzNSAo1TaP2B5kSVZ6LKgxAN82pgWCFUPzk2ksh8f61jhzNV2XcTVUZXED7KDQHrmasgrppe8mHaTNJm41DnfrH",
       "ticker": "WXNFL-26SEP13NODET-NSAI",
       "note": "exited_sold"
@@ -250,7 +250,7 @@
       "track": "B",
       "side": "sell",
       "size_usd": 5,
-      "pnl_usd": null,
+      "pnl_usd": -0.537,
       "tx": "5XkFNX7Zpr87qdhtho7z1scyQdH7PkGKPSaeZKEztBpFTYR34myF4sti8qa9WbHHmgVLcGQWybFkStR4pqh6A14U",
       "ticker": "WXNFL-26SEP13CLEJAC-CBRO",
       "note": "exited_sold"
@@ -262,7 +262,7 @@
       "track": "B",
       "side": "sell",
       "size_usd": 5,
-      "pnl_usd": null,
+      "pnl_usd": -0.4082,
       "tx": "5GxEiHZraK4wq2TngNoN9GhkNg34B1CXHSv2YNSqVmt8kzuH4J8vXFiXsFPdhEhC84ik7drShjEPAWQbtagcgeVE",
       "ticker": "WXNFL-26SEP13ATLPIT-AFAL",
       "note": "exited_sold"
@@ -426,22 +426,22 @@
     "usdc": 15.15,
     "idle_usd": 15.15,
     "idle_usdc": 15.15,
-    "sol_dust_usd": 0.9857,
+    "sol_dust_usd": 0.9853,
     "deployed_usd": 35.0,
     "deployed_cost_usd": 35.0,
-    "positions_mark_usd": 34.51,
+    "positions_mark_usd": 34.46,
     "positions_cost_usd": 35.0,
-    "total_usd": 50.65,
-    "bankroll_usd": 50.65,
-    "realized_pnl_usd": 5.4526,
-    "unrealized_pnl_usd": -0.4855,
+    "total_usd": 50.6,
+    "bankroll_usd": 50.6,
+    "realized_pnl_usd": 3.7342,
+    "unrealized_pnl_usd": -0.5432,
     "fees_usd": 0.0,
-    "net_usd": 4.9671,
-    "marks_plus_usdc": 49.67,
-    "paybox_total_usd": 50.6548
+    "net_usd": 3.191,
+    "marks_plus_usdc": 49.61,
+    "paybox_total_usd": 50.5969
   },
   "autonomy": {
-    "evaluated_at": "2026-09-13T06:16:25+02:00",
+    "evaluated_at": "2026-09-13T06:22:48+02:00",
     "note": "PayBox rebuild \u00b7 open 7/8"
   },
   "pending_geofence": null,
@@ -449,14 +449,14 @@
   "notify": false,
   "utilization": {
     "open_usd": 35.0,
-    "max_usd": 50.65,
+    "max_usd": 50.6,
     "basis": "deployed_cost / bankroll_usd",
     "ticket_cap_usd": 40.0
   },
   "sub_runway": {
     "target_chf": 1700,
-    "bankroll_usd": 50.65,
-    "realized_pnl_usd": 5.4526
+    "bankroll_usd": 50.6,
+    "realized_pnl_usd": 3.7342
   },
-  "as_of_paybox": "2026-09-13T04:16:28.493625336+00:00"
+  "as_of_paybox": "2026-09-13T04:22:51.940406726+00:00"
 }
