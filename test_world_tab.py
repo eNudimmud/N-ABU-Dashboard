@@ -218,7 +218,14 @@ class AdditiveHook(unittest.TestCase):
         self.assertIn("requireInteraction: true", js)
         self.assertIn('localStorage.getItem(SOUND_KEY) !== "0"', js)
         self.assertIn("CHIME_REPEAT_MS = 10000", js)
-        self.assertIn("CHIME_MAX = 5", js)
+        self.assertIn("CHIME_MAX = 12", js)
+        self.assertIn("TITLE_FLASH_MS", js)
+        self.assertIn("NOTIFY_REPEAT_MS", js)
+        self.assertIn("startTitleAlert", js)
+        self.assertIn("stopTitleAlert", js)
+        self.assertIn("renotify", js)
+        self.assertIn("isExpiredPending", js)
+        self.assertIn("visibilitychange", js)
         css = (ROOT / "assets" / "world-tab.css").read_text(encoding="utf-8")
         self.assertIn("#nabu-world-root", css)
         self.assertNotIn("body{", css.split("#nabu-world-root", 1)[0])
@@ -301,7 +308,12 @@ def _eval_gate(expr: str):
         "pickOpenableGeofenceUrl",
         "pendingUrl",
         "isPlainDataUrl",
+        "collectPending",
+        "pendingKey",
         "isDemoPending",
+        "parseExpiry",
+        "alertTitle",
+        "isExpiredPending",
         "isAlertablePending",
         "livePending",
         "alertablePending",
@@ -947,9 +959,164 @@ class OverlayClose(unittest.TestCase):
         self.assertIn("hideToast()", body)
         self.assertIn("stopChimeLoop(false)", body)
         self.assertIn("setWorldChrome(root, false)", body)
-        alert = js.split("function alertNewPending", 1)[1].split("function tickExpiry", 1)[0]
+        # Closing the panel must re-arm the alert for a ticket still pending.
+        self.assertIn("refreshAlertChrome()", body)
+        alert = js.split("function applyAlerts", 1)[1].split("function alertNewPending", 1)[0]
         self.assertIn("worldOpen()", alert)
         self.assertIn("hideToast()", alert)
+
+
+class AlertsWhenPanelClosed(unittest.TestCase):
+    """JD is never on #world when a ticket lands — the alert must not need it."""
+
+    def js(self) -> str:
+        return (ROOT / "assets" / "world-tab.js").read_text(encoding="utf-8")
+
+    def test_only_the_toast_is_gated_on_world_open(self):
+        body = self.js().split("function applyAlerts", 1)[1].split(
+            "function alertNewPending", 1)[0]
+        self.assertIn("if (worldOpen()) showToast(top);", body)
+        # badge / banner / chime / title all run before the panel is consulted
+        self.assertIn("startChimeLoop(key, top)", body)
+        self.assertIn("startTitleAlert(list.length, top)", body)
+        self.assertIn("updateBadge(list.length)", body)
+        self.assertIn("updateBanner(list)", body)
+        self.assertNotIn("worldOpen() ? startChimeLoop", body)
+
+    def test_desktop_notification_fires_outside_the_world_open_branch(self):
+        body = self.js().split("function alertNewPending", 1)[1].split(
+            "function tickExpiry", 1)[0]
+        self.assertIn("desktopNotify(fresh[j], false)", body)
+        self.assertIn("pulseNav()", body)
+        self.assertNotIn("worldOpen", body)
+
+    def test_chime_beat_does_not_skip_a_hidden_tab(self):
+        beat = self.js().split("function startChimeLoop", 1)[1].split(
+            "function alertTitle", 1)[0]
+        self.assertNotIn('if (typeof document !== "undefined" && document.hidden) return;', beat)
+        self.assertIn("playChime();", beat)
+        # a hidden tab gets the notification re-fired instead of silence
+        self.assertIn("document.hidden) renotify(pending)", beat)
+
+    def test_renotify_is_throttled_and_respects_dismissal(self):
+        body = self.js().split("function renotify", 1)[1].split("function updateBadge", 1)[0]
+        self.assertIn("alertDismissed(key)", body)
+        self.assertIn("NOTIFY_REPEAT_MS", body)
+        self.assertIn("desktopNotify(p, true)", body)
+
+    def test_notification_options_stay_aggressive(self):
+        body = self.js().split("function desktopNotify", 1)[1].split("function renotify", 1)[0]
+        self.assertIn("requireInteraction: true", body)
+        self.assertIn("renotify: again === true", body)
+        self.assertIn("silent: false", body)
+
+    def test_title_flash_carries_the_pending_count(self):
+        self.assertEqual(
+            _eval_gate('alertTitle(1, {"market": "BTC15M YES"})'),
+            "(1) Check région · BTC15M YES",
+        )
+        self.assertEqual(
+            _eval_gate('alertTitle(2, {"title": "ETH"})'),
+            "(2) Check région · ETH",
+        )
+
+    def test_suspended_audio_context_is_resumed_before_the_tones(self):
+        body = self.js().split("function playChime", 1)[1].split(
+            "function stopChimeLoop", 1)[0]
+        self.assertIn('if (ctx.state === "suspended")', body)
+        self.assertIn("resumed.then(ring)", body)
+
+
+class AlertDomSmoke(unittest.TestCase):
+    """Drives world-tab.js in a jsdom dashboard with the World panel closed."""
+
+    def test_pending_alerts_without_the_world_panel(self):
+        script = ROOT / "scripts" / "world_alert_dom_check.js"
+        proc = subprocess.run(
+            ["node", str(script)],
+            capture_output=True, text=True, cwd=str(ROOT),
+        )
+        if proc.returncode == 2:
+            self.skipTest("jsdom not installed — run `npm install jsdom` for the DOM check")
+        self.assertEqual(proc.returncode, 0, proc.stdout + proc.stderr)
+
+
+class PendingGeofenceAlert(unittest.TestCase):
+    """The live snapshot shape JD receives must reach the alert path."""
+
+    LIVE_SNAPSHOT = {
+        "schema_version": 2,
+        "example": False,
+        "mode": "LIVE_ONLY",
+        "generated_at": "2026-09-13T11:53:00Z",
+        "pending_geofence": {
+            "request_id": "pbx-btc15m-1153",
+            "market": "BTC15M YES",
+            "track": "A",
+            "side": "YES",
+            "size_usd": 5,
+            "status": "awaiting_region_check",
+            "expires_at": "2099-01-01T00:00:00Z",
+            "geofence_url": (
+                "https://enudimmud.github.io/N-ABU-Dashboard/assets/"
+                "geofence-buy-btc15m.html"
+            ),
+            "note": "VPN off · Suisse · BUY",
+        },
+        "awaiting_region_check": True,
+        "notify": True,
+        "positions": [],
+        "fills": [],
+        "cashflow": {},
+    }
+
+    def _alertable(self, snap: dict):
+        return _eval_gate(
+            "alertablePending(collectPending(" + json.dumps(snap) + "), "
+            + json.dumps(snap) + ").map(function(p){return p.request_id;})"
+        )
+
+    def test_live_pending_geofence_is_alertable(self):
+        self.assertEqual(self._alertable(self.LIVE_SNAPSHOT), ["pbx-btc15m-1153"])
+
+    def test_top_level_awaiting_region_check_flag_adds_no_phantom_ticket(self):
+        snap = dict(self.LIVE_SNAPSHOT)
+        snap.pop("pending_geofence")
+        self.assertEqual(self._alertable(snap), [])
+
+    def test_expired_token_clears_the_badge(self):
+        snap = json.loads(json.dumps(self.LIVE_SNAPSHOT))
+        snap["pending_geofence"]["expires_at"] = "2020-01-01T00:00:00Z"
+        self.assertTrue(_eval_gate(
+            "isExpiredPending(" + json.dumps(snap["pending_geofence"]) + ")"
+        ))
+        self.assertEqual(self._alertable(snap), [])
+
+    def test_pending_without_expiry_never_counts_as_expired(self):
+        p = dict(self.LIVE_SNAPSHOT["pending_geofence"])
+        p.pop("expires_at")
+        self.assertFalse(_eval_gate("isExpiredPending(" + json.dumps(p) + ")"))
+        self.assertTrue(_eval_gate(
+            "isAlertablePending(" + json.dumps(p) + ", {example:false})"
+        ))
+
+    def test_unparsable_expiry_never_counts_as_expired(self):
+        p = dict(self.LIVE_SNAPSHOT["pending_geofence"], expires_at="bientôt")
+        self.assertFalse(_eval_gate("isExpiredPending(" + json.dumps(p) + ")"))
+
+    def test_expiry_tick_re_evaluates_the_alert(self):
+        js = (ROOT / "assets" / "world-tab.js").read_text(encoding="utf-8")
+        body = js.split("function tickExpiry", 1)[1].split("function render", 1)[0]
+        self.assertIn("refreshAlertChrome()", body)
+
+    def test_empty_list_clears_badge_chime_and_title(self):
+        js = (ROOT / "assets" / "world-tab.js").read_text(encoding="utf-8")
+        body = js.split("function applyAlerts", 1)[1].split("function alertNewPending", 1)[0]
+        head = body.split("var top =", 1)[0]
+        self.assertIn("updateBadge(0)", head)
+        self.assertIn("updateBanner([])", head)
+        self.assertIn("stopChimeLoop(false)", head)
+        self.assertIn("stopTitleAlert()", head)
 
 
 def _pos(ticker: str, market: str, track: str = "B", upnl: float = -0.05) -> dict:
