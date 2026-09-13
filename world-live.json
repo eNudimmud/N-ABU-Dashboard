@@ -1,8 +1,8 @@
 {
   "schema_version": 2,
   "example": false,
-  "generated_at": "2026-09-13T18:11:49Z",
-  "generated_at_zh": "2026-09-13T20:11:49+02:00",
+  "generated_at": "2026-09-13T18:17:19Z",
+  "generated_at_zh": "2026-09-13T20:17:19+02:00",
   "source": "paybox world positions \u2014 rebuild_and_push_world_live.py",
   "venue": "world.xyz",
   "wallet": {
@@ -12,13 +12,13 @@
   },
   "mode": "LIVE_ONLY",
   "ticket_usd": 5.0,
-  "bankroll_usd": 57.07,
+  "bankroll_usd": 56.02,
   "caps": {
     "A": {
       "open_usd": 5.0,
       "max_usd": 40.0,
       "pool_usd": 40.0,
-      "bankroll_usd": 57.07,
+      "bankroll_usd": 56.02,
       "label_only": true,
       "share_of_pool_pct": 12.5
     },
@@ -26,21 +26,21 @@
       "open_usd": 25.0,
       "max_usd": 40.0,
       "pool_usd": 40.0,
-      "bankroll_usd": 57.07,
+      "bankroll_usd": 56.02,
       "label_only": true,
       "share_of_pool_pct": 62.5
     },
     "pool_usd": 40.0,
-    "bankroll_usd": 57.07
+    "bankroll_usd": 56.02
   },
   "capacity": {
     "n_open": 6,
     "max_open": 8,
     "remaining_tickets": 2,
     "ticket": 5.0,
-    "max_open_usd": 57.07,
+    "max_open_usd": 56.02,
     "ticket_cap_usd": 40.0,
-    "bankroll_usd": 57.07,
+    "bankroll_usd": 56.02,
     "util_basis": "bankroll_usd",
     "deploy_all_cash_ok": true,
     "A_open": 5.0,
@@ -53,8 +53,8 @@
       "track": "B",
       "side": "YES",
       "size_usd": 5.0,
-      "mark_usd": 7.1467,
-      "upnl_usd": 2.1467,
+      "mark_usd": 6.8376,
+      "upnl_usd": 1.8376,
       "mint": "ExcaH6fdw9ujzyKUfVD8uBEdA4ciipQQG2LgbU7mVTmr",
       "held_atomic": "7726164",
       "held_shares": 7.726164,
@@ -83,8 +83,8 @@
       "track": "B",
       "side": "YES",
       "size_usd": 5.0,
-      "mark_usd": 5.782,
-      "upnl_usd": 0.782,
+      "mark_usd": 5.4514,
+      "upnl_usd": 0.4514,
       "mint": "5mNmJVCvPYhXJtXziCHgvjohwn6giyLo4Jirza46uw1C",
       "held_atomic": "6607747",
       "held_shares": 6.607747,
@@ -97,8 +97,8 @@
       "track": "B",
       "side": "YES",
       "size_usd": 5.0,
-      "mark_usd": 5.5382,
-      "upnl_usd": 0.5382,
+      "mark_usd": 5.1255,
+      "upnl_usd": 0.1255,
       "mint": "9eVCZW4oUXDo11N6K6TWCuC7BcBccwZTQ7n5aT6MYy9P",
       "held_atomic": "6878950",
       "held_shares": 6.87895,
@@ -306,6 +306,16 @@
   ],
   "settled": [
     {
+      "market": "Barcelona YES",
+      "ticker": "WXLIG-26SEP131615BARCLEVA-BARC",
+      "result": "won",
+      "pnl_usd": 0.7506,
+      "size_usd": 5.0,
+      "track": "B",
+      "redeemable": "cashed",
+      "settlement_asset": "CASH"
+    },
+    {
       "market": "Arsenal YES",
       "ticker": "WXEPL-26SEP122000ARSESUND-ARSE",
       "result": "won",
@@ -326,16 +336,6 @@
       "settlement_asset": "CASH"
     },
     {
-      "market": "Barcelona YES",
-      "ticker": "WXLIG-26SEP131615BARCLEVA-BARC",
-      "result": "won",
-      "pnl_usd": 0.7506,
-      "size_usd": 5.0,
-      "track": "B",
-      "redeemable": "cashed",
-      "settlement_asset": "CASH"
-    },
-    {
       "market": "MIL Brewers YES",
       "ticker": "WXMLB-26SEP121810CINMIL-MBRE",
       "result": "won",
@@ -347,6 +347,17 @@
     }
   ],
   "settled_paybox": [
+    {
+      "held_amount": null,
+      "last_known_amount": "5769088",
+      "market_status": "finalized",
+      "market_ticker": "WXLIG-26SEP131615BARCLEVA-BARC",
+      "outcome_mint": "AzYRWeHmHQbpwoDKJb4A9YgGq7tiwyfwCd4GJJWKeJb4",
+      "position_result": "won",
+      "redeemable": "open",
+      "redemption_value_usd": null,
+      "settlement_asset": "CASH"
+    },
     {
       "held_amount": null,
       "last_known_amount": "7845429",
@@ -371,17 +382,6 @@
     },
     {
       "held_amount": null,
-      "last_known_amount": "5769088",
-      "market_status": "finalized",
-      "market_ticker": "WXLIG-26SEP131615BARCLEVA-BARC",
-      "outcome_mint": "AzYRWeHmHQbpwoDKJb4A9YgGq7tiwyfwCd4GJJWKeJb4",
-      "position_result": "won",
-      "redeemable": "open",
-      "redemption_value_usd": null,
-      "settlement_asset": "CASH"
-    },
-    {
-      "held_amount": null,
       "last_known_amount": "7607200",
       "market_status": "finalized",
       "market_ticker": "WXMLB-26SEP121810CINMIL-MBRE",
@@ -396,24 +396,24 @@
     "usdc": 21.26,
     "idle_usd": 21.26,
     "idle_usdc": 21.26,
-    "sol_dust_usd": 1.1128,
+    "sol_dust_usd": 1.114,
     "deployed_usd": 30.0,
     "deployed_cost_usd": 30.0,
-    "positions_mark_usd": 34.69,
+    "positions_mark_usd": 33.64,
     "positions_cost_usd": 30.0,
-    "total_usd": 57.07,
-    "bankroll_usd": 57.07,
+    "total_usd": 56.02,
+    "bankroll_usd": 56.02,
     "realized_pnl_usd": 4.8431,
-    "unrealized_pnl_usd": 4.6938,
+    "unrealized_pnl_usd": 3.6414,
     "fees_usd": 0.0,
-    "net_usd": 9.5369,
-    "marks_plus_usdc": 55.96,
-    "paybox_total_usd": 50.89,
-    "equity_components_usd": 57.07,
+    "net_usd": 8.4845,
+    "marks_plus_usdc": 54.9,
+    "paybox_total_usd": 49.84,
+    "equity_components_usd": 56.02,
     "bankroll_basis": "usdc+marks+sol_dust"
   },
   "autonomy": {
-    "evaluated_at": "2026-09-13T20:11:49+02:00",
+    "evaluated_at": "2026-09-13T20:17:19+02:00",
     "note": "PayBox rebuild \u00b7 open 6/8"
   },
   "pending_geofence": null,
@@ -421,14 +421,14 @@
   "notify": false,
   "utilization": {
     "open_usd": 30.0,
-    "max_usd": 57.07,
+    "max_usd": 56.02,
     "basis": "deployed_cost / bankroll_usd",
     "ticket_cap_usd": 40.0
   },
   "sub_runway": {
     "target_chf": 1700,
-    "bankroll_usd": 57.07,
+    "bankroll_usd": 56.02,
     "realized_pnl_usd": 4.8431
   },
-  "as_of_paybox": "2026-09-13T18:11:52.556123199+00:00"
+  "as_of_paybox": "2026-09-13T18:17:22.096146260+00:00"
 }
