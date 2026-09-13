@@ -3,7 +3,7 @@
   "use strict";
 
   var SNAPSHOT_URLS = ["assets/world-live.json?v=" + Date.now(), "world-live.json?v=" + Date.now()];
-  var CSS_URL = "assets/world-tab.css?v=fills2";
+  var CSS_URL = "assets/world-tab.css?v=geofence-alert1";
   var WALLET_FALLBACK = "27bcZ8xT8qWzkmdyjKy7mRXKqRAR9KBphZt3BMyjmac3";
   var POLL_MS = 8000;
   var URL_KEYS = ["check_region_url", "geofence_url", "url", "data_url", "link", "href"];
@@ -14,11 +14,15 @@
   var CHIME_STATE_KEY = "nabu-world-chime-state";
   var TOAST_DISMISS_KEY = "nabu-world-toast-dismissed";
   var CHIME_REPEAT_MS = 10000;
-  var CHIME_MAX = 5;
+  var CHIME_MAX = 12;
+  var TITLE_FLASH_MS = 1400;
+  var NOTIFY_REPEAT_MS = 45000;
   var TARGET_CHF = 1700;
   var NBSP = "\u00a0";
   var root, banner, toast, navLink, snapshot = null, pollTimer = null;
   var chimeTimer = null, chimeKey = "";
+  var titleTimer = null, titleBase = "", titleAlert = "", titleOn = false;
+  var notifiedAt = {};
 
   function $(sel, el) { return (el || document).querySelector(sel); }
 
@@ -1260,8 +1264,16 @@
     return /^data:text\/plain(?:;|,|$)/i.test(String(url || "").trim());
   }
 
+  /* An expired token can no longer be checked — it must stop shouting instead
+     of leaving a badge JD cannot act on. */
+  function isExpiredPending(p) {
+    var t = parseExpiry(pick(p, ["expires_at", "token_expiry", "expiry"], ""));
+    return t != null && t <= Date.now();
+  }
+
   function isAlertablePending(p, snap) {
     if (!p || isDemoPending(p, snap)) return false;
+    if (isExpiredPending(p)) return false;
     if (pickNotifyUrl(p)) return true;
     if (isPlainDataUrl(pendingUrl(p))) return false;
     return true;
@@ -1387,7 +1399,6 @@
       var Ctx = window.AudioContext || window.webkitAudioContext;
       if (!Ctx) return;
       var ctx = playChime._ctx || (playChime._ctx = new Ctx());
-      if (ctx.state === "suspended") ctx.resume();
       function tone(freq, t0, dur, peak) {
         var o = ctx.createOscillator();
         var g = ctx.createGain();
@@ -1399,9 +1410,22 @@
         o.connect(g); g.connect(ctx.destination);
         o.start(t0); o.stop(t0 + dur + 0.02);
       }
-      var t = ctx.currentTime;
-      tone(880, t, 0.16, 0.28);
-      tone(1175, t + 0.13, 0.22, 0.24);
+      /* Three rising tones: a two-note ping is easy to miss from another room. */
+      function ring() {
+        var t = ctx.currentTime;
+        tone(880, t, 0.16, 0.34);
+        tone(1175, t + 0.13, 0.2, 0.32);
+        tone(1568, t + 0.3, 0.26, 0.3);
+      }
+      /* Tones scheduled on a suspended context are dropped — wait for resume. */
+      if (ctx.state === "suspended") {
+        var resumed = ctx.resume();
+        if (resumed && resumed.then) {
+          resumed.then(ring).catch(function () {});
+          return;
+        }
+      }
+      ring();
     } catch (_) {}
   }
 
@@ -1418,7 +1442,16 @@
     }
   }
 
-  function startChimeLoop(key) {
+  function alertDismissed(key) {
+    if (!key) return false;
+    var st = readChimeState();
+    return st.key === key && st.dismissed === true;
+  }
+
+  /* The chime never depends on the World panel being open, and a hidden tab
+     only gets a quieter browser — not a skipped beat. A background beat also
+     re-fires the desktop notification, the one channel a hidden tab cannot mute. */
+  function startChimeLoop(key, pending) {
     if (!key || !soundOn()) return;
     var st = readChimeState();
     if (st.key === key && (st.dismissed || (st.count || 0) >= CHIME_MAX)) return;
@@ -1431,9 +1464,9 @@
     if (st.key !== key) st = { key: key, count: 0, dismissed: false };
     function beat() {
       if (!soundOn()) { stopChimeLoop(false); return; }
-      if (typeof document !== "undefined" && document.hidden) return;
       if ((st.count || 0) >= CHIME_MAX) { stopChimeLoop(false); return; }
       playChime();
+      if (typeof document !== "undefined" && document.hidden) renotify(pending);
       st.count = (st.count || 0) + 1;
       writeChimeState(st);
       if (st.count >= CHIME_MAX) stopChimeLoop(false);
@@ -1441,6 +1474,36 @@
     beat();
     if ((st.count || 0) < CHIME_MAX) {
       chimeTimer = setInterval(beat, CHIME_REPEAT_MS);
+    }
+  }
+
+  function alertTitle(n, p) {
+    return "(" + n + ") Check région · " + pick(p, ["market", "question", "title"], "ticket");
+  }
+
+  /* Title flash: the nav badge is invisible from another app, the tab label is not.
+     Runs until the ticket is dismissed, expires, or leaves the snapshot. */
+  function startTitleAlert(n, p) {
+    if (typeof document === "undefined") return;
+    var label = alertTitle(n, p);
+    if (titleTimer && titleAlert === label) return;
+    if (titleTimer) { clearInterval(titleTimer); titleTimer = null; }
+    if (!titleBase) titleBase = document.title || "";
+    titleAlert = label;
+    titleOn = true;
+    try { document.title = label; } catch (_) {}
+    titleTimer = setInterval(function () {
+      titleOn = !titleOn;
+      try { document.title = titleOn ? titleAlert : titleBase; } catch (_) {}
+    }, TITLE_FLASH_MS);
+  }
+
+  function stopTitleAlert() {
+    if (titleTimer) { clearInterval(titleTimer); titleTimer = null; }
+    titleAlert = "";
+    titleOn = false;
+    if (titleBase && typeof document !== "undefined") {
+      try { document.title = titleBase; } catch (_) {}
     }
   }
 
@@ -1465,15 +1528,14 @@
     try { return localStorage.getItem(NOTIFY_ASKED_KEY) === "1"; } catch (_) { return false; }
   }
 
+  function currentAlertable() {
+    if (!snapshot) return [];
+    return alertablePending(collectPending(snapshot), snapshot);
+  }
+
   function refreshAlertChrome() {
     if (!snapshot) return;
-    var list = alertablePending(collectPending(snapshot), snapshot);
-    updateBanner(list);
-    if (!worldOpen()) {
-      hideToast();
-      return;
-    }
-    if (list[0] && toast && !toast.hidden) showToast(list[0]);
+    applyAlerts(currentAlertable());
   }
 
   function maybeAskNotifyOnce() {
@@ -1532,14 +1594,18 @@
     }, 50);
   }
 
-  function desktopNotify(p) {
-    if (!("Notification" in window) || Notification.permission !== "granted") return;
+  function desktopNotify(p, again) {
+    if (!p) return;
+    if (typeof window === "undefined" || !("Notification" in window)) return;
+    if (Notification.permission !== "granted") return;
     try {
       var url = pickNotifyUrl(p);
       var n = new Notification(notifyTitle(p), {
         body: notifyBody(p),
         tag: "nabu-world-" + pendingKey(p),
-        requireInteraction: true
+        requireInteraction: true,
+        renotify: again === true,
+        silent: false
       });
       n.onclick = function () {
         if (url) {
@@ -1551,7 +1617,19 @@
         highlightCopier();
         n.close();
       };
+      notifiedAt[pendingKey(p)] = Date.now();
     } catch (_) {}
+  }
+
+  /* Re-fire the OS notification while the ticket is still pending: a single
+     notification can be swiped away or land while the screen is off. */
+  function renotify(p) {
+    if (!p) return;
+    var key = pendingKey(p);
+    if (!key || alertDismissed(key)) return;
+    var last = notifiedAt[key] || 0;
+    if (Date.now() - last < NOTIFY_REPEAT_MS) return;
+    desktopNotify(p, true);
   }
 
   function updateBadge(n) {
@@ -1639,48 +1717,64 @@
     writeToastDismissed(map);
     hideToast();
     stopChimeLoop(true);
+    stopTitleAlert();
   }
 
-  function alertNewPending(list) {
+  /* Badge, banner, chime and title flash follow the pending ticket alone.
+     Only the toast follows the World panel — JD is usually on another tab. */
+  function applyAlerts(list) {
     if (!list || !list.length) {
       updateBadge(0);
       updateBanner([]);
       hideToast();
       stopChimeLoop(false);
+      stopTitleAlert();
       chimeKey = "";
       return;
     }
+    var top = list[0];
+    var key = pendingKey(top);
+    updateBadge(list.length);
+    updateBanner(list);
+    if (worldOpen()) showToast(top);
+    else hideToast();
+    if (alertDismissed(key)) {
+      stopChimeLoop(false);
+      stopTitleAlert();
+      return;
+    }
+    startTitleAlert(list.length, top);
+    startChimeLoop(key, top);
+  }
+
+  function alertNewPending(list) {
+    applyAlerts(list);
+    if (!list || !list.length) return;
     var seen = readSeen();
     var fresh = [];
     for (var i = 0; i < list.length; i++) {
       var id = pendingKey(list[i]);
       if (id && !seen[id]) fresh.push(list[i]);
     }
-    updateBadge(list.length);
-    updateBanner(list);
-    if (worldOpen()) {
-      showToast(list[0]);
-      startChimeLoop(pendingKey(list[0]));
-    } else {
-      hideToast();
-      stopChimeLoop(false);
-    }
     if (!fresh.length) return;
     pulseNav();
     for (var j = 0; j < fresh.length; j++) {
-      desktopNotify(fresh[j]);
+      desktopNotify(fresh[j], false);
       seen[pendingKey(fresh[j])] = 1;
     }
     writeSeen(seen);
   }
 
   function tickExpiry() {
-    if (!root) return;
-    root.querySelectorAll("[data-expiry]").forEach(function (el) {
-      var lab = expiryLabel(el.getAttribute("data-expiry"));
-      el.textContent = lab.txt;
-      el.classList.toggle("is-hot", lab.hot);
-    });
+    if (root) {
+      root.querySelectorAll("[data-expiry]").forEach(function (el) {
+        var lab = expiryLabel(el.getAttribute("data-expiry"));
+        el.textContent = lab.txt;
+        el.classList.toggle("is-hot", lab.hot);
+      });
+    }
+    /* A token that ran out between two polls clears the badge / chime / title. */
+    refreshAlertChrome();
   }
 
   function render(data) {
@@ -1844,12 +1938,10 @@
     setWorldChrome(root, true);
     if (navLink) navLink.classList.add("is-active");
     maybeAskNotifyOnce();
-    if (snapshot) {
-      var list = alertablePending(collectPending(snapshot), snapshot);
-      if (list.length) {
-        showToast(list[0]);
-        startChimeLoop(pendingKey(list[0]));
-      }
+    var list = currentAlertable();
+    if (list.length) {
+      showToast(list[0]);
+      startChimeLoop(pendingKey(list[0]), list[0]);
     }
   }
 
@@ -1858,6 +1950,9 @@
     if (navLink) navLink.classList.remove("is-active");
     hideToast();
     stopChimeLoop(false);
+    /* Leaving the panel drops the toast, never the alert: a ticket still pending
+       keeps its chime, badge and flashing title on whatever tab JD is on. */
+    refreshAlertChrome();
   }
 
   function syncHash() {
@@ -1901,9 +1996,9 @@
     if (t.closest("[data-sound]")) {
       setSound(!soundOn());
       syncSoundButtons();
-      if (soundOn() && snapshot && worldOpen()) {
-        var next = alertablePending(collectPending(snapshot), snapshot);
-        if (next[0]) startChimeLoop(pendingKey(next[0]));
+      if (soundOn()) {
+        var next = currentAlertable();
+        if (next[0]) startChimeLoop(pendingKey(next[0]), next[0]);
       } else {
         stopChimeLoop(false);
       }
@@ -1916,7 +2011,13 @@
     injectPanel();
     injectBanner();
     injectToast();
+    titleBase = document.title || "";
     document.addEventListener("click", onClick, true);
+    /* Coming back to the tab is the first moment a suspended AudioContext can
+       resume, so re-arm the alert instead of waiting for the next poll. */
+    document.addEventListener("visibilitychange", function () {
+      if (!document.hidden) refreshAlertChrome();
+    });
     syncHash();
     loadSnapshot().then(function (data) { applySnapshot(data, false); });
     window.addEventListener("hashchange", syncHash);
@@ -1935,6 +2036,7 @@
       pickOpenableGeofenceUrl: pickOpenableGeofenceUrl,
       isPlainDataUrl: isPlainDataUrl,
       isDemoPending: isDemoPending,
+      isExpiredPending: isExpiredPending,
       isAlertablePending: isAlertablePending,
       livePending: livePending,
       alertablePending: alertablePending,
@@ -1958,7 +2060,10 @@
       poolOpen: poolOpen,
       tracksAreLabels: tracksAreLabels,
       trackShareBasis: trackShareBasis,
-      worldOpen: worldOpen
+      worldOpen: worldOpen,
+      alertTitle: alertTitle,
+      applyAlerts: applyAlerts,
+      refreshAlertChrome: refreshAlertChrome
     };
   }
 
