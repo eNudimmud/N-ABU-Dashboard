@@ -1,8 +1,8 @@
 {
   "schema_version": 2,
   "example": false,
-  "generated_at": "2026-09-13T04:24:33Z",
-  "generated_at_zh": "2026-09-13T06:24:33+02:00",
+  "generated_at": "2026-09-13T04:25:10Z",
+  "generated_at_zh": "2026-09-13T06:25:10+02:00",
   "source": "paybox world positions \u2014 rebuild_and_push_world_live.py",
   "venue": "world.xyz",
   "wallet": {
@@ -268,54 +268,6 @@
       "note": "exited_sold"
     },
     {
-      "ts": "2026-09-12T21:48:52.519733890Z",
-      "action": "open",
-      "market": "NO Saints YES",
-      "track": "B",
-      "side": "YES",
-      "size_usd": 5,
-      "pnl_usd": null,
-      "tx": "431CTvNrPuEoXnqR5pU83Nq55ieRhKVZ5unKBs4mqCNTPtQ3jydSRsv6KGLUunMT8J3thcBMrZsKS8rLqPKowXN1",
-      "ticker": "WXNFL-26SEP13NODET-NSAI",
-      "note": "success"
-    },
-    {
-      "ts": "2026-09-12T21:35:44.172786954Z",
-      "action": "open",
-      "market": "TB Buccaneers YES",
-      "track": "B",
-      "side": "YES",
-      "size_usd": 5,
-      "pnl_usd": null,
-      "tx": "2vdSdULCT68HjqEN1GrGc7bL4p11f1vi4VFUpVwDJyEZzYnGySaobLSfE6gp3rMvJqLVrsRzVZTQKwqb1JhjBVfC",
-      "ticker": "WXNFL-26SEP13TBCIN-TBUC",
-      "note": "success"
-    },
-    {
-      "ts": "2026-09-12T21:23:43.640375409Z",
-      "action": "open",
-      "market": "CLE Browns YES",
-      "track": "B",
-      "side": "YES",
-      "size_usd": 5,
-      "pnl_usd": null,
-      "tx": "4n1i563oD57UWSaFHZ3daxCe8NoGviaBTc9Scz2G2XLzi6qU74wndWLEstUeP2MdM7VaMgB59pfEz8e29sLYxs1U",
-      "ticker": "WXNFL-26SEP13CLEJAC-CBRO",
-      "note": "success"
-    },
-    {
-      "ts": "2026-09-12T21:08:41.685538015Z",
-      "action": "open",
-      "market": "ATL Falcons YES",
-      "track": "B",
-      "side": "YES",
-      "size_usd": 5,
-      "pnl_usd": null,
-      "tx": "2PyaaDFjt3gKmprH5ZbPG29ruchmazeLwFWXdANb3QQi2khCPeKPnHcoQy8pS2XtLJDAsWbhSFAFkzJYJrxgjFgL",
-      "ticker": "WXNFL-26SEP13ATLPIT-AFAL",
-      "note": "success"
-    },
-    {
       "ts": "2026-09-12T16:16:12.541162187Z",
       "action": "open",
       "market": "Barcelona YES",
@@ -325,30 +277,6 @@
       "pnl_usd": null,
       "tx": "4DrBNGxyDx9ANAsbGRF1yRXsY2GbHNVGPQVdaXH7r6U1UJHaBMwPiKmVDiSi7LjcjdAtKr7FkseWi2eWPrQtyjM3",
       "ticker": "WXLIG-26SEP131615BARCLEVA-BARC",
-      "note": "success"
-    },
-    {
-      "ts": "2026-09-12T16:05:53.115440728Z",
-      "action": "open",
-      "market": "Milwaukee YES",
-      "track": "B",
-      "side": "YES",
-      "size_usd": 5,
-      "pnl_usd": null,
-      "tx": "4A8TD9mKnppk8V6S53Xn7KqgT2SxqW9yufFdRRxwRCPXCTiZs3BqqpmW5aHbzmFvue4tH7T5bcQE1N8cTjs5jfr4",
-      "ticker": "WXMLB-26SEP121810CINMIL-MBRE",
-      "note": "success"
-    },
-    {
-      "ts": "2026-09-12T15:00:49.280847334Z",
-      "action": "open",
-      "market": "Arsenal YES",
-      "track": "A",
-      "side": "YES",
-      "size_usd": 5,
-      "pnl_usd": null,
-      "tx": "2KDYt4L1pq9Uyqth77ed9XTwrLze3B8oL1rkd1KGnxwHodrciUAp9CLjaCTmSqNMVq9LhK71RfqALFdsFp1paVFR",
-      "ticker": "WXEPL-26SEP122000ARSESUND-ARSE",
       "note": "success"
     },
     {
@@ -378,16 +306,6 @@
   ],
   "settled": [
     {
-      "market": "Arsenal YES",
-      "ticker": "WXEPL-26SEP122000ARSESUND-ARSE",
-      "result": "won",
-      "pnl_usd": 2.8454,
-      "size_usd": 5.0,
-      "track": "A",
-      "redeemable": "cashed",
-      "settlement_asset": "CASH"
-    },
-    {
       "market": "MIL Brewers YES",
       "ticker": "WXMLB-26SEP121810CINMIL-MBRE",
       "result": "won",
@@ -396,20 +314,19 @@
       "track": "B",
       "redeemable": "cashed",
       "settlement_asset": "CASH"
+    },
+    {
+      "market": "Arsenal YES",
+      "ticker": "WXEPL-26SEP122000ARSESUND-ARSE",
+      "result": "won",
+      "pnl_usd": 2.8454,
+      "size_usd": 5.0,
+      "track": "A",
+      "redeemable": "cashed",
+      "settlement_asset": "CASH"
     }
   ],
   "settled_paybox": [
-    {
-      "held_amount": null,
-      "last_known_amount": "7845429",
-      "market_status": "finalized",
-      "market_ticker": "WXEPL-26SEP122000ARSESUND-ARSE",
-      "outcome_mint": "7m6EfZGRaD1riwQJjtvGVZH2PQ1r6W8V5HPoD52HTHE7",
-      "position_result": "won",
-      "redeemable": "open",
-      "redemption_value_usd": null,
-      "settlement_asset": "CASH"
-    },
     {
       "held_amount": null,
       "last_known_amount": "7607200",
@@ -420,13 +337,24 @@
       "redeemable": "open",
       "redemption_value_usd": null,
       "settlement_asset": "CASH"
+    },
+    {
+      "held_amount": null,
+      "last_known_amount": "7845429",
+      "market_status": "finalized",
+      "market_ticker": "WXEPL-26SEP122000ARSESUND-ARSE",
+      "outcome_mint": "7m6EfZGRaD1riwQJjtvGVZH2PQ1r6W8V5HPoD52HTHE7",
+      "position_result": "won",
+      "redeemable": "open",
+      "redemption_value_usd": null,
+      "settlement_asset": "CASH"
     }
   ],
   "cashflow": {
     "usdc": 15.15,
     "idle_usd": 15.15,
     "idle_usdc": 15.15,
-    "sol_dust_usd": 0.9854,
+    "sol_dust_usd": 0.9855,
     "deployed_usd": 35.0,
     "deployed_cost_usd": 35.0,
     "positions_mark_usd": 34.46,
@@ -438,10 +366,10 @@
     "fees_usd": 0.0,
     "net_usd": 3.191,
     "marks_plus_usdc": 49.61,
-    "paybox_total_usd": 50.5966
+    "paybox_total_usd": 50.5968
   },
   "autonomy": {
-    "evaluated_at": "2026-09-13T06:24:33+02:00",
+    "evaluated_at": "2026-09-13T06:25:10+02:00",
     "note": "PayBox rebuild \u00b7 open 7/8"
   },
   "pending_geofence": null,
@@ -458,5 +386,5 @@
     "bankroll_usd": 50.6,
     "realized_pnl_usd": 3.7342
   },
-  "as_of_paybox": "2026-09-13T04:24:36.606604799+00:00"
+  "as_of_paybox": "2026-09-13T04:25:13.432788760+00:00"
 }
