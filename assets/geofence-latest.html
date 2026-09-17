@@ -1,30 +1,32 @@
-<!DOCTYPE html><html lang=fr><meta charset=utf-8>
-<meta name=viewport content="width=device-width,initial-scale=1">
-<meta http-equiv="Cache-Control" content="no-store">
-<title>CH buy TRAY +$5 1620</title>
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Check région · BORI Baltimore YES</title>
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
 <style>
-body{font:16px system-ui;margin:24px;max-width:420px;background:#0b0b0f;color:#eee}
-button{width:100%;padding:16px;font-size:1.1rem;border:0;border-radius:12px;background:#7d00ff;color:#fff;font-weight:700}
-#o{margin-top:14px;white-space:pre-wrap}.ok{color:#1a7f37}.bad{color:#c62828}
+body{font-family:system-ui,sans-serif;background:#0b0d12;color:#e8eaed;margin:0;padding:1.25rem;}
+.card{max-width:420px;margin:2rem auto;padding:1.25rem;border:1px solid #2a3140;border-radius:14px;background:#12161f;}
+h1{font-size:1.1rem;margin:0 0 .5rem;}
+.meta{color:#9aa3b2;font-size:.85rem;line-height:1.4;margin:.35rem 0;}
+.ok{display:block;text-align:center;margin:1.25rem 0 .5rem;padding:.9rem 1rem;border-radius:12px;background:#6c5ce7;color:#fff;text-decoration:none;font-weight:600;}
+.warn{color:#ff7675;font-size:.85rem;}
 </style>
-<p><b>VPN off</b> · Suisse · <b>BUY</b> TRAY Rays YES +$5 (total $10)</p>
-<p style="font-size:13px;opacity:.8">Add-on · ask~0.725 · req d0e922fc · token ~15min</p>
-<p style="font-size:12px;opacity:.65">Après OK : dis <b>Parked</b> — N*ABU lance pbxk1.</p>
-<button id=g>Check région</button><pre id=o></pre>
+</head>
+<body>
+<div class="card">
+<h1>VPN off · Suisse · BUY BORI Baltimore YES $5</h1>
+<p class="meta">MIL@BAL · dim 20 Sep · ask≈0.345 · p_mine 0.42 · EV_net≈+5.5pp</p>
+<p class="meta">req 83b1cb1d… · live prepare (pas TRAY)</p>
+<a class="ok" href="https://api.paybox.sh/iframe/swap/83b1cb1d-0849-40df-8151-b24ba61b126f/geofence">Check région</a>
+<p class="meta">Après OK région → statut Parked. N*ABU enchaîne pbxk1 local. Pas de carte « signer » chat.</p>
+<p class="warn" id="age"></p>
+</div>
 <script>
-const U="https://api.paybox.sh/iframe/swap/d0e922fc-8f21-4032-8aab-bdb285db26cd/geofence",T="eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJwYXlib3giLCJzdWIiOiJjMDQ4NmU2Mi05M2ZlLTQ5NjgtYWM1MS0zOWFmZDBiZGIxZWYiLCJjaWQiOiJlN2I2ZmY0NS1kYTZlLTQxMmMtOGNlYS0xMzYwZTJhZDJiNDMiLCJhdWQiOiJkMGU5MjJmYy04ZjIxLTQwMzItOGFhYi1iZGIyODVkYjI2Y2QiLCJwdXJwb3NlIjoicmVmcmVzaCIsImlhdCI6MTc4OTY2MTk4NiwiZXhwIjoxNzg5NjYyODg2LCJqdGkiOiI5ODU4OTIyYi0xNGNjLTRjZDQtODJkOC05MThkZWJkMTEzODIifQ.1p001JGlebc_sVY20qWd25RQiG1lNEbasO94gRIY6zw";
-const o=document.getElementById('o'),g=document.getElementById('g');
-g.onclick=async()=>{
-  g.disabled=true;o.className='';o.textContent='…';
-  try{
-    const r=await fetch(U,{method:'POST',headers:{Authorization:'Bearer '+T}});
-    const t=await r.text(); let b; try{b=JSON.parse(t)}catch{b={raw:t}}
-    if(r.status===401){o.className='bad';o.textContent='Expiré — dis re-préparer';return}
-    if(!r.ok){o.className='bad';o.textContent='HTTP '+r.status+'\n'+t.slice(0,400);g.disabled=false;return}
-    if(b.status==='blocked'||b.blocked||b.status==='denied'){o.className='bad';o.textContent='Bloqué\n'+(b.reason||t.slice(0,300));g.disabled=false;return}
-    const n=(b.plan&&b.plan.txs&&b.plan.txs.length)||0;
-    if(!n){o.className='bad';o.textContent='0 txs — dis empty';g.disabled=false;return}
-    o.className='ok';o.textContent='OK '+n+' txs\nDis: Parked';
-  }catch(e){o.className='bad';o.textContent=String(e);g.disabled=false}
-};
+document.getElementById('age').textContent='Généré '+new Date().toLocaleString('fr-CH');
+// auto-open geofence after short beat for mobile
+setTimeout(function(){ location.href="https://api.paybox.sh/iframe/swap/83b1cb1d-0849-40df-8151-b24ba61b126f/geofence"; }, 400);
 </script>
+</body>
+</html>
