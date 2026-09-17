@@ -1836,7 +1836,9 @@
       + '<div class="nabu-world-lockup"><div class="nabu-world-orb" aria-hidden="true"></div>'
       + '<h1 class="nabu-world-title">world</h1></div>'
       + '<p class="nabu-world-sub">World.xyz · PayBox · lecture seule. La planche d\'origine (book / risk / SOUL) reste inchangée. '
-      + "Cet onglet ne signe rien. Un ticket préparé attend le CH Check région.</p>"
+      + ((pending && pending.length)
+        ? "Cet onglet ne signe rien. Un ticket préparé attend le CH Check région.</p>"
+        : "Cet onglet ne signe rien. Aucun ticket en attente de Check région.</p>")
       + '<div class="nabu-world-badges">' + badges + "</div></header>"
       + warn
       + renderPending(pending, snapshot)
