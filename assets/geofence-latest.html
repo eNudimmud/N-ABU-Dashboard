@@ -7,11 +7,11 @@ button{width:100%;padding:16px;font-size:1.1rem;border:0;border-radius:12px;back
 #o{margin-top:14px;white-space:pre-wrap}.ok{color:#1a7f37}.bad{color:#c62828}
 </style>
 <p><b>VPN off</b> · Suisse · <b>BUY</b> TRAY Rays YES $5 · Track B</p>
-<p style="font-size:13px;opacity:.8">DEEP_BRIEF · p_mine 0.76 · ask~0.725 · token → <b>15:55 ZH</b></p>
-<p style="font-size:12px;opacity:.65">Ne pas coller l’URL PayBox (GET = 405). Appuie sur le bouton.</p>
+<p style="font-size:13px;opacity:.8">DEEP_BRIEF · p_mine 0.76 · ask~0.725 · token → <b>16:17 ZH</b></p>
+<p style="font-size:12px;opacity:.65">Après OK : dis <b>Parked</b> dans le chat — N*ABU lance pbxk1.</p>
 <button id=g>Check région</button><pre id=o></pre>
 <script>
-const U="https://api.paybox.sh/iframe/swap/aa5837d0-0d09-475d-947b-e63326a64060/geofence",T="eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJwYXlib3giLCJzdWIiOiJjMDQ4NmU2Mi05M2ZlLTQ5NjgtYWM1MS0zOWFmZDBiZGIxZWYiLCJjaWQiOiJlN2I2ZmY0NS1kYTZlLTQxMmMtOGNlYS0xMzYwZTJhZDJiNDMiLCJhdWQiOiJhYTU4MzdkMC0wZDA5LTQ3NWQtOTQ3Yi1lNjMzMjZhNjQwNjAiLCJwdXJwb3NlIjoicmVmcmVzaCIsImlhdCI6MTc4OTY1MjQzOSwiZXhwIjoxNzg5NjUzMzM5LCJqdGkiOiIzNTZlZTUxMS00ZGY0LTRiMWUtYTBkNC1iMjM5MDhhZWNiZDQifQ.7g580qwZnC_NW66foQgJa3ZCLYA70KdikUQwFMsQnPg";
+const U="https://api.paybox.sh/iframe/swap/3fe450c5-cd91-4183-9217-ea8e382e7e67/geofence",T="eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJwYXlib3giLCJzdWIiOiJjMDQ4NmU2Mi05M2ZlLTQ5NjgtYWM1MS0zOWFmZDBiZGIxZWYiLCJjaWQiOiJlN2I2ZmY0NS1kYTZlLTQxMmMtOGNlYS0xMzYwZTJhZDJiNDMiLCJhdWQiOiIzZmU0NTBjNS1jZDkxLTQxODMtOTIxNy1lYThlMzgyZTdlNjciLCJwdXJwb3NlIjoicmVmcmVzaCIsImlhdCI6MTc4OTY1Mzc1OCwiZXhwIjoxNzg5NjU0NjU4LCJqdGkiOiI2YTAyZWQzMC0yN2ZmLTQ3ZDItYjUxMC0xYTNkZmI3MjMwOTYifQ.xjoOPnwl7PrlTdmejPv4Br-C1nxa_DqU4mzg67cLfeg";
 const o=document.getElementById('o'),g=document.getElementById('g');
 g.onclick=async()=>{
   g.disabled=true;o.className='';o.textContent='…';
@@ -23,7 +23,7 @@ g.onclick=async()=>{
     if(b.status==='blocked'||b.blocked||b.status==='denied'){o.className='bad';o.textContent='Bloqué\n'+(b.reason||t.slice(0,300));g.disabled=false;return}
     const n=(b.plan&&b.plan.txs&&b.plan.txs.length)||0;
     if(!n){o.className='bad';o.textContent='0 txs — dis empty';g.disabled=false;return}
-    o.className='ok';o.textContent='OK '+n+' txs\nDis: parked';
+    o.className='ok';o.textContent='OK '+n+' txs\nDis: Parked';
   }catch(e){o.className='bad';o.textContent=String(e);g.disabled=false}
 };
 </script>
