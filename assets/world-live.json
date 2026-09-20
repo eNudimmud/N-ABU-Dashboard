@@ -1,8 +1,8 @@
 {
   "schema_version": 2,
   "example": false,
-  "generated_at": "2026-09-20T22:08:46Z",
-  "generated_at_zh": "2026-09-21T00:08:46+02:00",
+  "generated_at": "2026-09-20T22:09:00Z",
+  "generated_at_zh": "2026-09-21T00:09:00+02:00",
   "source": "paybox world positions \u2014 rebuild_and_push_world_live.py",
   "venue": "world.xyz",
   "wallet": {
@@ -332,32 +332,12 @@
   ],
   "settled": [
     {
-      "market": "Arsenal YES",
-      "ticker": "WXEPL-26SEP122000ARSESUND-ARSE",
+      "market": "BTC15M YES",
+      "ticker": "WXBTC15M-26SEP130530-15",
       "result": "won",
-      "pnl_usd": 2.8454,
+      "pnl_usd": 0.3583,
       "size_usd": 5.0,
       "track": "A",
-      "redeemable": "cashed",
-      "settlement_asset": "CASH"
-    },
-    {
-      "market": "BYU @ CSU \u2014 BYU YES",
-      "ticker": "WXNCAAFB-26SEP19BYUCSU-BCOU",
-      "result": "won",
-      "pnl_usd": 0.5204,
-      "size_usd": 5.0,
-      "track": "B",
-      "redeemable": "cashed",
-      "settlement_asset": "CASH"
-    },
-    {
-      "market": "PHI @ TEN \u2014 PHI Eagles YES",
-      "ticker": "WXNFL-26SEP20PHITEN-PEAG",
-      "result": "won",
-      "pnl_usd": 3.0444,
-      "size_usd": 10.0,
-      "track": "B",
       "redeemable": "cashed",
       "settlement_asset": "CASH"
     },
@@ -372,24 +352,44 @@
       "settlement_asset": "CASH"
     },
     {
-      "market": "MIL Brewers YES",
-      "ticker": "WXMLB-26SEP121810CINMIL-MBRE",
+      "market": "BYU @ CSU \u2014 BYU YES",
+      "ticker": "WXNCAAFB-26SEP19BYUCSU-BCOU",
       "result": "won",
-      "pnl_usd": 2.6072,
+      "pnl_usd": 0.5204,
       "size_usd": 5.0,
       "track": "B",
       "redeemable": "cashed",
       "settlement_asset": "CASH"
     },
     {
-      "market": "UK @ Texas A&M \u2014 TAMU YES",
-      "ticker": "WXNCAAFB-26SEP19UKTXAM-TAGG",
-      "result": "lost",
-      "pnl_usd": -5.0,
+      "market": "Barcelona YES",
+      "ticker": "WXLIG-26SEP131615BARCLEVA-BARC",
+      "result": "won",
+      "pnl_usd": 0.7506,
       "size_usd": 5.0,
       "track": "B",
       "redeemable": "cashed",
-      "settlement_asset": null
+      "settlement_asset": "CASH"
+    },
+    {
+      "market": "Real Madrid YES",
+      "ticker": "WXLIG-26SEP152130RMADELCH-RMAD",
+      "result": "won",
+      "pnl_usd": 1.3549,
+      "size_usd": 5.0,
+      "track": "A",
+      "redeemable": "cashed",
+      "settlement_asset": "CASH"
+    },
+    {
+      "market": "PHI @ TEN \u2014 PHI Eagles YES",
+      "ticker": "WXNFL-26SEP20PHITEN-PEAG",
+      "result": "won",
+      "pnl_usd": 3.0444,
+      "size_usd": 10.0,
+      "track": "B",
+      "redeemable": "cashed",
+      "settlement_asset": "CASH"
     },
     {
       "market": "PHI Eagles YES",
@@ -412,12 +412,22 @@
       "settlement_asset": "CASH"
     },
     {
-      "market": "Barcelona YES",
-      "ticker": "WXLIG-26SEP131615BARCLEVA-BARC",
-      "result": "won",
-      "pnl_usd": 0.7506,
+      "market": "UK @ Texas A&M \u2014 TAMU YES",
+      "ticker": "WXNCAAFB-26SEP19UKTXAM-TAGG",
+      "result": "lost",
+      "pnl_usd": -5.0,
       "size_usd": 5.0,
       "track": "B",
+      "redeemable": "cashed",
+      "settlement_asset": null
+    },
+    {
+      "market": "Arsenal YES",
+      "ticker": "WXEPL-26SEP122000ARSESUND-ARSE",
+      "result": "won",
+      "pnl_usd": 2.8454,
+      "size_usd": 5.0,
+      "track": "A",
       "redeemable": "cashed",
       "settlement_asset": "CASH"
     },
@@ -432,30 +442,10 @@
       "settlement_asset": "CASH"
     },
     {
-      "market": "BTC15M YES",
-      "ticker": "WXBTC15M-26SEP130530-15",
+      "market": "MIL Brewers YES",
+      "ticker": "WXMLB-26SEP121810CINMIL-MBRE",
       "result": "won",
-      "pnl_usd": 0.3583,
-      "size_usd": 5.0,
-      "track": "A",
-      "redeemable": "cashed",
-      "settlement_asset": "CASH"
-    },
-    {
-      "market": "Real Madrid YES",
-      "ticker": "WXLIG-26SEP152130RMADELCH-RMAD",
-      "result": "won",
-      "pnl_usd": 1.3549,
-      "size_usd": 5.0,
-      "track": "A",
-      "redeemable": "cashed",
-      "settlement_asset": "CASH"
-    },
-    {
-      "market": "DET Lions YES",
-      "ticker": "WXNFL-26SEP13NODET-DLIO",
-      "result": "won",
-      "pnl_usd": 1.6077,
+      "pnl_usd": 2.6072,
       "size_usd": 5.0,
       "track": "B",
       "redeemable": "cashed",
@@ -466,6 +456,16 @@
       "ticker": "WXNFL-26SEP13CLEJAC-JJAG",
       "result": "won",
       "pnl_usd": 1.2776,
+      "size_usd": 5.0,
+      "track": "B",
+      "redeemable": "cashed",
+      "settlement_asset": "CASH"
+    },
+    {
+      "market": "DET Lions YES",
+      "ticker": "WXNFL-26SEP13NODET-DLIO",
+      "result": "won",
+      "pnl_usd": 1.6077,
       "size_usd": 5.0,
       "track": "B",
       "redeemable": "cashed",
@@ -534,36 +534,14 @@
   ],
   "settled_paybox": [
     {
-      "market_ticker": "WXEPL-26SEP122000ARSESUND-ARSE",
+      "market_ticker": "WXBTC15M-26SEP130530-15",
       "position_result": "won",
       "redeemable": "cashed",
       "settlement_asset": "CASH",
       "held_amount": null,
       "last_known_amount": null,
       "market_status": "finalized",
-      "redemption_value_usd": 2.8454,
-      "outcome_mint": null
-    },
-    {
-      "market_ticker": "WXNCAAFB-26SEP19BYUCSU-BCOU",
-      "position_result": "won",
-      "redeemable": "cashed",
-      "settlement_asset": "CASH",
-      "held_amount": null,
-      "last_known_amount": null,
-      "market_status": "finalized",
-      "redemption_value_usd": 0.5204,
-      "outcome_mint": null
-    },
-    {
-      "market_ticker": "WXNFL-26SEP20PHITEN-PEAG",
-      "position_result": "won",
-      "redeemable": "cashed",
-      "settlement_asset": "CASH",
-      "held_amount": null,
-      "last_known_amount": null,
-      "market_status": "finalized",
-      "redemption_value_usd": 3.0444,
+      "redemption_value_usd": 0.3583,
       "outcome_mint": null
     },
     {
@@ -578,25 +556,47 @@
       "outcome_mint": null
     },
     {
-      "market_ticker": "WXMLB-26SEP121810CINMIL-MBRE",
+      "market_ticker": "WXNCAAFB-26SEP19BYUCSU-BCOU",
       "position_result": "won",
       "redeemable": "cashed",
       "settlement_asset": "CASH",
       "held_amount": null,
       "last_known_amount": null,
       "market_status": "finalized",
-      "redemption_value_usd": 2.6072,
+      "redemption_value_usd": 0.5204,
       "outcome_mint": null
     },
     {
-      "market_ticker": "WXNCAAFB-26SEP19UKTXAM-TAGG",
-      "position_result": "lost",
+      "market_ticker": "WXLIG-26SEP131615BARCLEVA-BARC",
+      "position_result": "won",
       "redeemable": "cashed",
-      "settlement_asset": null,
+      "settlement_asset": "CASH",
       "held_amount": null,
       "last_known_amount": null,
       "market_status": "finalized",
-      "redemption_value_usd": -5.0,
+      "redemption_value_usd": 0.7506,
+      "outcome_mint": null
+    },
+    {
+      "market_ticker": "WXLIG-26SEP152130RMADELCH-RMAD",
+      "position_result": "won",
+      "redeemable": "cashed",
+      "settlement_asset": "CASH",
+      "held_amount": null,
+      "last_known_amount": null,
+      "market_status": "finalized",
+      "redemption_value_usd": 1.3549,
+      "outcome_mint": null
+    },
+    {
+      "market_ticker": "WXNFL-26SEP20PHITEN-PEAG",
+      "position_result": "won",
+      "redeemable": "cashed",
+      "settlement_asset": "CASH",
+      "held_amount": null,
+      "last_known_amount": null,
+      "market_status": "finalized",
+      "redemption_value_usd": 3.0444,
       "outcome_mint": null
     },
     {
@@ -622,14 +622,25 @@
       "outcome_mint": null
     },
     {
-      "market_ticker": "WXLIG-26SEP131615BARCLEVA-BARC",
+      "market_ticker": "WXNCAAFB-26SEP19UKTXAM-TAGG",
+      "position_result": "lost",
+      "redeemable": "cashed",
+      "settlement_asset": null,
+      "held_amount": null,
+      "last_known_amount": null,
+      "market_status": "finalized",
+      "redemption_value_usd": -5.0,
+      "outcome_mint": null
+    },
+    {
+      "market_ticker": "WXEPL-26SEP122000ARSESUND-ARSE",
       "position_result": "won",
       "redeemable": "cashed",
       "settlement_asset": "CASH",
       "held_amount": null,
       "last_known_amount": null,
       "market_status": "finalized",
-      "redemption_value_usd": 0.7506,
+      "redemption_value_usd": 2.8454,
       "outcome_mint": null
     },
     {
@@ -644,36 +655,14 @@
       "outcome_mint": null
     },
     {
-      "market_ticker": "WXBTC15M-26SEP130530-15",
+      "market_ticker": "WXMLB-26SEP121810CINMIL-MBRE",
       "position_result": "won",
       "redeemable": "cashed",
       "settlement_asset": "CASH",
       "held_amount": null,
       "last_known_amount": null,
       "market_status": "finalized",
-      "redemption_value_usd": 0.3583,
-      "outcome_mint": null
-    },
-    {
-      "market_ticker": "WXLIG-26SEP152130RMADELCH-RMAD",
-      "position_result": "won",
-      "redeemable": "cashed",
-      "settlement_asset": "CASH",
-      "held_amount": null,
-      "last_known_amount": null,
-      "market_status": "finalized",
-      "redemption_value_usd": 1.3549,
-      "outcome_mint": null
-    },
-    {
-      "market_ticker": "WXNFL-26SEP13NODET-DLIO",
-      "position_result": "won",
-      "redeemable": "cashed",
-      "settlement_asset": "CASH",
-      "held_amount": null,
-      "last_known_amount": null,
-      "market_status": "finalized",
-      "redemption_value_usd": 1.6077,
+      "redemption_value_usd": 2.6072,
       "outcome_mint": null
     },
     {
@@ -685,6 +674,17 @@
       "last_known_amount": null,
       "market_status": "finalized",
       "redemption_value_usd": 1.2776,
+      "outcome_mint": null
+    },
+    {
+      "market_ticker": "WXNFL-26SEP13NODET-DLIO",
+      "position_result": "won",
+      "redeemable": "cashed",
+      "settlement_asset": "CASH",
+      "held_amount": null,
+      "last_known_amount": null,
+      "market_status": "finalized",
+      "redemption_value_usd": 1.6077,
       "outcome_mint": null
     },
     {
@@ -758,7 +758,7 @@
     "usdc": 59.13,
     "idle_usd": 59.13,
     "idle_usdc": 59.13,
-    "sol_dust_usd": 2.5396,
+    "sol_dust_usd": 2.5393,
     "world_cash_usd": 0.0,
     "cash_usd": 0.0,
     "deployed_usd": 5.0,
@@ -777,30 +777,12 @@
     "bankroll_basis": "usdc+marks+sol_dust+world_cash"
   },
   "autonomy": {
-    "evaluated_at": "2026-09-21T00:08:46+02:00",
+    "evaluated_at": "2026-09-21T00:09:00+02:00",
     "note": "PayBox rebuild \u00b7 open 1/8"
   },
-  "pending_geofence": {
-    "request_id": "7fafc962-7c02-41d9-a928-8b3013beac84",
-    "market": "CASH\u2192USDC reclaim BYU+PEAG",
-    "ticker": "CASH-USDC",
-    "track": "B",
-    "side": "YES",
-    "size_usd": 18.56,
-    "status": "awaiting_region_check",
-    "prepared_at": "2026-09-20T22:46:25+02:00",
-    "expires_at": null,
-    "token_expiry": null,
-    "geofence_url": "https://enudimmud.github.io/N-ABU-Dashboard/assets/geofence-latest.html",
-    "url": "https://enudimmud.github.io/N-ABU-Dashboard/assets/geofence-latest.html",
-    "pages": null,
-    "pages_named": null,
-    "note": "Check r\u00e9gion CH \u2014 VPN off. Son+badge WD si onglet ouvert + alertes navigateur autoris\u00e9es.",
-    "mid": null,
-    "spr": null
-  },
-  "awaiting_region_check": true,
-  "notify": true,
+  "pending_geofence": null,
+  "awaiting_region_check": false,
+  "notify": false,
   "utilization": {
     "open_usd": 5.0,
     "max_usd": 67.11,
@@ -812,5 +794,5 @@
     "bankroll_usd": 67.11,
     "realized_pnl_usd": 18.0597
   },
-  "as_of_paybox": "2026-09-20T22:08:49.216171964+00:00"
+  "as_of_paybox": "2026-09-20T22:09:03.371719269+00:00"
 }
