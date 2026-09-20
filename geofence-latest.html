@@ -1,32 +1,29 @@
 <!DOCTYPE html><html lang=fr><meta charset=utf-8>
 <meta name=viewport content="width=device-width,initial-scale=1">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-<title>CH EXIT BORI</title>
+<title>CH RECLAIM CASH</title>
 <style>
 body{font:16px system-ui;margin:24px;max-width:420px;background:#0b0b0f;color:#eee}
-button{width:100%;padding:16px;font-size:1.1rem;border:0;border-radius:12px;background:#c62828;color:#fff;font-weight:700}
+button{width:100%;padding:16px;font-size:1.1rem;border:0;border-radius:12px;background:#1565c0;color:#fff;font-weight:700}
 #o{margin-top:14px;white-space:pre-wrap}.ok{color:#1a7f37}.bad{color:#c62828}
 .meta{font-size:13px;opacity:.8}
 </style>
-<p><b>VPN off</b> · Suisse · <b>EXIT/SELL</b> BORI Baltimore YES (full ~14.4 sh)</p>
-<p class=meta>JD: degager le dog · PEAG $10 déjà fill</p>
-<p class=meta>req 428eb175… · <b>POST+Bearer</b> · 02:46 ZH</p>
-<p class=meta>Après OK: <b>Parked</b></p>
+<p><b>VPN off</b> · Suisse · <b>RECLAIM</b> CASH → USDC ~$18.56</p>
+<p class=meta>BYU+PEAG settlement cash · req 33e9550e… · <b>POST+Bearer</b> · 22:46 ZH</p>
+<p class=meta>Après OK: <b>Parked</b> (je signe auto)</p>
 <button id=g>Check région</button><pre id=o></pre>
 <script>
-const U="https://api.paybox.sh/iframe/swap/428eb175-8ba3-4c54-951d-5c19aa651ca9/geofence",T="eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJwYXlib3giLCJzdWIiOiJjMDQ4NmU2Mi05M2ZlLTQ5NjgtYWM1MS0zOWFmZDBiZGIxZWYiLCJjaWQiOiJlN2I2ZmY0NS1kYTZlLTQxMmMtOGNlYS0xMzYwZTJhZDJiNDMiLCJhdWQiOiI0MjhlYjE3NS04YmEzLTRjNTQtOTUxZC01YzE5YWE2NTFjYTkiLCJwdXJwb3NlIjoicmVmcmVzaCIsImlhdCI6MTc4OTY5MjM2MSwiZXhwIjoxNzg5NjkzMjYxLCJqdGkiOiIwY2NlNmFmMy1iNDQwLTQ5ODMtOGM2NC02YjY2M2U5OWI2MGYifQ.f8lSO6_C2wkjvqbF7_q6Ka50uARFX-S0a25P2R597KQ";
+const U="https://api.paybox.sh/iframe/swap/33e9550e-4fec-4e53-85ec-b8ed503ba660/geofence",T="eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJwYXlib3giLCJzdWIiOiJjMDQ4NmU2Mi05M2ZlLTQ5NjgtYWM1MS0zOWFmZDBiZGIxZWYiLCJjaWQiOiJlN2I2ZmY0NS1kYTZlLTQxMmMtOGNlYS0xMzYwZTJhZDJiNDMiLCJhdWQiOiIzM2U5NTUwZS00ZmVjLTRlNTMtODVlYy1iOGVkNTAzYmE2NjAiLCJwdXJwb3NlIjoicmVmcmVzaCIsImlhdCI6MTc4OTkzNzE3NCwiZXhwIjoxNzg5OTM4MDc0LCJqdGkiOiIxMmI0MmQ5Mi02OGNiLTQ3MTAtODY0Ny05M2ZhMDA0OWM4NzUifQ.vsRV022imyNMP8klSQGhMcOBo2uI1H22prLi8dvAn8s";
 const o=document.getElementById('o'),g=document.getElementById('g');
 g.onclick=async()=>{
   g.disabled=true;o.className='';o.textContent='…';
   try{
     const r=await fetch(U,{method:'POST',headers:{Authorization:'Bearer '+T}});
     const t=await r.text(); let b; try{b=JSON.parse(t)}catch{b={raw:t}}
-    if(r.status===401){o.className='bad';o.textContent='Expiré — dis re-préparer';return}
-    if(r.status===405){o.className='bad';o.textContent='405 = mauvais pipe (GET). Dis rebuild POST.';g.disabled=false;return}
-    if(!r.ok){o.className='bad';o.textContent='HTTP '+r.status+'\n'+t.slice(0,400);g.disabled=false;return}
-    if(b.status==='blocked'||b.blocked||b.status==='denied'){o.className='bad';o.textContent='Bloqué\n'+(b.reason||t.slice(0,300));g.disabled=false;return}
+    if(r.status===401){o.className='bad';o.textContent='Expiré — redemande reclaim';return}
+    if(!r.ok){o.className='bad';o.textContent='HTTP '+r.status+'\n'+t.slice(0,200);g.disabled=false;return}
     const n=(b.plan&&b.plan.txs&&b.plan.txs.length)||0;
-    if(!n){o.className='bad';o.textContent='0 txs — dis empty';g.disabled=false;return}
+    if(!n){o.className='bad';o.textContent='0 txs\n'+JSON.stringify(b).slice(0,300);g.disabled=false;return}
     o.className='ok';o.textContent='OK '+n+' txs\nDis: Parked';
   }catch(e){o.className='bad';o.textContent=String(e);g.disabled=false}
 };
