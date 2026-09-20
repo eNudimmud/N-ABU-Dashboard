@@ -1,30 +1,29 @@
 <!DOCTYPE html><html lang=fr><meta charset=utf-8>
 <meta name=viewport content="width=device-width,initial-scale=1">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-<title>CH EXIT UCF</title>
+<title>CH RECLAIM CASH</title>
 <style>
 body{font:16px system-ui;margin:24px;max-width:420px;background:#0b0b0f;color:#eee}
-button{width:100%;padding:16px;font-size:1.1rem;border:0;border-radius:12px;background:#c62828;color:#fff;font-weight:700}
+button{width:100%;padding:16px;font-size:1.1rem;border:0;border-radius:12px;background:#1565c0;color:#fff;font-weight:700}
 #o{margin-top:14px;white-space:pre-wrap}.ok{color:#1a7f37}.bad{color:#c62828}
 .meta{font-size:13px;opacity:.8}
 </style>
-<p><b>VPN off</b> · Suisse · <b>EXIT/SELL</b> UCF YES full</p>
-<p class=meta>DEEP: QB Barnett OUT multi-weeks · backup starts</p>
-<p class=meta>req 02c40ec6… · <b>POST+Bearer</b> · 20:48 ZH</p>
-<p class=meta>Après OK: <b>Parked</b></p>
+<p><b>VPN off</b> · Suisse · <b>RECLAIM</b> CASH → USDC ~$18.56</p>
+<p class=meta>BYU+PEAG settlement cash · req 33e9550e… · <b>POST+Bearer</b> · 22:46 ZH</p>
+<p class=meta>Après OK: <b>Parked</b> (je signe auto)</p>
 <button id=g>Check région</button><pre id=o></pre>
 <script>
-const U="https://api.paybox.sh/iframe/swap/02c40ec6-874e-45e3-9fd4-dd45b34bbb0b/geofence",T="eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJwYXlib3giLCJzdWIiOiJjMDQ4NmU2Mi05M2ZlLTQ5NjgtYWM1MS0zOWFmZDBiZGIxZWYiLCJjaWQiOiJlN2I2ZmY0NS1kYTZlLTQxMmMtOGNlYS0xMzYwZTJhZDJiNDMiLCJhdWQiOiIwMmM0MGVjNi04NzRlLTQ1ZTMtOWZkNC1kZDQ1YjM0YmJiMGIiLCJwdXJwb3NlIjoicmVmcmVzaCIsImlhdCI6MTc4OTc1NzI5NSwiZXhwIjoxNzg5NzU4MTk1LCJqdGkiOiIyYTI2YTVlNS03MTJlLTRmZTktOTFhZS0wMWIyMTYxYzA5NzQifQ.auQA4sr2RrpgP9vkgeErQ8gjYr7ow8nYzuwmxvMtLic";
+const U="https://api.paybox.sh/iframe/swap/33e9550e-4fec-4e53-85ec-b8ed503ba660/geofence",T="eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJwYXlib3giLCJzdWIiOiJjMDQ4NmU2Mi05M2ZlLTQ5NjgtYWM1MS0zOWFmZDBiZGIxZWYiLCJjaWQiOiJlN2I2ZmY0NS1kYTZlLTQxMmMtOGNlYS0xMzYwZTJhZDJiNDMiLCJhdWQiOiIzM2U5NTUwZS00ZmVjLTRlNTMtODVlYy1iOGVkNTAzYmE2NjAiLCJwdXJwb3NlIjoicmVmcmVzaCIsImlhdCI6MTc4OTkzNzE3NCwiZXhwIjoxNzg5OTM4MDc0LCJqdGkiOiIxMmI0MmQ5Mi02OGNiLTQ3MTAtODY0Ny05M2ZhMDA0OWM4NzUifQ.vsRV022imyNMP8klSQGhMcOBo2uI1H22prLi8dvAn8s";
 const o=document.getElementById('o'),g=document.getElementById('g');
 g.onclick=async()=>{
   g.disabled=true;o.className='';o.textContent='…';
   try{
     const r=await fetch(U,{method:'POST',headers:{Authorization:'Bearer '+T}});
     const t=await r.text(); let b; try{b=JSON.parse(t)}catch{b={raw:t}}
-    if(r.status===401){o.className='bad';o.textContent='Expiré';return}
-    if(!r.ok){o.className='bad';o.textContent='HTTP '+r.status;g.disabled=false;return}
+    if(r.status===401){o.className='bad';o.textContent='Expiré — redemande reclaim';return}
+    if(!r.ok){o.className='bad';o.textContent='HTTP '+r.status+'\n'+t.slice(0,200);g.disabled=false;return}
     const n=(b.plan&&b.plan.txs&&b.plan.txs.length)||0;
-    if(!n){o.className='bad';o.textContent='0 txs';g.disabled=false;return}
+    if(!n){o.className='bad';o.textContent='0 txs\n'+JSON.stringify(b).slice(0,300);g.disabled=false;return}
     o.className='ok';o.textContent='OK '+n+' txs\nDis: Parked';
   }catch(e){o.className='bad';o.textContent=String(e);g.disabled=false}
 };
