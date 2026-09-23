@@ -93,9 +93,23 @@ plafond unique `capacity.max_open_usd` (A/B = labels, pas deux caps), positions,
 fills (tx Solana), cashflow, dernière note
 d'autonomie, et un bandeau **pending geofence / CH Check région** quand un ticket
 est préparé. La planche d'origine (PF / RK / PX / AN) n'est pas refactorisée.
-Visuellement (World seulement) : champ noir World (grille, orbe, glow
-cyan→magenta) + cartes sombres / pills Pending·Completed. PF / RK / PX / AN
-restent la planche d'origine.
+Visuellement (World seulement) : fond graphite, logo World original et couverture
+N*ABU fournis par JD. Le capital total précède quatre indicateurs : PnL réalisé,
+PnL latent, USDC disponible et capital engagé. Positions et activité occupent
+la colonne principale ; allocation et note d’autonomie occupent la colonne latérale.
+Sur téléphone, les indicateurs passent sur deux colonnes et le contenu sur une seule.
+
+L’historique après les six opérations récentes, les positions soldées et le détail
+du cashflow se déplient. Leur état ouvert et le focus des résumés sont conservés
+à l’actualisation. Les heures sont affichées dans le fuseau Europe/Zurich ; le
+timestamp source reste disponible au survol. Les tableaux sont accessibles au
+clavier et défilent horizontalement sur petit écran.
+
+`assets/world-brand.jpg`, `assets/world-orb.jpg` et `assets/nabu-world.png` sont
+les images originales fournies, sans redessin ni chargement distant. Le logo est
+cadré en CSS depuis la bannière pour conserver son globe et son mot-symbole exacts.
+Les mini-courbes dérivées de valeurs isolées sont retirées : le snapshot ne contient
+pas de série temporelle de performance. PF / RK / PX / AN conservent leur DA.
 
 Les données viennent de `assets/world-live.json` — un tirage local, pas d'auth PayBox
 dans le HTML. Le fichier commité est le snapshot **live** (`pending_geofence: null`).

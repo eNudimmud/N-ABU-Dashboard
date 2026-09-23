@@ -3,7 +3,7 @@
   "use strict";
 
   var SNAPSHOT_URLS = ["assets/world-live.json?v=" + Date.now(), "world-live.json?v=" + Date.now()];
-  var CSS_URL = "assets/world-tab.css?v=geofence-alert1";
+  var CSS_URL = "assets/world-tab.css?v=world-design2";
   var WALLET_FALLBACK = "27bcZ8xT8qWzkmdyjKy7mRXKqRAR9KBphZt3BMyjmac3";
   var POLL_MS = 8000;
   var URL_KEYS = ["check_region_url", "geofence_url", "url", "data_url", "link", "href"];
@@ -382,7 +382,7 @@
     navLink.href = "#world";
     navLink.className = "nabu-world-nav";
     navLink.setAttribute("aria-label", "World");
-    navLink.innerHTML = 'WD<span class="nabu-world-nav-dot" hidden>0</span>';
+    navLink.innerHTML = '<img class="nabu-world-nav-logo" src="assets/world-orb.jpg" alt="" width="32" height="32"><span class="nabu-world-nav-dot" hidden>0</span>';
     nav.appendChild(navLink);
   }
 
@@ -613,7 +613,6 @@
     var surplus = numish(pick(run, ["surplus_chf_est", "surplus_chf"], null));
     if (surplus == null && chf != null) surplus = target - chf;
     var cards = [];
-    if (bank != null) cards.push(["Bankroll", money(bank)]);
     if (ticket != null) cards.push(["Ticket", money(ticket)]);
     var wcashR = numish(pick(cash, ["world_cash_usd", "cash_usd", "cash_held_usd"], null));
     if (idle != null || dep != null || wcashR != null) {
@@ -633,14 +632,14 @@
       }).replace(/,/g, NBSP) + NBSP + "CHF"]);
     } else {
       cards.push(["Cible " + target.toLocaleString("fr-CH") + " CHF",
-        "fx UNVERIFIED — pas de conversion inventée"]);
+        "Conversion CHF indisponible"]);
     }
     if (!cards.length) {
       return '<div class="nabu-world-map"><span class="nabu-world-map-label">World field</span>'
         + '<p class="nabu-world-empty">Runway UNVERIFIED.</p></div>';
     }
-    var html = '<div class="nabu-world-map" aria-label="Runway">'
-      + '<span class="nabu-world-map-label">Runway / World field</span><div class="nabu-world-runway">';
+    var html = '<div class="nabu-world-map" aria-label="Allocation du capital">'
+      + '<span class="nabu-world-map-label">Capital & capacité</span><div class="nabu-world-runway">';
     for (var i = 0; i < cards.length; i++) {
       html += '<div class="nabu-world-card"><span class="nabu-world-card-k">' + esc(cards[i][0])
         + '</span><span class="nabu-world-card-v">' + cards[i][1] + "</span></div>";
@@ -685,17 +684,7 @@
         txt = money(v);
         neg = Number(v) < 0;
       }
-      var spark = "";
-      if (k === "realized_pnl_usd") spark = sparkline(fillSeries(snapshot && snapshot.fills, "pnl"));
-      else if (k === "unrealized_pnl_usd") {
-        var marks = [];
-        var pos = (snapshot && snapshot.positions) || [];
-        for (var pi = 0; pi < pos.length; pi++) {
-          if (!isBlank(pos[pi].entry)) marks.push(pos[pi].entry);
-          if (!isBlank(pos[pi].mark)) marks.push(pos[pi].mark);
-        }
-        spark = sparkline(marks);
-      }
+      var spark = ""; // Snapshot values are not a historical performance series.
       html += '<div class="nabu-world-cell"><div class="nabu-world-cell-k">' + label + '</div>'
         + '<div class="nabu-world-cell-v' + (neg ? " nabu-world-neg" : "") + '">' + txt + '</div>'
         + spark + "</div>";
@@ -1054,7 +1043,7 @@
 
   function renderPositions(rows) {
     if (!rows || !rows.length) {
-      return '<p class="nabu-world-empty">Aucune position ouverte dans ce snapshot.</p>';
+      return '<div class="nabu-world-empty nabu-world-empty--positions"><span class="nabu-world-empty-icon" aria-hidden="true">↗</span><strong>Aucune position ouverte</strong><span>Les prochaines positions apparaîtront ici.</span></div>';
     }
     var html = '<div class="nabu-world-posgrid">';
     for (var i = 0; i < rows.length; i++) {
@@ -1062,7 +1051,7 @@
       var track = pick(p, ["track", "book"], "—");
       var mark = numish(pick(p, ["mark", "mark_usd", "mark_px"], null));
       var entry = numish(pick(p, ["entry", "entry_usd", "entry_px"], null));
-      var spark = (entry != null && mark != null) ? sparkline([entry, mark]) : "";
+      var spark = ""; // Entry and mark are not a historical price series.
       html += '<article class="nabu-world-pos">'
         + '<span class="nabu-world-pill nabu-world-pill--open">open</span> '
         + '<span class="nabu-world-track nabu-world-track--' + esc(String(track).toLowerCase()) + '">'
@@ -1083,7 +1072,7 @@
     if (!rows || !rows.length) {
       return '<p class="nabu-world-empty">Aucun fill / close dans ce snapshot.</p>';
     }
-    var html = '<div class="nabu-world-tbl-wrap wrap"><table class="nabu-world-tbl"><thead><tr>'
+    var html = '<div class="nabu-world-tbl-wrap" role="region" aria-label="Transactions World" tabindex="0"><table class="nabu-world-tbl"><thead><tr>'
       + "<th>Quand</th><th>Action</th><th>Marché</th><th>Track</th>"
       + '<th class="nabu-world-num">Taille</th><th class="nabu-world-num">PnL</th>'
       + "<th>Tx</th></tr></thead><tbody>";
@@ -1102,8 +1091,13 @@
         ? '<a class="nabu-world-tx" href="' + esc(solscanTx(tx)) + '" target="_blank" rel="noopener">'
           + esc(shortTx(tx)) + "</a>"
         : "—";
+      var timestamp = pick(f, ["ts", "iso", "time"], "—");
+      var date = new Date(timestamp);
+      var when = isFinite(date.getTime()) ? date.toLocaleString("fr-CH", {
+        day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit", timeZone: "Europe/Zurich"
+      }) : timestamp;
       html += "<tr>"
-        + "<td>" + esc(pick(f, ["ts", "iso", "time"], "—")) + "</td>"
+        + '<td class="nabu-world-time" title="' + esc(timestamp) + '">' + esc(when) + "</td>"
         + "<td>" + actionPill(pick(f, ["action", "type", "event"], "—")) + "</td>"
         + "<td>" + esc(pick(f, ["market", "question", "title", "ticker"], "—")) + "</td>"
         + '<td><span class="nabu-world-track nabu-world-track--' + esc(String(track).toLowerCase()) + '">'
@@ -1165,7 +1159,7 @@
     if (!anyOpen) {
       html += '<p class="nabu-world-note">Rien à réclamer — tous les tickets soldés sont encaissés en USDC.</p>';
     }
-    return '<section class="nabu-world-sec"><div class="nabu-world-kicker">Soldés / redeemable</div>'
+    return '<section class="nabu-world-sec"><div class="nabu-world-kicker">Positions soldées</div>'
       + '<div class="nabu-world-rule"></div>' + html + "</section>";
   }
 
@@ -1789,96 +1783,124 @@
     }
   }
 
+  /* Presentation only: read the same normalized snapshot and financial helpers. */
+  function renderOverview(data) {
+    var cash = data.cashflow || {};
+    var items = [
+      ["PnL réalisé", cash.realized_pnl_usd, true, "Résultat des positions clôturées"],
+      ["PnL latent", cash.unrealized_pnl_usd, true, "Positions encore ouvertes"],
+      ["USDC disponible", pick(cash, ["idle_usd", "idle_usdc", "usdc"], null), false, "Solde disponible du portefeuille"],
+      ["Capital engagé", pick(cash, ["deployed_usd", "deployed_cost_usd", "positions_cost_usd"], null), false, "Coût des positions ouvertes"]
+    ];
+    return '<div class="nabu-world-overview" aria-label="Indicateurs du portefeuille">' + items.map(function (item) {
+      var value = item[2] ? signedMoney(item[1]).txt : money(item[1]);
+      var n = numish(item[1]);
+      var tone = n != null && n < 0 ? " nabu-world-neg" : (item[2] && n > 0 ? " nabu-world-posvalue" : "");
+      return '<div class="nabu-world-metric"><span class="nabu-world-card-k">' + item[0]
+        + '</span><strong class="nabu-world-metric-value' + tone + '">' + value + '</strong>'
+        + '<span class="nabu-world-metric-caption">' + item[3] + '</span></div>';
+    }).join("") + "</div>";
+  }
+
   function renderUnsafe(data) {
     snapshot = data || {};
     var unverified = !!snapshot.unverified;
     var example = snapshot.example === true;
+    var cash = snapshot.cashflow || {};
     var wallet = (snapshot.wallet && snapshot.wallet.address) || WALLET_FALLBACK;
     var label = (snapshot.wallet && snapshot.wallet.label) || "PayBox";
     var mode = snapshot.mode || "LIVE_ONLY";
-    var ticket = snapshot.ticket_usd;
-    var generated = snapshot.generated_at || snapshot.updated_at || "—";
+    var generated = snapshot.generated_at || snapshot.updated_at || "";
+    var stamp = new Date(generated);
+    var dateLabel = isFinite(stamp.getTime()) ? stamp.toLocaleString("fr-CH", {
+      day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit", timeZone: "Europe/Zurich"
+    }) + " · Zurich" : "Horodatage indisponible";
     var source = snapshot.source || "assets/world-live.json";
     var pending = collectPending(snapshot);
     var alertable = alertablePending(pending, snapshot);
     var badges = '<span class="nabu-world-badge nabu-world-badge--mode">' + esc(mode) + "</span>"
-      + '<span class="nabu-world-badge">Read only</span>';
+      + '<span class="nabu-world-badge">Lecture seule</span>';
     if (example) badges += '<span class="nabu-world-badge nabu-world-badge--ex">Exemple</span>';
     if (unverified) badges += '<span class="nabu-world-badge nabu-world-badge--fail">UNVERIFIED</span>';
     if (alertable.length) badges += '<span class="nabu-world-badge nabu-world-badge--hot">Check région</span>';
-
+    var bank = numish(pick(cash, ["bankroll_usd", "total_usd"], null));
+    if (bank == null) bank = numish(snapshot.bankroll_usd);
+    if (bank == null) bank = bankrollUsd(snapshot);
+    var positions = snapshot.positions || [];
+    var fills = visibleFills(snapshot);
+    var settled = renderSettled(snapshot);
     var autonomy = snapshot.autonomy || {};
-    var autoHtml = "";
+    var autoHtml = '<section class="nabu-world-panel nabu-world-autonomy"><h2 class="nabu-world-section-title">Note de N*ABU</h2>';
     if (autonomy.note || autonomy.cycle_id || autonomy.evaluated_at) {
-      autoHtml = '<section class="nabu-world-sec"><div class="nabu-world-kicker">Dernière note d\'autonomie</div>'
-        + '<div class="nabu-world-rule"></div><div class="nabu-world-eval">'
-        + '<div class="nabu-world-eval-meta">'
-        + esc(autonomy.cycle_id || "cycle") + " · " + esc(autonomy.evaluated_at || "horodatage absent")
-        + "</div>"
-        + (autonomy.note ? "<p>" + esc(autonomy.note) + "</p>" : '<p class="nabu-world-empty">Note absente.</p>')
-        + "</div></section>";
-    }
-
-    var warn = "";
-    if (example) {
-      warn = '<p class="nabu-world-note">Snapshot d\'exemple — chiffres illustratifs, pas un book live. '
-        + "La pipeline autonomie doit réécrire <code>assets/world-live.json</code> dès qu'un ticket est préparé.</p>";
-    } else if (unverified) {
-      warn = '<p class="nabu-world-note">Snapshot introuvable ou illisible. Servir la page en HTTP '
-        + "(pas <code>file://</code>) et vérifier <code>assets/world-live.json</code>. "
-        + "Aucune valeur inventée.</p>";
-    }
-
+      autoHtml += '<div class="nabu-world-eval-meta">Dernier cycle'
+        + (autonomy.cycle_id ? " · " + esc(autonomy.cycle_id) : "") + '</div>'
+        + '<p>' + esc(autonomy.note || "Note indisponible.") + '</p>'
+        + '<span class="nabu-world-mono">' + esc(autonomy.evaluated_at || "Horodatage indisponible") + '</span>';
+    } else { autoHtml += '<p class="nabu-world-empty">Aucune note disponible.</p>'; }
+    autoHtml += '</section>';
+    var share = trackShareBasis(snapshot);
+    var trackLabel = share && share.basis === "bankroll_usd" ? "Répartition du bankroll"
+      : share && share.basis === "max_open_usd" ? "Répartition du pool"
+      : tracksAreLabels(snapshot) ? "Répartition par track" : "Limites par track";
+    var warn = example ? '<p class="nabu-world-notice">Données de démonstration · ce portefeuille est un exemple.</p>'
+      : unverified ? '<p class="nabu-world-notice" role="status">Données indisponibles. La connexion au snapshot sera réessayée automatiquement.</p>' : "";
     var body = $("#nabu-world-body", root);
     if (!body) return;
+    // Keep expanded history and keyboard focus across snapshot refreshes.
+    var expanded = Array.prototype.map.call(body.querySelectorAll("details[open][data-world-detail]"), function (el) {
+      return el.getAttribute("data-world-detail");
+    });
+    var focused = body.contains(document.activeElement) ? document.activeElement : null;
+    var focusId = focused && focused.id;
+    var focusedDetail = focused && focused.closest("details[data-world-detail]");
+    var detailKey = focusedDetail && focusedDetail.getAttribute("data-world-detail");
     body.innerHTML =
-      '<header class="nabu-world-hero">'
-      + '<div class="nabu-world-lockup"><div class="nabu-world-orb" aria-hidden="true"></div>'
-      + '<h1 class="nabu-world-title">world</h1></div>'
-      + '<p class="nabu-world-sub">World.xyz · PayBox · lecture seule. La planche d\'origine (book / risk / SOUL) reste inchangée. '
-      + ((pending && pending.length)
-        ? "Cet onglet ne signe rien. Un ticket préparé attend le CH Check région.</p>"
-        : "Cet onglet ne signe rien. Aucun ticket en attente de Check région.</p>")
-      + '<div class="nabu-world-badges">' + badges + "</div></header>"
-      + warn
-      + renderPending(pending, snapshot)
-      + renderRunway(snapshot)
-      + renderConsistency(snapshot)
-      + '<div class="nabu-world-meta">'
-      + '<div class="nabu-world-card"><span class="nabu-world-card-k">Portefeuille ' + esc(label) + "</span>"
-      + '<span class="nabu-world-card-v"><a href="' + esc(solscanAddr(wallet)) + '" target="_blank" rel="noopener" title="'
-      + esc(wallet) + '">' + esc(shortAddr(wallet)) + "</a></span></div>"
-      + '<div class="nabu-world-card"><span class="nabu-world-card-k">Ticket</span>'
-      + '<span class="nabu-world-card-v">' + (isBlank(ticket) ? "—" : money(ticket)) + "</span></div>"
-      + '<div class="nabu-world-card"><span class="nabu-world-card-k">Snapshot</span>'
-      + '<span class="nabu-world-card-v">' + esc(generated) + "</span></div>"
-      + "</div>"
-      + '<section class="nabu-world-sec"><div class="nabu-world-kicker">'
-      + (function () {
-        var sh = trackShareBasis(snapshot);
-        if (sh && sh.basis === "max_open_usd") {
-          return "Tracks A / B · part du pool (max_open_usd)";
-        }
-        if (sh && sh.basis === "bankroll_usd") {
-          return "Tracks A / B · part du bankroll";
-        }
-        return tracksAreLabels(snapshot) ? "Tracks A / B · labels (open)" : "Caps A / B · open vs max";
-      }())
-      + '</div>'
-      + '<div class="nabu-world-rule"></div>' + renderCaps(snapshot.caps, snapshot) + "</section>"
-      + '<section class="nabu-world-sec"><div class="nabu-world-kicker">Cashflow / PnL</div>'
-      + '<div class="nabu-world-rule"></div>' + renderCells(snapshot.cashflow) + "</section>"
-      + '<section class="nabu-world-sec"><div class="nabu-world-kicker">Positions ouvertes · '
-      + ((snapshot.positions || []).length) + "</div>"
-      + '<div class="nabu-world-rule"></div>' + renderPositions(snapshot.positions) + "</section>"
-      + '<section class="nabu-world-sec"><div class="nabu-world-kicker">'
-      + esc(fillsKicker(snapshot)) + "</div>"
-      + '<div class="nabu-world-rule"></div>' + renderFills(visibleFills(snapshot)) + "</section>"
-      + renderSettled(snapshot)
-      + autoHtml
-      + '<p class="nabu-world-foot"><b>Lecture seule.</b> Source : ' + esc(source)
-      + ". En cas de conflit, les ledgers world-paper et le wallet PayBox gagnent — "
-      + "ce JSON n'est qu'un tirage. Voir <code>scripts/refresh_world_snapshot.py</code>.</p>";
+      '<header class="nabu-world-topbar">'
+      + '<h1 class="nabu-world-lockup"><span class="nabu-world-sr-only">World</span>'
+      + '<img src="assets/world-brand.jpg" alt="" width="1536" height="512"></h1>'
+      + '<div class="nabu-world-desk"><span>N*ABU</span><span>Trading desk</span></div>'
+      + '<div class="nabu-world-badges">' + badges + '</div></header>'
+      + warn + renderPending(pending, snapshot)
+      + '<section class="nabu-world-hero" aria-label="Vue d’ensemble du portefeuille">'
+      + '<img class="nabu-world-hero-art" src="assets/nabu-world.png" alt="N*ABU en veste irisée, devant sa voiture et le globe World" width="1536" height="1280" fetchpriority="high">'
+      + '<div class="nabu-world-hero-content"><p class="nabu-world-eyebrow">N*ABU × WORLD</p>'
+      + '<h2 class="nabu-world-hero-label">Capital total</h2>'
+      + '<strong class="nabu-world-balance">' + money(bank) + '</strong>'
+      + '<p class="nabu-world-hero-caption">Votre portefeuille, en perspective.</p>'
+      + '<a class="nabu-world-wallet" href="' + esc(solscanAddr(wallet)) + '" target="_blank" rel="noopener" title="' + esc(wallet) + '">'
+      + '<span class="nabu-world-wallet-symbol" aria-hidden="true">↗</span><span>Portefeuille ' + esc(label)
+      + '<small>' + esc(shortAddr(wallet)) + '</small></span><span class="nabu-world-wallet-chain">Solana</span></a>'
+      + '</div><span class="nabu-world-art-credit" aria-hidden="true">N*ABU / WORLD SERIES</span></section>'
+      + '<div class="nabu-world-snapshot"><span>Vue d’ensemble</span><span title="' + esc(generated) + '">Snapshot · ' + esc(dateLabel) + '</span></div>'
+      + renderOverview(snapshot) + renderConsistency(snapshot)
+      + '<div class="nabu-world-workspace"><div class="nabu-world-main">'
+      + '<section class="nabu-world-panel"><div class="nabu-world-section-head"><h2 class="nabu-world-section-title">Positions ouvertes</h2>'
+      + '<span class="nabu-world-count">' + (unverified ? "—" : positions.length) + '</span></div>'
+      + (unverified ? '<p class="nabu-world-empty">Positions indisponibles.</p>' : renderPositions(positions)) + '</section>'
+      + '<section class="nabu-world-panel nabu-world-activity"><div class="nabu-world-section-head"><h2 class="nabu-world-section-title">Activité récente</h2>'
+      + '<span class="nabu-world-subtle">Heure de Zurich</span></div>'
+      + '<p class="nabu-world-activity-note">' + esc(fillsKicker(snapshot)) + '</p>' + renderFills(fills.slice(0, 6))
+      + (fills.length > 6 ? '<details class="nabu-world-details" data-world-detail="history"><summary>Voir les ' + (fills.length - 6)
+        + ' opérations précédentes</summary>' + renderFills(fills.slice(6)) + '</details>' : "") + '</section>'
+      + (settled ? '<details class="nabu-world-details nabu-world-panel" data-world-detail="settled"><summary>Positions soldées <span>'
+        + settledRows(snapshot).length + ' tickets</span></summary>' + settled + '</details>' : "")
+      + '</div><aside class="nabu-world-sidebar" aria-label="Allocation et suivi">'
+      + '<section class="nabu-world-panel"><h2 class="nabu-world-section-title">Allocation du capital</h2>'
+      + renderRunway(snapshot) + '<h3 class="nabu-world-kicker">' + trackLabel + '</h3>'
+      + renderCaps(snapshot.caps, snapshot) + '</section>' + autoHtml
+      + '<details class="nabu-world-details nabu-world-panel" data-world-detail="cashflow"><summary>Détail du cashflow</summary>'
+      + renderCells(snapshot.cashflow) + '</details></aside></div>'
+      + '<footer class="nabu-world-foot"><span><img class="nabu-world-orb" src="assets/world-orb.jpg" width="32" height="32" alt="">World × N*ABU</span>'
+      + '<span>Lecture seule · Actualisation automatique</span>'
+      + '<details class="nabu-world-source" data-world-detail="source"><summary>Source des données</summary><p>' + esc(source)
+      + '. Snapshot du portefeuille PayBox. Les ledgers et le wallet font foi.</p></details></footer>';
+    expanded.forEach(function (key) {
+      var el = body.querySelector('details[data-world-detail="' + key + '"]');
+      if (el) el.open = true;
+    });
+    var nextFocus = focusId ? document.getElementById(focusId) : null;
+    if (!nextFocus && detailKey) nextFocus = body.querySelector('details[data-world-detail="' + detailKey + '"] > summary');
+    if (nextFocus) nextFocus.focus({ preventScroll: true });
     alertNewPending(alertable);
   }
 
@@ -1942,6 +1964,8 @@
   function openWorld() {
     if (!root) return;
     setWorldChrome(root, true);
+    document.body.classList.add("nabu-world-active");
+    if (navLink) navLink.setAttribute("aria-current", "page");
     if (navLink) navLink.classList.add("is-active");
     maybeAskNotifyOnce();
     var list = currentAlertable();
@@ -1953,6 +1977,8 @@
 
   function closeWorld() {
     setWorldChrome(root, false);
+    document.body.classList.remove("nabu-world-active");
+    if (navLink) navLink.removeAttribute("aria-current");
     if (navLink) navLink.classList.remove("is-active");
     hideToast();
     stopChimeLoop(false);
