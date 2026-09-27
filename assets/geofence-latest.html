@@ -1,30 +1,30 @@
-<!DOCTYPE html><html lang=fr><meta charset=utf-8>
-<meta name=viewport content="width=device-width,initial-scale=1">
-<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-<title>CH DLIO $25</title>
+<!DOCTYPE html><html lang=fr><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1">
+<title>Check région · DLIO YES $25</title>
 <style>
-body{font:16px system-ui;margin:24px;max-width:420px;background:#0b0b0f;color:#eee}
-button{width:100%;padding:16px;font-size:1.1rem;border:0;border-radius:12px;background:#7d00ff;color:#fff;font-weight:700}
-#o{margin-top:14px;white-space:pre-wrap}.ok{color:#1a7f37}.bad{color:#c62828}
-.meta{font-size:13px;opacity:.8}
+body{font-family:system-ui,sans-serif;max-width:28rem;margin:2rem auto;padding:0 1rem;background:#0b0f14;color:#e8eef5}
+h1{font-size:1.15rem;margin:0 0 .5rem}
+.meta{color:#8b9bb0;font-size:.85rem;margin:0 0 1.25rem}
+button{width:100%;padding:.9rem 1rem;font-size:1rem;font-weight:600;border:0;border-radius:.6rem;background:#3d8bfd;color:#fff;cursor:pointer}
+button:disabled{opacity:.5;cursor:wait}
+#out{margin-top:1rem;font-size:.9rem;white-space:pre-wrap;color:#9fd}
+.err{color:#f88}
 </style>
-<p><b>VPN off</b> · Suisse · <b>DLIO</b> DET YES $25</p>
-<p class=meta>CHALK_FLOW · req 55675221… · <b>POST+Bearer+JSON</b> · 16:25 ZH · exp ~16:40 ZH</p>
-<p class=meta>Après OK: dis <b>Parked</b> (box signe auto)</p>
-<button id=g>Check région</button><pre id=o></pre>
+<h1>Check région — DET Lions YES $25</h1>
+<p class=meta>CHALK_FLOW · req 55675221… · <b>POST+Bearer+JSON</b> · refresh 16:48 ZH · exp ~17:03 ZH</p>
+<button id=b type=button>Check région</button>
+<pre id=out></pre>
 <script>
-const U="https://api.paybox.sh/iframe/swap/55675221-fef2-46e4-9158-d8cf640f3888/geofence",T="eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJwYXlib3giLCJzdWIiOiJjMDQ4NmU2Mi05M2ZlLTQ5NjgtYWM1MS0zOWFmZDBiZGIxZWYiLCJjaWQiOiJlN2I2ZmY0NS1kYTZlLTQxMmMtOGNlYS0xMzYwZTJhZDJiNDMiLCJhdWQiOiI1NTY3NTIyMS1mZWYyLTQ2ZTQtOTE1OC1kOGNmNjQwZjM4ODgiLCJwdXJwb3NlIjoicmVmcmVzaCIsImlhdCI6MTc5MDUxOTExMywiZXhwIjoxNzkwNTIwMDEzLCJqdGkiOiJiM2I3OTU1Ny0xMThlLTRiZTAtOTg1Zi0wODgzZDQ3ZTBmYjMifQ.V40DQDcaUU5G0glVNgTtLhYc5KViCPsSDP24P0CDfVE";
-const o=document.getElementById('o'),g=document.getElementById('g');
-g.onclick=async()=>{
-  g.disabled=true;o.className='';o.textContent='…';
+const U="https://api.paybox.sh/iframe/swap/55675221-fef2-46e4-9158-d8cf640f3888/geofence",T="eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJwYXlib3giLCJzdWIiOiJjMDQ4NmU2Mi05M2ZlLTQ5NjgtYWM1MS0zOWFmZDBiZGIxZWYiLCJjaWQiOiJlN2I2ZmY0NS1kYTZlLTQxMmMtOGNlYS0xMzYwZTJhZDJiNDMiLCJhdWQiOiI1NTY3NTIyMS1mZWYyLTQ2ZTQtOTE1OC1kOGNmNjQwZjM4ODgiLCJwdXJwb3NlIjoicmVmcmVzaCIsImlhdCI6MTc5MDUyMDUxOCwiZXhwIjoxNzkwNTIxNDE4LCJqdGkiOiJmNzZkYmY5ZS0xMWVjLTQ4NTgtYTUwNC00ZjNlMTc4YjRlZTQifQ.XLlkymZYBK1KsuteJjNMon9BdROq9TWhW7teJ-rVIvI";
+const b=document.getElementById('b'),o=document.getElementById('out');
+b.onclick=async()=>{
+  b.disabled=true;o.className='';o.textContent='…';
   try{
     const r=await fetch(U,{method:'POST',headers:{'content-type':'application/json','authorization':'Bearer '+T},body:'{}'});
-    const t=await r.text(); let b; try{b=JSON.parse(t)}catch{b={raw:t}}
-    if(r.status===401){o.className='bad';o.textContent='Expiré — redemande GO';return}
-    if(!r.ok){o.className='bad';o.textContent='HTTP '+r.status+'\n'+t.slice(0,200);g.disabled=false;return}
-    const n=(b.plan&&b.plan.txs&&b.plan.txs.length)||0;
-    if(!n){o.className='bad';o.textContent='0 txs\n'+JSON.stringify(b).slice(0,300);g.disabled=false;return}
-    o.className='ok';o.textContent='OK '+n+' txs\nDis: Parked';
-  }catch(e){o.className='bad';o.textContent=String(e);g.disabled=false}
+    const t=await r.text();
+    o.className=r.ok?'':'err';
+    o.textContent='HTTP '+r.status+'\n'+t.slice(0,800);
+    if(r.ok)o.textContent+='\n\n→ dis Parked au desk.';
+  }catch(e){o.className='err';o.textContent=String(e)}
+  b.disabled=false;
 };
 </script>
