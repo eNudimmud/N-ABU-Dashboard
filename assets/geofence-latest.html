@@ -1,25 +1,25 @@
 <!DOCTYPE html><html lang=fr><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1">
 <title>Check région · DLIO YES $25</title>
 <style>
-body{font-family:system-ui,sans-serif;max-width:28rem;margin:2rem auto;padding:0 1rem;background:#0b0f14;color:#e8eef5}
-h1{font-size:1.15rem;margin:0 0 .5rem}
-.meta{color:#8b9bb0;font-size:.85rem;margin:0 0 1.25rem}
-button{width:100%;padding:.9rem 1rem;font-size:1rem;font-weight:600;border:0;border-radius:.6rem;background:#3d8bfd;color:#fff;cursor:pointer}
-button:disabled{opacity:.5;cursor:wait}
+body{font:16px system-ui;margin:24px;max-width:420px;background:#0b0b0f;color:#eee}
+h1{font-size:1.2rem;margin:0 0 .4rem}
+.meta{color:#9aa;font-size:.85rem;margin:0 0 1.2rem}
+button{width:100%;padding:14px;font-size:1rem;font-weight:600;border:0;border-radius:8px;background:#3d8bfd;color:#fff}
+button:disabled{opacity:.5}
 #out{margin-top:1rem;font-size:.9rem;white-space:pre-wrap;color:#9fd}
 .err{color:#f88}
 </style>
 <h1>Check région — DET Lions YES $25</h1>
-<p class=meta>CHALK_FLOW · req dbfe… · POST+Bearer+JSON · 16:59 ZH</p>
+<p class=meta>CHALK_FLOW · req 08f9… · CIN pipe · 17:04 ZH</p>
 <button id=b type=button>Check région</button>
 <pre id=out></pre>
 <script>
-const U="https://api.paybox.sh/iframe/swap/dbfefd22-b8c3-44c5-9842-b83977482828/geofence",T="eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJwYXlib3giLCJzdWIiOiJjMDQ4NmU2Mi05M2ZlLTQ5NjgtYWM1MS0zOWFmZDBiZGIxZWYiLCJjaWQiOiJlN2I2ZmY0NS1kYTZlLTQxMmMtOGNlYS0xMzYwZTJhZDJiNDMiLCJhdWQiOiJkYmZlZmQyMi1iOGMzLTQ0YzUtOTg0Mi1iODM5Nzc0ODI4MjgiLCJwdXJwb3NlIjoicmVmcmVzaCIsImlhdCI6MTc5MDUyMTE3MCwiZXhwIjoxNzkwNTIyMDcwLCJqdGkiOiJiYjUyNDhlYS1jYjkxLTQzZDktYTYyOS0wZjgwNWZjY2I2ODcifQ.skCaGQ5OMhLWImpTyqJBQqG3ri0oTl5Ig74ZoDHYYiA";
+const U="https://api.paybox.sh/iframe/swap/08f9415e-1af8-454a-b116-44e1528158e4/geofence",T="eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJwYXlib3giLCJzdWIiOiJjMDQ4NmU2Mi05M2ZlLTQ5NjgtYWM1MS0zOWFmZDBiZGIxZWYiLCJjaWQiOiJlN2I2ZmY0NS1kYTZlLTQxMmMtOGNlYS0xMzYwZTJhZDJiNDMiLCJhdWQiOiIwOGY5NDE1ZS0xYWY4LTQ1NGEtYjExNi00NGUxNTI4MTU4ZTQiLCJwdXJwb3NlIjoicmVmcmVzaCIsImlhdCI6MTc5MDUyMTQ0OSwiZXhwIjoxNzkwNTIyMzQ5LCJqdGkiOiJkZWM2NTc4ZS1hZGJlLTQzZDQtYjRmOC02ZDJjZmM1NzA4NDUifQ.1zy4heVuNNGtKafHtef9jo4kg627mF5DyBD6tgxdK84";
 const b=document.getElementById('b'),o=document.getElementById('out');
 b.onclick=async()=>{
   b.disabled=true;o.className='';o.textContent='…';
   try{
-    const r=await fetch(U,{method:'POST',headers:{'content-type':'application/json','authorization':'Bearer '+T},body:'{}'});
+    const r=await fetch(U,{method:'POST',headers:{Authorization:'Bearer '+T}});
     const t=await r.text();
     o.className=r.ok?'':'err';
     o.textContent='HTTP '+r.status+'\n'+t.slice(0,800);
