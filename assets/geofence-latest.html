@@ -9,23 +9,22 @@ button{width:100%;padding:16px;font-size:1.1rem;border:0;border-radius:12px;back
 .meta{font-size:13px;opacity:.8}
 </style>
 <p><b>VPN off</b> · Suisse · <b>DLIO</b> DET YES $25</p>
-<p class=meta>CHALK_FLOW · req 3f72c409… · <b>POST+Bearer</b> · 17:29 ZH</p>
-<p class=meta>Après OK: dis <b>Parked</b> (box signe auto)</p>
+<p class=meta>CHALK_FLOW · req 95936431… · POST+Bearer · 17:31 ZH</p>
+<p class=meta>Ignore la carte PayBox. Un clic ici. Après OK: <b>Parked</b></p>
 <button id=g>Check région</button><pre id=o></pre>
 <script>
-const U="https://api.paybox.sh/iframe/swap/3f72c409-92bc-44c6-b7f2-d98558ba3abb/geofence",T="eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJwYXlib3giLCJzdWIiOiJjMDQ4NmU2Mi05M2ZlLTQ5NjgtYWM1MS0zOWFmZDBiZGIxZWYiLCJjaWQiOiJlN2I2ZmY0NS1kYTZlLTQxMmMtOGNlYS0xMzYwZTJhZDJiNDMiLCJhdWQiOiIzZjcyYzQwOS05MmJjLTQ0YzYtYjdmMi1kOTg1NThiYTNhYmIiLCJwdXJwb3NlIjoicmVmcmVzaCIsImlhdCI6MTc5MDUyMjk3MSwiZXhwIjoxNzkwNTIzODcxLCJqdGkiOiIzMTM0M2NhOC01ZTNjLTQ3OWUtODdmMS1hNGZlODYzMzQ5ODIifQ.TmHVbs2mOt7oLSMbS9iE7vP250kU8ZZM5UqHs13UjtM",EXP=1790523871;
+const U="https://api.paybox.sh/iframe/swap/95936431-6ec8-4b47-b6fc-44e99fa5cbfb/geofence",T="eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJwYXlib3giLCJzdWIiOiJjMDQ4NmU2Mi05M2ZlLTQ5NjgtYWM1MS0zOWFmZDBiZGIxZWYiLCJjaWQiOiJlN2I2ZmY0NS1kYTZlLTQxMmMtOGNlYS0xMzYwZTJhZDJiNDMiLCJhdWQiOiI5NTkzNjQzMS02ZWM4LTRiNDctYjZmYy00NGU5OWZhNWNiZmIiLCJwdXJwb3NlIjoicmVmcmVzaCIsImlhdCI6MTc5MDUyMzA4MSwiZXhwIjoxNzkwNTIzOTgxLCJqdGkiOiI0NDlkM2NkNy01N2U5LTQzZDItOTMwYi1jMjA3N2NjOTUxZWEifQ.6CMiBQyARl0QTJXEzXJQCfZiDDJhOkKsiw_aONodTX8";
 const o=document.getElementById('o'),g=document.getElementById('g');
-if(Math.floor(Date.now()/1000)>EXP){o.className='bad';o.textContent='Expiré — redemande GO';g.disabled=true}
 g.onclick=async()=>{
   g.disabled=true;o.className='';o.textContent='…';
   try{
     const r=await fetch(U,{method:'POST',headers:{Authorization:'Bearer '+T}});
     const t=await r.text(); let b; try{b=JSON.parse(t)}catch{b={raw:t}}
-    if(r.status===401){o.className='bad';o.textContent='Expiré — redemande GO';return}
-    if(r.status===409){o.className='bad';o.textContent='HTTP 409 conflict — dis au desk: re-prépare ID neuf';return}
-    if(!r.ok){o.className='bad';o.textContent='HTTP '+r.status+'\n'+t.slice(0,200);g.disabled=false;return}
+    if(r.status===401){o.className='bad';o.textContent='Expiré — dis re-préparer';return}
+    if(!r.ok){o.className='bad';o.textContent='HTTP '+r.status+'\n'+t.slice(0,400);g.disabled=false;return}
+    if(b.status==='blocked'||b.blocked||b.status==='denied'){o.className='bad';o.textContent='Bloqué\n'+(b.reason||t.slice(0,300));g.disabled=false;return}
     const n=(b.plan&&b.plan.txs&&b.plan.txs.length)||0;
-    if(!n){o.className='bad';o.textContent='0 txs\n'+JSON.stringify(b).slice(0,300);g.disabled=false;return}
+    if(!n){o.className='bad';o.textContent='0 txs — dis empty';g.disabled=false;return}
     o.className='ok';o.textContent='OK '+n+' txs\nDis: Parked';
   }catch(e){o.className='bad';o.textContent=String(e);g.disabled=false}
 };
