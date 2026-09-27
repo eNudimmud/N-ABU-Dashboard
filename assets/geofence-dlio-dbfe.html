@@ -1,0 +1,30 @@
+<!DOCTYPE html><html lang=fr><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1">
+<title>Check région · DLIO YES $25</title>
+<style>
+body{font-family:system-ui,sans-serif;max-width:28rem;margin:2rem auto;padding:0 1rem;background:#0b0f14;color:#e8eef5}
+h1{font-size:1.15rem;margin:0 0 .5rem}
+.meta{color:#8b9bb0;font-size:.85rem;margin:0 0 1.25rem}
+button{width:100%;padding:.9rem 1rem;font-size:1rem;font-weight:600;border:0;border-radius:.6rem;background:#3d8bfd;color:#fff;cursor:pointer}
+button:disabled{opacity:.5;cursor:wait}
+#out{margin-top:1rem;font-size:.9rem;white-space:pre-wrap;color:#9fd}
+.err{color:#f88}
+</style>
+<h1>Check région — DET Lions YES $25</h1>
+<p class=meta>CHALK_FLOW · req dbfe… · POST+Bearer+JSON · 16:59 ZH</p>
+<button id=b type=button>Check région</button>
+<pre id=out></pre>
+<script>
+const U="https://api.paybox.sh/iframe/swap/dbfefd22-b8c3-44c5-9842-b83977482828/geofence",T="eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJwYXlib3giLCJzdWIiOiJjMDQ4NmU2Mi05M2ZlLTQ5NjgtYWM1MS0zOWFmZDBiZGIxZWYiLCJjaWQiOiJlN2I2ZmY0NS1kYTZlLTQxMmMtOGNlYS0xMzYwZTJhZDJiNDMiLCJhdWQiOiJkYmZlZmQyMi1iOGMzLTQ0YzUtOTg0Mi1iODM5Nzc0ODI4MjgiLCJwdXJwb3NlIjoicmVmcmVzaCIsImlhdCI6MTc5MDUyMTE3MCwiZXhwIjoxNzkwNTIyMDcwLCJqdGkiOiJiYjUyNDhlYS1jYjkxLTQzZDktYTYyOS0wZjgwNWZjY2I2ODcifQ.skCaGQ5OMhLWImpTyqJBQqG3ri0oTl5Ig74ZoDHYYiA";
+const b=document.getElementById('b'),o=document.getElementById('out');
+b.onclick=async()=>{
+  b.disabled=true;o.className='';o.textContent='…';
+  try{
+    const r=await fetch(U,{method:'POST',headers:{'content-type':'application/json','authorization':'Bearer '+T},body:'{}'});
+    const t=await r.text();
+    o.className=r.ok?'':'err';
+    o.textContent='HTTP '+r.status+'\n'+t.slice(0,800);
+    if(r.ok)o.textContent+='\n\n→ dis Parked au desk.';
+  }catch(e){o.className='err';o.textContent=String(e)}
+  b.disabled=false;
+};
+</script>
