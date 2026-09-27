@@ -9,13 +9,12 @@ button{width:100%;padding:16px;font-size:1.1rem;border:0;border-radius:12px;back
 .meta{font-size:13px;opacity:.8}
 </style>
 <p><b>VPN off</b> · Suisse · <b>DLIO</b> DET YES $25</p>
-<p class=meta>CHALK_FLOW · req 1a91db47… · <b>POST+Bearer</b> · 17:27 ZH</p>
+<p class=meta>CHALK_FLOW · req 3f72c409… · <b>POST+Bearer</b> · 17:29 ZH</p>
 <p class=meta>Après OK: dis <b>Parked</b> (box signe auto)</p>
 <button id=g>Check région</button><pre id=o></pre>
 <script>
-const U="https://api.paybox.sh/iframe/swap/1a91db47-578c-4d5e-b5c7-e5aa512693be/geofence",T="eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJwYXlib3giLCJzdWIiOiJjMDQ4NmU2Mi05M2ZlLTQ5NjgtYWM1MS0zOWFmZDBiZGIxZWYiLCJjaWQiOiJlN2I2ZmY0NS1kYTZlLTQxMmMtOGNlYS0xMzYwZTJhZDJiNDMiLCJhdWQiOiIxYTkxZGI0Ny01NzhjLTRkNWUtYjVjNy1lNWFhNTEyNjkzYmUiLCJwdXJwb3NlIjoicmVmcmVzaCIsImlhdCI6MTc5MDUyMjg2MywiZXhwIjoxNzkwNTIzNzYzLCJqdGkiOiIyNTg2ZDg0Yi0zYTA3LTRlNWUtOTU1Yy1iZmJlNTE0MWE4ZGUifQ.NejZHSk_5FIttwYK0_qiXAWKf3VpFEjmSVpU2UuqV7w";
+const U="https://api.paybox.sh/iframe/swap/3f72c409-92bc-44c6-b7f2-d98558ba3abb/geofence",T="eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJwYXlib3giLCJzdWIiOiJjMDQ4NmU2Mi05M2ZlLTQ5NjgtYWM1MS0zOWFmZDBiZGIxZWYiLCJjaWQiOiJlN2I2ZmY0NS1kYTZlLTQxMmMtOGNlYS0xMzYwZTJhZDJiNDMiLCJhdWQiOiIzZjcyYzQwOS05MmJjLTQ0YzYtYjdmMi1kOTg1NThiYTNhYmIiLCJwdXJwb3NlIjoicmVmcmVzaCIsImlhdCI6MTc5MDUyMjk3MSwiZXhwIjoxNzkwNTIzODcxLCJqdGkiOiIzMTM0M2NhOC01ZTNjLTQ3OWUtODdmMS1hNGZlODYzMzQ5ODIifQ.TmHVbs2mOt7oLSMbS9iE7vP250kU8ZZM5UqHs13UjtM",EXP=1790523871;
 const o=document.getElementById('o'),g=document.getElementById('g');
-const EXP=1790523763;
 if(Math.floor(Date.now()/1000)>EXP){o.className='bad';o.textContent='Expiré — redemande GO';g.disabled=true}
 g.onclick=async()=>{
   g.disabled=true;o.className='';o.textContent='…';
@@ -23,6 +22,7 @@ g.onclick=async()=>{
     const r=await fetch(U,{method:'POST',headers:{Authorization:'Bearer '+T}});
     const t=await r.text(); let b; try{b=JSON.parse(t)}catch{b={raw:t}}
     if(r.status===401){o.className='bad';o.textContent='Expiré — redemande GO';return}
+    if(r.status===409){o.className='bad';o.textContent='HTTP 409 conflict — dis au desk: re-prépare ID neuf';return}
     if(!r.ok){o.className='bad';o.textContent='HTTP '+r.status+'\n'+t.slice(0,200);g.disabled=false;return}
     const n=(b.plan&&b.plan.txs&&b.plan.txs.length)||0;
     if(!n){o.className='bad';o.textContent='0 txs\n'+JSON.stringify(b).slice(0,300);g.disabled=false;return}
