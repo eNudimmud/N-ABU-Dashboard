@@ -9,16 +9,16 @@ button{width:100%;padding:16px;font-size:1.1rem;border:0;border-radius:12px;back
 .meta{font-size:13px;opacity:.8}
 </style>
 <p><b>VPN off</b> · Suisse · <b>DLIO</b> DET YES $25</p>
-<p class=meta>CHALK_FLOW · req 55675221… · <b>POST+Bearer+JSON</b> · 16:25 ZH · exp ~16:40 ZH</p>
+<p class=meta>CHALK_FLOW · req 1a91… · <b>POST+Bearer</b> · 17:05 ZH</p>
 <p class=meta>Après OK: dis <b>Parked</b> (box signe auto)</p>
 <button id=g>Check région</button><pre id=o></pre>
 <script>
-const U="https://api.paybox.sh/iframe/swap/55675221-fef2-46e4-9158-d8cf640f3888/geofence",T="eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJwYXlib3giLCJzdWIiOiJjMDQ4NmU2Mi05M2ZlLTQ5NjgtYWM1MS0zOWFmZDBiZGIxZWYiLCJjaWQiOiJlN2I2ZmY0NS1kYTZlLTQxMmMtOGNlYS0xMzYwZTJhZDJiNDMiLCJhdWQiOiI1NTY3NTIyMS1mZWYyLTQ2ZTQtOTE1OC1kOGNmNjQwZjM4ODgiLCJwdXJwb3NlIjoicmVmcmVzaCIsImlhdCI6MTc5MDUxOTExMywiZXhwIjoxNzkwNTIwMDEzLCJqdGkiOiJiM2I3OTU1Ny0xMThlLTRiZTAtOTg1Zi0wODgzZDQ3ZTBmYjMifQ.V40DQDcaUU5G0glVNgTtLhYc5KViCPsSDP24P0CDfVE";
+const U="https://api.paybox.sh/iframe/swap/1a91db47-578c-4d5e-b5c7-e5aa512693be/geofence",T="eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJwYXlib3giLCJzdWIiOiJjMDQ4NmU2Mi05M2ZlLTQ5NjgtYWM1MS0zOWFmZDBiZGIxZWYiLCJjaWQiOiJlN2I2ZmY0NS1kYTZlLTQxMmMtOGNlYS0xMzYwZTJhZDJiNDMiLCJhdWQiOiIxYTkxZGI0Ny01NzhjLTRkNWUtYjVjNy1lNWFhNTEyNjkzYmUiLCJwdXJwb3NlIjoicmVmcmVzaCIsImlhdCI6MTc5MDUyMTUzOSwiZXhwIjoxNzkwNTIyNDM5LCJqdGkiOiI1NjZjODlkMi00ZmRhLTQyN2EtYjVlYS1lNTQ1YzBmNTBjYjAifQ.R2Kte6gzrxCKCSf4skSKQuv10ZPlwTGP43tIcNm85WM";
 const o=document.getElementById('o'),g=document.getElementById('g');
 g.onclick=async()=>{
   g.disabled=true;o.className='';o.textContent='…';
   try{
-    const r=await fetch(U,{method:'POST',headers:{'content-type':'application/json','authorization':'Bearer '+T},body:'{}'});
+    const r=await fetch(U,{method:'POST',headers:{Authorization:'Bearer '+T}});
     const t=await r.text(); let b; try{b=JSON.parse(t)}catch{b={raw:t}}
     if(r.status===401){o.className='bad';o.textContent='Expiré — redemande GO';return}
     if(!r.ok){o.className='bad';o.textContent='HTTP '+r.status+'\n'+t.slice(0,200);g.disabled=false;return}
