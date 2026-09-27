@@ -9,16 +9,16 @@ button{width:100%;padding:16px;font-size:1.1rem;border:0;border-radius:12px;back
 .meta{font-size:13px;opacity:.8}
 </style>
 <p><b>VPN off</b> · Suisse · <b>BBIL</b> BUF YES $25</p>
-<p class=meta>req e4793416… · CIN POST+JSON · Bearer frais · 18:49 ZH</p>
-<p class=meta>OK → dis <b>Parked</b> · une seule surface</p>
+<p class=meta>SSEA-pattern · req e2396f91… · POST+Bearer only · 18:51 ZH</p>
+<p class=meta>OK → dis <b>Parked</b> · pas carte+HTML ensemble</p>
 <button id=g>Check région</button><pre id=o></pre>
 <script>
-const U="https://api.paybox.sh/iframe/swap/e4793416-cdde-434e-acfb-836669128d33/geofence",T="eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJwYXlib3giLCJzdWIiOiJjMDQ4NmU2Mi05M2ZlLTQ5NjgtYWM1MS0zOWFmZDBiZGIxZWYiLCJjaWQiOiJlN2I2ZmY0NS1kYTZlLTQxMmMtOGNlYS0xMzYwZTJhZDJiNDMiLCJhdWQiOiJlNDc5MzQxNi1jZGRlLTQzNGUtYWNmYi04MzY2NjkxMjhkMzMiLCJwdXJwb3NlIjoicmVmcmVzaCIsImlhdCI6MTc5MDUyNzc1OCwiZXhwIjoxNzkwNTI4NjU4LCJqdGkiOiIwYzMzZTVjMS02OTQ2LTQzNGMtYmRhYy02MDg5ZDgzYWE5YmEifQ.TaeS845I4VkAc7BSrn2gKhuOHAVOO8xzQT289oxgse8";
+const U="https://api.paybox.sh/iframe/swap/e2396f91-3775-4415-b959-0260bd22b407/geofence",T="eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJwYXlib3giLCJzdWIiOiJjMDQ4NmU2Mi05M2ZlLTQ5NjgtYWM1MS0zOWFmZDBiZGIxZWYiLCJjaWQiOiJlN2I2ZmY0NS1kYTZlLTQxMmMtOGNlYS0xMzYwZTJhZDJiNDMiLCJhdWQiOiJlMjM5NmY5MS0zNzc1LTQ0MTUtYjk1OS0wMjYwYmQyMmI0MDciLCJwdXJwb3NlIjoicmVmcmVzaCIsImlhdCI6MTc5MDUyNzg4OSwiZXhwIjoxNzkwNTI4Nzg5LCJqdGkiOiIyYmM3ODU3MS0wOGNhLTRjY2QtYWQzNC0wNmNjZWJlYzhlZDIifQ._JCeJLV2LZvBEsTMZMdPso1V1tXDkYXhiAQP3AVhWAY";
 const o=document.getElementById('o'),g=document.getElementById('g');
 g.onclick=async()=>{
   g.disabled=true;o.className='';o.textContent='…';
   try{
-    const r=await fetch(U,{method:'POST',headers:{'content-type':'application/json','authorization':'Bearer '+T},body:'{}'});
+    const r=await fetch(U,{method:'POST',headers:{Authorization:'Bearer '+T}});
     const t=await r.text(); let b; try{b=JSON.parse(t)}catch{b={raw:t}}
     if(r.status===401){o.className='bad';o.textContent='Expiré';return}
     if(!r.ok){o.className='bad';o.textContent='HTTP '+r.status+'\n'+t.slice(0,240);g.disabled=false;return}
