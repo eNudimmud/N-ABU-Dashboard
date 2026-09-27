@@ -1,0 +1,32 @@
+<!DOCTYPE html><html lang=fr><meta charset=utf-8>
+<meta name=viewport content="width=device-width,initial-scale=1">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<title>CH MBRE $25</title>
+<style>
+body{font:16px system-ui;margin:24px;max-width:420px;background:#0b0b0f;color:#eee}
+button{width:100%;padding:16px;font-size:1.1rem;border:0;border-radius:12px;background:#7d00ff;color:#fff;font-weight:700}
+#o{margin-top:14px;white-space:pre-wrap}.ok{color:#1a7f37}.bad{color:#c62828}
+.meta{font-size:13px;opacity:.8}
+.urgent{color:#fbc531;font-weight:700}
+</style>
+<p><b>VPN off</b> · Suisse · <b>MBRE</b> YES $25</p>
+<p class="meta urgent">PROTOCOL A · Check ≤10s · AVANT carte chat (auto-geofence)</p>
+<p class=meta>no-watch · req 625e904f… · POST+Bearer · 19:30 ZH</p>
+<p class=meta>OK → dis <b>Parked</b> · une seule surface · ferme/ignore carte</p>
+<button id=g>Check région</button><pre id=o></pre>
+<script>
+const U="https://api.paybox.sh/iframe/swap/625e904f-6a08-4f25-a7ae-568ebd5858d8/geofence",T="eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJwYXlib3giLCJzdWIiOiJjMDQ4NmU2Mi05M2ZlLTQ5NjgtYWM1MS0zOWFmZDBiZGIxZWYiLCJjaWQiOiJlN2I2ZmY0NS1kYTZlLTQxMmMtOGNlYS0xMzYwZTJhZDJiNDMiLCJhdWQiOiI2MjVlOTA0Zi02YTA4LTRmMjUtYTdhZS01NjhlYmQ1ODU4ZDgiLCJwdXJwb3NlIjoicmVmcmVzaCIsImlhdCI6MTc5MDUzMDIwMiwiZXhwIjoxNzkwNTMxMTAyLCJqdGkiOiJhYjhlMzMxOC05NTc2LTRmYWItYTZmNy0wNzY0ODU5YTcyZTYifQ.-bjKab6stYiy3s4zzmeH-7sxcrTaTpN_co8bFY3pYGM";
+const o=document.getElementById('o'),g=document.getElementById('g');
+g.onclick=async()=>{
+  g.disabled=true;o.className='';o.textContent='…';
+  try{
+    const r=await fetch(U,{method:'POST',headers:{Authorization:'Bearer '+T}});
+    const t=await r.text(); let b; try{b=JSON.parse(t)}catch{b={raw:t}}
+    if(r.status===401){o.className='bad';o.textContent='Expiré';return}
+    if(!r.ok){o.className='bad';o.textContent='HTTP '+r.status+'\n'+t.slice(0,240)+'\n(dis le code — ne re-clique pas)';g.disabled=false;return}
+    const n=(b.plan&&b.plan.txs&&b.plan.txs.length)||0;
+    if(!n){o.className='bad';o.textContent='0 txs';g.disabled=false;return}
+    o.className='ok';o.textContent='OK '+n+' txs\nDis: Parked';
+  }catch(e){o.className='bad';o.textContent=String(e);g.disabled=false}
+};
+</script>
