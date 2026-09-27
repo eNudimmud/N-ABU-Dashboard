@@ -1,19 +1,19 @@
 <!DOCTYPE html><html lang=fr><meta charset=utf-8>
 <meta name=viewport content="width=device-width,initial-scale=1">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-<title>CH BBIL e479</title>
+<title>CH BBIL $25</title>
 <style>
 body{font:16px system-ui;margin:24px;max-width:420px;background:#0b0b0f;color:#eee}
 button{width:100%;padding:16px;font-size:1.1rem;border:0;border-radius:12px;background:#7d00ff;color:#fff;font-weight:700}
 #o{margin-top:14px;white-space:pre-wrap}.ok{color:#1a7f37}.bad{color:#c62828}
 .meta{font-size:13px;opacity:.8}
 </style>
-<p><b>VPN off</b> · Suisse · <b>BBIL</b> BUF (req e479 · $25)</p>
-<p class=meta>CIN fetch JSON body · 18:45 ZH · ignore liens morts</p>
-<p class=meta>Si 400: book trop mince — dis-moi, je passe $10</p>
+<p><b>VPN off</b> · Suisse · <b>BBIL</b> BUF YES $25</p>
+<p class=meta>req e4793416… · CIN POST+JSON · Bearer frais · 18:49 ZH</p>
+<p class=meta>OK → dis <b>Parked</b> · une seule surface</p>
 <button id=g>Check région</button><pre id=o></pre>
 <script>
-const U="https://api.paybox.sh/iframe/swap/e4793416-cdde-434e-acfb-836669128d33/geofence",T="eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJwYXlib3giLCJzdWIiOiJjMDQ4NmU2Mi05M2ZlLTQ5NjgtYWM1MS0zOWFmZDBiZGIxZWYiLCJjaWQiOiJlN2I2ZmY0NS1kYTZlLTQxMmMtOGNlYS0xMzYwZTJhZDJiNDMiLCJhdWQiOiJlNDc5MzQxNi1jZGRlLTQzNGUtYWNmYi04MzY2NjkxMjhkMzMiLCJwdXJwb3NlIjoicmVmcmVzaCIsImlhdCI6MTc5MDUyNzQ4NCwiZXhwIjoxNzkwNTI4Mzg0LCJqdGkiOiIwNzY2MmU2MC0yZmExLTRjMGMtODc0ZC00NGVmZjEyZTk4N2QifQ.5_VV9iRNy_tzTo28g3iJrJbRsNaKm71Fndnt22iYVKc";
+const U="https://api.paybox.sh/iframe/swap/e4793416-cdde-434e-acfb-836669128d33/geofence",T="eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJwYXlib3giLCJzdWIiOiJjMDQ4NmU2Mi05M2ZlLTQ5NjgtYWM1MS0zOWFmZDBiZGIxZWYiLCJjaWQiOiJlN2I2ZmY0NS1kYTZlLTQxMmMtOGNlYS0xMzYwZTJhZDJiNDMiLCJhdWQiOiJlNDc5MzQxNi1jZGRlLTQzNGUtYWNmYi04MzY2NjkxMjhkMzMiLCJwdXJwb3NlIjoicmVmcmVzaCIsImlhdCI6MTc5MDUyNzc1OCwiZXhwIjoxNzkwNTI4NjU4LCJqdGkiOiIwYzMzZTVjMS02OTQ2LTQzNGMtYmRhYy02MDg5ZDgzYWE5YmEifQ.TaeS845I4VkAc7BSrn2gKhuOHAVOO8xzQT289oxgse8";
 const o=document.getElementById('o'),g=document.getElementById('g');
 g.onclick=async()=>{
   g.disabled=true;o.className='';o.textContent='…';
