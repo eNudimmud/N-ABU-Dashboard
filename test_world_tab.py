@@ -105,6 +105,43 @@ class RefreshFromLedgers(unittest.TestCase):
         self.assertEqual(snap["cashflow"]["tickets_opened"], 1)
         self.assertEqual(snap["cashflow"]["tickets_closed"], 2)
         self.assertIsNone(snap.get("pending_geofence"))
+        self.assertNotIn("funnel", snap)
+        self.assertNotIn("near_misses", snap)
+
+    def test_performance_files_are_copied_and_not_invented(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / "mandate.json").write_text(json.dumps({
+                "mandate": "chalk_flow_deep_hard",
+                "regime_label": "CHALK_FLOW",
+                "ban_rich_vs_devig_books": True,
+                "ev_devig_pp_min": 0,
+                "allow_ev_band_non_sports": False,
+                "soft_ask_pp": -0.5,
+            }), encoding="utf-8")
+            (root / "funnel.json").write_text(json.dumps({
+                "window": "24h", "radar": 12, "actionable": 2, "go": 0,
+                "prepared": 0, "filled": 0, "settled": 0,
+            }), encoding="utf-8")
+            (root / "go_gate.json").write_text(json.dumps({
+                "blockers": [{"rule": "ban_rich_vs_devig_books", "detail": "SPXPOS −0.5 pp"}],
+            }), encoding="utf-8")
+            (root / "near_misses.json").write_text(json.dumps([
+                {"ticker": "SPXPOS", "gap_pp": -0.5, "rule": "ban_rich_vs_devig_books"},
+                {"ticker": "OTHER", "gap_pp": -2.0},
+            ]), encoding="utf-8")
+            (root / "last_flat.json").write_text(json.dumps({
+                "decision": "FLAT", "reason": "hard lock · 0 GO",
+            }), encoding="utf-8")
+            snap = rws.build_snapshot(root)
+        self.assertEqual(snap["mandate"]["mandate"], "chalk_flow_deep_hard")
+        self.assertFalse(snap["mandate"]["allow_ev_band_non_sports"])
+        self.assertEqual(snap["funnel"]["go"], 0)
+        self.assertEqual(snap["funnel"]["radar"], 12)
+        self.assertEqual(snap["near_misses"][0]["ticker"], "SPXPOS")
+        self.assertEqual(snap["last_flat"]["reason"], "hard lock · 0 GO")
+        self.assertEqual(snap["autonomy"]["mandate"], "chalk_flow_deep_hard")
+        self.assertEqual(snap["go_gate"]["blockers"][0]["rule"], "ban_rich_vs_devig_books")
 
     def test_pending_geofence_from_ledger_file(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -184,6 +221,11 @@ class AdditiveHook(unittest.TestCase):
         self.assertIn('href="#portfolio"', text)
         self.assertIn('href="#analysis"', text)
         self.assertNotIn("nabu-world-root", text)
+        self.assertIn('id="hl-desk"', text)
+        self.assertIn("Hyperliquid", text)
+        self.assertIn("TRADE_PAUSE", text)
+        self.assertIn("compte simulé", text)
+        self.assertIn("paper → shadow → tiny live", text)
         self.assertIn("DASHBOARD", html)
 
     def test_world_js_has_geofence_alerts(self):
@@ -350,7 +392,11 @@ def _eval_gate(expr: str):
         "ticketKey",
         "rowTicker",
         "rowMarket",
+        "ticketName",
         "actionKind",
+        "isOpsRow",
+        "opsLabel",
+        "rowKind",
         "fillTime",
         "ticketIndex",
         "closedAt",
@@ -369,6 +415,26 @@ def _eval_gate(expr: str):
         "renderRunway",
         "renderFills",
         "renderSettled",
+        "snapshotLimits",
+        "funnelStages",
+        "funnelAliases",
+        "ruleLabel",
+        "ageText",
+        "ppText",
+        "snapshotFreshness",
+        "mandateObj",
+        "isHardLock",
+        "tri",
+        "mandateView",
+        "normalizeBlocker",
+        "goGateBlockers",
+        "bestUnderBar",
+        "funnelCount",
+        "conversionFunnel",
+        "lastFlat",
+        "openBook",
+        "onOff",
+        "renderDesk",
     ]
     preamble = (
         "var URL_KEYS=['check_region_url','geofence_url','url','data_url','link','href'];\n"
@@ -904,8 +970,8 @@ class RunwayUtilPool(unittest.TestCase):
             "renderCaps(" + json.dumps(snap["caps"]) + ", " + json.dumps(snap) + ")"
         ))
         self.assertIn("du pool", tracks)
-        self.assertIn("5.00", tracks)
-        self.assertIn("30.00", tracks)
+        for key in ("A", "B"):
+            self.assertIn(f"{float(snap['caps'][key]['open_usd']):.2f}", tracks)
         self.assertNotIn("/ 40.00", tracks)
         self.assertNotIn("/ 80.00", tracks)
 
@@ -1239,7 +1305,7 @@ def _norm(raw: dict):
 def _fill_kinds(snap: dict):
     return _eval_gate(
         "visibleFills(" + json.dumps(snap) + ").map(function(f){"
-        "return [actionKind(f.action), f.ticker || f.market, fillPnl(f)];})"
+        "return [rowKind(f), f.ticker || f.market, fillPnl(f)];})"
     )
 
 
@@ -1595,6 +1661,210 @@ class CacheBust(unittest.TestCase):
         self.assertNotEqual(version, "bankroll1", "bump the cache-bust token with UI changes")
         self.assertIn(f'assets/world-tab.js?v={version}', gen)
         self.assertIn(f'assets/world-tab.css?v={version}', js)
+
+
+class OpsCashMoves(unittest.TestCase):
+    """Top-ups and CASH→USDC sweeps are not fills and not trading PnL."""
+
+    def test_ops_ticker_and_track_are_not_closes(self):
+        topup = {"action": "buy", "track": "OPS", "ticker": "USDC-TOPUP",
+                 "market": "PayBox agent wallet top-up (JD)", "size_usd": 249.1}
+        sweep = {"action": "close", "market": "World CASH→USDC", "size_usd": 27.48, "pnl_usd": None}
+        reclaim = {"action": "close", "ticker": "CASH-USDC", "market": "SERS CASH reclaim",
+                   "pnl_usd": 0.0, "size_usd": 5.52}
+        trade = {"action": "close", "ticker": "SSEA", "market": "SEA Seahawks YES", "pnl_usd": -0.75}
+        titled = {"action": "close", "ticker": "REAL-1", "market": "Will the bill withdraw?", "pnl_usd": 1}
+        self.assertEqual(_eval_gate("rowKind(" + json.dumps(topup) + ")"), "ops")
+        self.assertEqual(_eval_gate("rowKind(" + json.dumps(sweep) + ")"), "ops")
+        self.assertEqual(_eval_gate("rowKind(" + json.dumps(reclaim) + ")"), "ops")
+        self.assertEqual(_eval_gate("rowKind(" + json.dumps(trade) + ")"), "close")
+        self.assertEqual(_eval_gate("rowKind(" + json.dumps(titled) + ")"), "close")
+        html = _eval_gate("renderFills(" + json.dumps([sweep, trade]) + ")")
+        self.assertEqual(html.count("PnL UNVERIFIED"), 0)
+        self.assertIn("Conversion", html)
+        self.assertIn("\u22120.75", _plain(html))
+
+    def test_checked_in_cash_moves_are_not_unverified_pnl(self):
+        raw = json.loads((ROOT / "assets" / "world-live.json").read_text())
+        snap = _norm(raw)
+        rows = _fill_kinds(snap)
+        for kind, who, pnl in rows:
+            if kind == "close":
+                self.assertIsNotNone(pnl, f"close without realized PnL: {who}")
+        ops = [r for r in rows if r[0] == "ops"]
+        self.assertGreaterEqual(len(ops), 2)
+
+
+class DeskPerformance(unittest.TestCase):
+    """Mandate, blockers, under-bar, funnel, book, last FLAT. No invented zeros."""
+
+    LIVE = json.loads((ROOT / "assets" / "world-live.json").read_text())
+
+    FULL = {
+        "generated_at": "2026-10-03T18:00:00Z",
+        "mode": "LIVE_ONLY",
+        "ticket_usd": 25,
+        "positions": [],
+        "capacity": {"n_open": 0, "max_open": 8},
+        "cashflow": {"bankroll_usd": 137.0, "realized_pnl_usd": 1.19, "idle_usd": 137.0,
+                     "deployed_usd": 0, "total_usd": 137.0},
+        "mandate": {
+            "mandate": "chalk_flow_deep_hard",
+            "regime_label": "CHALK_FLOW",
+            "ban_rich_vs_devig_books": True,
+            "ev_devig_pp_min": 0,
+            "fav_mid_min": 0.65,
+            "fav_mid_max": 0.90,
+            "spr_max": 0.06,
+            "ban_dogs": True,
+            "ticket_usd": 25,
+            "ticket_locked": True,
+            "track_a_paused": True,
+            "allow_ev_band_non_sports": False,
+            "soft_ask_pp": -0.5,
+            "hard_lock_reason": "SSEA de-vig under ban_rich off",
+            "go_requires_web_sources_min": 3,
+            "info_incomplete_is_next": True,
+        },
+        "go_gate": {"blockers": [
+            {"rule": "ban_rich_vs_devig_books", "detail": "SPXPOS −0.5 pp"},
+            "info_incomplete",
+        ]},
+        "near_misses": [
+            {"ticker": "OTHER", "gap_pp": -2.4, "rule": "ev_devig_pp_min"},
+            {"ticker": "SPXPOS", "market": "S&P positive", "gap_pp": -0.5,
+             "rule": "ban_rich_vs_devig_books"},
+        ],
+        "funnel": {"window": "24h", "note": "PING ≠ fill",
+                   "radar": 40, "actionable": 6, "go": 0, "prepared": 0,
+                   "filled": 0, "settled": 0},
+        "last_flat": {"decision": "FLAT", "reason": "hard lock · 0 GO",
+                      "ts": "2026-10-03T17:40:00Z", "ticker": "SPXPOS"},
+    }
+
+    def test_shipped_snapshot_shows_hard_lock_and_hides_missing_counts(self):
+        view = _eval_gate("mandateView(" + json.dumps(self.LIVE) + ")")
+        self.assertTrue(view["present"])
+        self.assertEqual(view["mandate"], "chalk_flow_deep_hard")
+        self.assertEqual(view["regime_label"], "CHALK_FLOW")
+        self.assertTrue(view["hard_lock"])
+        self.assertTrue(view["ban_rich"])
+        self.assertEqual(view["ev_devig_pp_min"], 0)
+        self.assertIsNone(view["allow_ev_band_non_sports"])
+        self.assertEqual(_eval_gate("goGateBlockers(" + json.dumps(self.LIVE) + ")"), [])
+        self.assertIsNone(_eval_gate("bestUnderBar(" + json.dumps(self.LIVE) + ")"))
+        funnel = _eval_gate("conversionFunnel(" + json.dumps(self.LIVE) + ")")
+        self.assertFalse(funnel["present"])
+        self.assertTrue(all(s["n"] is None for s in funnel["stages"]))
+        self.assertIsNone(_eval_gate("lastFlat(" + json.dumps(self.LIVE) + ")"))
+        book = _eval_gate("openBook(" + json.dumps(self.LIVE) + ")")
+        self.assertEqual(book["n"], 0)
+        html = _plain(_eval_gate("renderDesk(" + json.dumps(self.LIVE) + ")"))
+        self.assertIn("chalk_flow_deep_hard", html)
+        self.assertIn("FLAT", html)
+        self.assertIn("0 / 8", html)
+        self.assertIn("228.63", html)
+        self.assertIn("UNVERIFIED", html)
+        self.assertNotIn("SPXPOS", html)
+        self.assertNotIn(">0<", html.replace(" ", ""))
+
+    def test_full_surface_names_the_near_miss_and_the_funnel(self):
+        blockers = _eval_gate("goGateBlockers(" + json.dumps(self.FULL) + ")")
+        self.assertEqual(blockers[0]["rule"], "ban_rich_vs_devig_books")
+        self.assertEqual(blockers[1]["label"], "info incomplète → NEXT")
+        best = _eval_gate("bestUnderBar(" + json.dumps(self.FULL) + ")")
+        self.assertEqual(best["ticker"], "SPXPOS")
+        self.assertEqual(best["gap_pp"], -0.5)
+        funnel = _eval_gate("conversionFunnel(" + json.dumps(self.FULL) + ")")
+        self.assertTrue(funnel["present"])
+        self.assertEqual([s["n"] for s in funnel["stages"]], [40, 6, 0, 0, 0, 0])
+        flat = _eval_gate("lastFlat(" + json.dumps(self.FULL) + ")")
+        self.assertEqual(flat["decision"], "FLAT")
+        self.assertIn("0 GO", flat["reason"])
+        html = _plain(_eval_gate("renderDesk(" + json.dumps(self.FULL) + ")"))
+        self.assertIn("SPXPOS", html)
+        self.assertIn("−0.5", html)
+        self.assertIn("soft ask", html)
+        self.assertIn("OFF", html)
+        self.assertIn("Track A en pause", html)
+        self.assertIn("137.00", html)
+        self.assertIn("hard lock · 0 GO", html)
+        self.assertIn("40", html)
+        self.assertIn("PING", html)
+        # a real zero from the snapshot is shown; it is not a fill
+        self.assertIn("FLAT", html)
+
+    def test_stale_snapshot_is_hot_and_fresh_one_is_ok(self):
+        old = _eval_gate(
+            "snapshotFreshness(" + json.dumps({"generated_at": "2026-09-27T19:23:49Z"})
+            + ", Date.parse('2026-10-03T19:00:00Z'))"
+        )
+        self.assertEqual(old["status"], "hot")
+        self.assertGreater(old["age_s"], 12 * 3600)
+        fresh = _eval_gate(
+            "snapshotFreshness(" + json.dumps(self.FULL)
+            + ", Date.parse('2026-10-03T18:30:00Z'))"
+        )
+        self.assertEqual(fresh["status"], "ok")
+        missing = _eval_gate("snapshotFreshness({})")
+        self.assertEqual(missing["status"], "unknown")
+
+    def test_soft_ask_stays_off_until_the_field_says_so(self):
+        raw = {"mandate": {"mandate": "chalk_flow_deep_hard",
+                           "allow_ev_band_non_sports": False, "soft_ask_pp": -0.5}}
+        view = _eval_gate("mandateView(" + json.dumps(raw) + ")")
+        self.assertTrue(view["hard_lock"])
+        self.assertIs(view["allow_ev_band_non_sports"], False)
+        self.assertEqual(view["soft_ask_pp"], -0.5)
+
+    def test_garbage_desk_fields_never_throw(self):
+        for raw in (None, 1, [], {"mandate": "chalk", "funnel": [], "go_gate": "no",
+                                  "near_misses": [None, 3, {"gap_pp": "x"}],
+                                  "last_flat": 0, "positions": "no"}):
+            self.assertIsInstance(_eval_gate("mandateView(" + json.dumps(raw) + ")"), dict)
+            self.assertIsInstance(_eval_gate("goGateBlockers(" + json.dumps(raw) + ")"), list)
+            self.assertIsInstance(_eval_gate("conversionFunnel(" + json.dumps(raw) + ")"), dict)
+            self.assertIsInstance(_eval_gate("renderDesk(" + json.dumps(raw) + ")"), str)
+
+    def test_shipped_page_keeps_the_paper_strip_and_the_world_hook(self):
+        html = (ROOT / "dashboard.html").read_text(encoding="utf-8", errors="replace")
+        self.assertIn('id="hl-desk"', html)
+        self.assertIn("Hyperliquid · PAPER", html)
+        self.assertIn("compte simulé", html)
+        self.assertIn("TRADE_PAUSE", html)
+        self.assertIn("assets/world-tab.js?v=desk-perf1", html)
+        self.assertIn("Performance statistique · paper Hyperliquid", html)
+
+
+class ClassicDeskState(unittest.TestCase):
+    def test_pause_file_and_missing_sidecar_stay_paper(self):
+        import nabu_dashboard as nd
+
+        desk = nd.compute_desk("paper", {"active": False}, {"active": False}, None)
+        self.assertEqual(desk["stage"], "paper")
+        self.assertFalse(desk["live_armed"])
+        self.assertFalse(desk["kill_switch"])
+        self.assertEqual(desk["trade_pause"]["source"], "absent")
+        self.assertIn("simulé", desk["note"])
+
+        paused = nd.compute_desk(
+            "paper",
+            {"active": False},
+            {"active": True, "reason": "JD halt", "since_iso": "2026-10-03T00:00:00Z"},
+            {"hyperliquid": {"stage": "shadow", "live_armed": False}},
+        )
+        self.assertEqual(paused["stage"], "shadow")
+        self.assertTrue(paused["shadow"])
+        self.assertFalse(paused["live_armed"])
+        self.assertTrue(paused["kill_switch"])
+        self.assertEqual(paused["trade_pause"]["reason"], "JD halt")
+
+        armed = nd.compute_desk(
+            "paper", {"active": False}, {"active": False},
+            {"hyperliquid": {"stage": "tiny_live", "live_armed": True}},
+        )
+        self.assertTrue(armed["live_armed"])
+        self.assertEqual(armed["stage"], "tiny_live")
 
 
 if __name__ == "__main__":

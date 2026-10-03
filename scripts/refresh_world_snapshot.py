@@ -311,7 +311,7 @@ def _load_autonomy(root: Path) -> tuple[dict, str]:
     if not isinstance(data, dict):
         return {}, str(p)
     note = _pick(data, ["note", "eval", "summary", "next_action"])
-    return {
+    out = {
         "cycle_id": _pick(data, ["cycle_id", "id", "cycle"]),
         "evaluated_at": _pick(data, ["evaluated_at", "ts", "iso"]),
         "note": note,
@@ -321,7 +321,12 @@ def _load_autonomy(root: Path) -> tuple[dict, str]:
         "pending_geofence": data.get("pending_geofence"),
         "pending_geofences": data.get("pending_geofences"),
         "awaiting_region_check": data.get("awaiting_region_check"),
-    }, str(p)
+    }
+    # Performance surfaces. Copied when the ledger has them, never invented.
+    for key in ("mandate", "funnel", "go_gate", "near_misses", "under_bar", "last_flat", "last_decision"):
+        if key in data and data[key] not in (None, "", [], {}):
+            out[key] = data[key]
+    return out, str(p)
 
 
 def _open_by_track(positions: list[dict]) -> dict[str, float]:
@@ -402,7 +407,7 @@ def build_snapshot(ledgers: Path) -> dict:
         pending_out = pending
     else:
         pending_out = None
-    return {
+    snap = {
         "schema_version": 1,
         "example": False,
         "generated_at": now,
@@ -433,6 +438,50 @@ def build_snapshot(ledgers: Path) -> dict:
         } if auto else {},
         "pending_geofence": pending_out,
     }
+    _attach_performance(snap, ledgers, auto or {})
+    return snap
+
+
+# Optional performance files. A missing file stays off the snapshot — never a zero.
+_PERF_FILES = {
+    "mandate": ("mandate.json",),
+    "funnel": ("funnel.json",),
+    "go_gate": ("go_gate.json",),
+    "near_misses": ("near_misses.json", "under_bar.json"),
+    "last_flat": ("last_flat.json",),
+}
+
+
+def _load_perf(ledgers: Path, key: str) -> Any:
+    for name in _PERF_FILES[key]:
+        path = ledgers / name
+        if not path.exists():
+            continue
+        try:
+            return _read_json(path)
+        except Exception:  # noqa: BLE001
+            return None
+    return None
+
+
+def _attach_performance(snap: dict, ledgers: Path, auto: dict) -> None:
+    """Ledger files win over the same keys inside autonomy_cycle.json."""
+    for key in _PERF_FILES:
+        found = _load_perf(ledgers, key)
+        if found not in (None, "", [], {}):
+            snap[key] = found
+        elif auto.get(key) not in (None, "", [], {}):
+            snap[key] = auto[key]
+    if isinstance(snap.get("mandate"), dict) and snap["mandate"].get("mandate"):
+        # `{}` is falsy — write back onto the snapshot, do not mutate a throwaway.
+        note = snap.get("autonomy")
+        if not isinstance(note, dict):
+            note = {}
+        if not note.get("mandate"):
+            note["mandate"] = snap["mandate"].get("mandate")
+            if snap["mandate"].get("regime_label") and not note.get("regime"):
+                note["regime"] = snap["mandate"]["regime_label"]
+        snap["autonomy"] = note
 
 
 def main() -> int:

@@ -86,6 +86,8 @@ P_BOOK = LIVE / "book.json"
 P_ACCOUNT = LIVE / "paper" / "account.json"
 P_JOURNAL = LIVE / "journal.jsonl"
 P_KILL = LIVE / "KILL"
+P_PAUSE = LIVE / "TRADE_PAUSE"          # file present = classic desk halted, same shape as KILL
+P_DESK = LIVE / "desk_status.json"      # optional; absent = paper, never a guessed live stage
 P_CTX = LIVE / "live_context.json"
 P_SCAN = LIVE / "data" / "scan_latest.json"
 P_HIST = LIVE / "data" / "equity_history.jsonl"   # écrit UNIQUEMENT par ce script (append)
@@ -181,6 +183,63 @@ def read_kill(path: Path) -> dict:
         "reason": txt or "(sans motif)",
         "since_iso": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(ts)),
         "since_ts": ts,
+    }
+
+
+def read_desk_status(path: Path) -> dict | None:
+    """Optional sidecar. Missing file is not a live stage."""
+    if not path.exists():
+        return None
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except Exception:                                             # noqa: BLE001
+        return {"_unreadable": True}
+    return data if isinstance(data, dict) else {"_unreadable": True}
+
+
+def compute_desk(mode: str, kill: dict, pause: dict, status: dict | None) -> dict:
+    """Hyperliquid honesty. Paper stays paper until desk_status.json says otherwise.
+
+    Live is never inferred from a green paper sample. The path paper → shadow →
+    tiny live needs an explicit JD GO; this page only reports the stage.
+    """
+    status = status or {}
+    hl = status.get("hyperliquid") if isinstance(status.get("hyperliquid"), dict) else {}
+    mode_s = str(mode or hl.get("mode") or "paper")
+    stage = str(hl.get("stage") or hl.get("mode") or mode_s or "paper").lower()
+    if hl.get("live_armed") is True:
+        live_armed = True
+    elif str(mode_s).lower() == "paper":
+        live_armed = False
+    else:
+        live_armed = stage in ("live", "tiny_live", "tiny-live")
+    shadow = stage in ("shadow", "paper_shadow")
+    note = hl.get("note")
+    if not note and str(mode_s).lower() == "paper":
+        note = ("Compte simulé Hyperliquid. Equity, clôtures, espérance et paliers "
+                "décrivent le paper — pas un fill live.")
+    return {
+        "venue": "hyperliquid",
+        "mode": mode_s,
+        "stage": stage,
+        "stage_source": "desk_status.json" if hl else "mode du book / risk.yaml",
+        "live_armed": bool(live_armed),
+        "shadow": bool(shadow),
+        "kill_switch": bool(kill.get("active") or pause.get("active") or hl.get("kill_switch")),
+        "trade_pause": {
+            "active": bool(pause.get("active")),
+            "reason": pause.get("reason"),
+            "since_iso": pause.get("since_iso"),
+            "source": "TRADE_PAUSE" if pause.get("active") else "absent",
+        },
+        "kill": {
+            "active": bool(kill.get("active")),
+            "reason": kill.get("reason"),
+            "since_iso": kill.get("since_iso"),
+        },
+        "note": note,
+        "path": "paper → shadow → tiny live",
+        "human_go_required": True,
     }
 
 
@@ -771,6 +830,11 @@ def build_state(demo: bool = False) -> tuple[dict, list[Source]]:
     gates = compute_gates(cfg, cap, book.get("positions", []), journal)
     edge = compute_edge(journal)
     kill = read_kill(P_KILL)
+    pause = read_kill(P_PAUSE)
+    desk = compute_desk(
+        (cfg.get("meta", {}) or {}).get("mode", book.get("mode", "?")),
+        kill, pause, read_desk_status(P_DESK),
+    )
 
     if account:
         cap["paper"] = {
@@ -807,6 +871,7 @@ def build_state(demo: bool = False) -> tuple[dict, list[Source]]:
         },
         "warnings": book.get("warnings", []),
         "provenance": [s.as_dict() for s in sources],
+        "desk": desk,
         "demo": False,
     }
     state["milestone"] = compute_milestone_state()
@@ -1000,6 +1065,8 @@ def _demo_state() -> dict:
         "warnings": ["mode paper — compte simulé réel · cash 926.11$ · frais cumulés 11.42$ "
                      "· funding cumulé -2.63$"],
         "provenance": [s.as_dict() for s in _demo_sources()],
+        "desk": compute_desk("paper", {"active": False, "reason": None, "since_iso": None},
+                             {"active": False, "reason": None, "since_iso": None}, None),
         "demo": True,
     }
     state["self_eval"] = compute_self_eval(
@@ -1143,6 +1210,16 @@ body{
   border:2px solid var(--navy)}
 .kill h2{margin:0 0 6px;font-family:var(--sans);font-size:26px;letter-spacing:.06em}
 .kill p{margin:0;font-size:12px;opacity:.92}
+.desk-strip{margin-top:18px;border:1px solid var(--ink);background:var(--paper-3);padding:16px 18px}
+.desk-strip h2{margin:0 0 6px;font-family:var(--sans);font-size:18px;letter-spacing:.04em}
+.desk-strip p{margin:6px 0 0;font-size:13px;line-height:1.5}
+.desk-flags{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.desk-flag{font-size:9px;letter-spacing:.14em;text-transform:uppercase;font-weight:700;
+  border:1px solid var(--ink);padding:3px 8px}
+.desk-flag--paper{color:var(--cobalt);border-color:var(--cobalt)}
+.desk-flag--off{color:var(--ink-soft);border-color:var(--hair)}
+.desk-flag--hot{color:var(--paper-3);background:var(--oxblood);border-color:var(--oxblood)}
+.desk-strip--hot{border-color:var(--oxblood);background:rgba(124,29,33,.08)}
 
 /* ---------- attestation (héros) ---------- */
 .attest{margin-top:30px}
@@ -1745,6 +1822,47 @@ def render(state: dict) -> str:
         a(f"<p style=\"margin-top:6px\">Armé depuis {e(k.get('since_iso'))} · "
           "nouvelles prises de risque bloquées · sorties autorisées · JD requis.</p></section>")
 
+    # Hyperliquid is paper until a sidecar says otherwise. Stats below are that book.
+    desk = S.get("desk") or {}
+    pause = desk.get("trade_pause") or {}
+    stage = str(desk.get("stage") or S.get("mode") or "paper")
+    paperish = stage in ("paper", "paper_shadow", "?") or not desk.get("live_armed")
+    hot = bool(desk.get("kill_switch") or pause.get("active") or k.get("active"))
+    a(f"<section class=\"desk-strip{' desk-strip--hot' if hot else ''}\" id=\"hl-desk\" "
+      "aria-label=\"Hyperliquid paper et pauses\">")
+    a("<h2>Hyperliquid · " + e(stage.upper()) + "</h2>")
+    if desk.get("live_armed"):
+        a("<p><b>Live armé</b> — lu dans desk_status.json. Cette page ne passe aucun ordre.</p>")
+    elif paperish:
+        a("<p><b>Paper.</b> Aucun marché Hyperliquid live n'est armé. Equity, clôtures, "
+          "espérance et paliers de cette planche décrivent le <b>compte simulé</b>, "
+          "pas des fills live.</p>")
+    else:
+        a(f"<p>Stage <b>{e(stage)}</b> · source {e(desk.get('stage_source') or '—')}. "
+          "Live non armé.</p>")
+    flags = []
+    flags.append(("desk-flag--paper" if not desk.get("live_armed") else "desk-flag--hot",
+                  "live armé" if desk.get("live_armed") else "live non armé"))
+    flags.append(("desk-flag--paper" if desk.get("shadow") else "desk-flag--off",
+                  "shadow" if desk.get("shadow") else "shadow off"))
+    flags.append(("desk-flag--hot" if (k.get("active") or desk.get("kill_switch")) else "desk-flag--off",
+                  "KILL actif" if k.get("active") else "kill switch off"))
+    if pause.get("active"):
+        flags.append(("desk-flag--hot", "TRADE_PAUSE"))
+    else:
+        flags.append(("desk-flag--off", "TRADE_PAUSE absent"))
+    a("<div class=\"desk-flags\">")
+    for cls, lab in flags:
+        a(f"<span class=\"desk-flag {cls}\">{e(lab)}</span>")
+    a("</div>")
+    if pause.get("active"):
+        a(f"<p><b>TRADE_PAUSE</b> depuis {e(pause.get('since_iso') or '—')} · "
+          f"{e(pause.get('reason') or '(sans motif)')}. Nouvelles prises stoppées.</p>")
+    if desk.get("note"):
+        a(f"<p class=\"note\">{e(desk['note'])}</p>")
+    a("<p class=\"note\">Chemin vers le réel : paper → shadow → tiny live, kill switch en place, "
+      "GO explicite de JD. Cette planche ne l'arme pas et n'invente pas de stage.</p></section>")
+
     if fr["status"] == "ok":
         v = ("Données à jour. Le portefeuille peut être suivi depuis cette page.")
     elif fr["status"] == "watch":
@@ -1975,7 +2093,7 @@ def render(state: dict) -> str:
     a("</section>")
 
     # -- edge · deux étages : tout depuis le début, puis palier par palier
-    a("<details class=\"drawer\" id=\"analysis\"><summary>Performance statistique de N*ABU</summary>"
+    a("<details class=\"drawer\" id=\"analysis\"><summary>Performance statistique · paper Hyperliquid</summary>"
       "<div class=\"drawer-body\">")
 
     # ===== ÉTAGE 1 — depuis le début ========================================
@@ -2265,7 +2383,7 @@ def render(state: dict) -> str:
     a(LIVE_JS)
     # World tab — additive overlay (assets/world-tab.js). Isolated; does not
     # alter original nav markup, CSS, or the inlined nabu-state contract.
-    a("<script src=\"assets/world-tab.js?v=world-design2\" defer></script>")
+    a("<script src=\"assets/world-tab.js?v=desk-perf1\" defer></script>")
     a("</body></html>")
     return "\n".join(o)
 

@@ -158,3 +158,31 @@ python3 scripts/refresh_world_snapshot.py \
 
 Servir la page en HTTP pour que le fetch du snapshot aboutisse
 (`python3 -m http.server` depuis la racine du dépôt). Format : §8 du contrat.
+
+## Performance du desk
+
+L'onglet World ouvre sur le desk, pas sur l'illustration : régime du mandat,
+blockers `go_gate`, meilleur sous la barre, entonnoir radar → soldé, ouvert /
+bankroll / PnL réalisé, dernier FLAT, âge du snapshot. Un champ absent est
+**UNVERIFIED** — jamais un zéro. La planche classique dit **Hyperliquid · PAPER**
+et montre `KILL` / `TRADE_PAUSE`. Les stats de trades sont celles du compte simulé.
+
+Rebuild :
+
+```bash
+# planche classique (book Hyperliquid du box — pas dans ce dépôt)
+./nabu_dashboard.py build --out dashboard.html
+
+# snapshot World depuis les ledgers. mandate.json, funnel.json, go_gate.json,
+# near_misses.json, last_flat.json sont recopiés s'ils existent, jamais inventés.
+python3 scripts/refresh_world_snapshot.py \
+  --ledgers ${NABU_WORLD_ROOT:-/opt/data/.nabu/world-paper} \
+  --out assets/world-live.json
+
+python3 -m unittest test_world_tab.py
+```
+
+Après un changement de `assets/world-tab.js`, le même jeton `?v=` doit être dans
+`nabu_dashboard.py`, `dashboard.html` et `CSS_URL` (`desk-perf1` aujourd'hui).
+Le site Pages sert ces fichiers tels quels : pousser le JSON et le JS suffit
+pour l'onglet World ; la planche classique suit le prochain `build`.

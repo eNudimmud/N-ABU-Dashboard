@@ -18,6 +18,8 @@ n'écrit que son `--out`.
 | `data/scan_latest.json` | **lecture** | signaux du dernier scan |
 | `data/equity_history.jsonl` | **append** | un point (equity, score, verdict) par build — seul fichier d'état écrit, par ce script uniquement |
 | `KILL` | **lecture** | bandeau oxblood |
+| `TRADE_PAUSE` | **lecture** | même forme que `KILL` — fichier présent = desk classique en pause. Absent = pause inactive, jamais un live |
+| `desk_status.json` | **lecture** | optionnel. `hyperliquid.stage` / `live_armed` / `kill_switch`. Absent : le stage reste le `mode` du book (paper) |
 | `--out` (HTML) | **écriture** | seul fichier écrit, en remplacement atomique |
 
 Aucun secret n'est lu. Aucun venue n'est joint. Aucune méthode de `nabu_exec`
@@ -132,7 +134,23 @@ donc le consommer sans réimplémenter les calculs.
 
   "provenance": [{ "source":"book.json", "path":"…", "age_s":118,
                    "state":"VERIFIED",   // VERIFIED | UNVERIFIED | FAILED
-                   "note":"lu" }]
+                   "note":"lu" }],
+
+  // Hyperliquid. Absent sidecar = paper. Never a guessed live stage.
+  "desk": {
+    "venue": "hyperliquid",
+    "mode": "paper",
+    "stage": "paper",                 // paper | shadow | tiny_live | live
+    "stage_source": "mode du book / risk.yaml",
+    "live_armed": false,
+    "shadow": false,
+    "kill_switch": false,             // KILL, TRADE_PAUSE, or desk_status hyperliquid.kill_switch
+    "trade_pause": { "active": false, "reason": null, "since_iso": null, "source": "absent" },
+    "kill": { "active": false, "reason": null, "since_iso": null },
+    "note": "Compte simulé…",
+    "path": "paper → shadow → tiny live",
+    "human_go_required": true
+  }
 }
 ```
 
@@ -482,3 +500,69 @@ Ledgers lus (chacun optionnel) : `fills.jsonl`, `autonomy_cycle.json`,
 `awaiting_region_check.json`, ou le même objet dans `autonomy_cycle.json`).
 Alias de champs acceptés (`signature`→`tx`, `book`→`track`, `question`→`market`, …).
 `--write-example` réécrit le mock commité (avec un pending_geofence de démo).
+
+### Performance du desk (champs additifs, schema_version 2)
+
+Absents du snapshot du 2026-09-27 : la planche les affiche **UNVERIFIED**, jamais
+à zéro. `scripts/refresh_world_snapshot.py` les recopie s'ils existent, depuis
+un fichier dédié (prioritaire) ou depuis `autonomy_cycle.json`. Il ne les invente pas.
+
+| Champ | Fichier ledger | Rôle |
+|---|---|---|
+| `mandate` | `mandate.json` | régime, hard lock, barres. Objet, pas seulement le nom |
+| `go_gate` | `go_gate.json` | `blockers[]` : `{rule, detail}` ou une chaîne. Alias `fails` / `last.blockers` |
+| `near_misses` | `near_misses.json` | `[{ticker, market, gap_pp, rule}]`. Le plus proche de 0 est « sous la barre » |
+| `funnel` | `funnel.json` | compteurs `radar → actionable → go → prepared → filled → settled` |
+| `last_flat` | `last_flat.json` | `{decision, reason, ts, ticker}` — la note d'autonomie n'est pas une raison |
+
+```jsonc
+{
+  "mandate": {
+    "mandate": "chalk_flow_deep_hard",
+    "regime_label": "CHALK_FLOW",
+    "hard_lock": true,
+    "hard_lock_reason": "…",
+    "ban_rich_vs_devig_books": true,
+    "ev_devig_pp_min": 0,
+    "fav_mid_min": 0.65, "fav_mid_max": 0.90, "spr_max": 0.06,
+    "ban_dogs": true,
+    "ticket_usd": 25, "ticket_locked": true, "track_a_paused": true,
+    "allow_ev_band_non_sports": false,   // soft ask −0.5 pp. Défaut false. JD seul le passe à true
+    "soft_ask_pp": -0.5,
+    "go_requires_web_sources_min": 3,
+    "info_incomplete_is_next": true
+  },
+  "go_gate": { "blockers": [{ "rule": "ban_rich_vs_devig_books", "detail": "SPXPOS −0.5 pp" }] },
+  "near_misses": [{ "ticker": "SPXPOS", "gap_pp": -0.5, "rule": "ban_rich_vs_devig_books" }],
+  "funnel": {
+    "window": "24h",
+    "note": "PING ≠ fill",
+    "radar": 40, "actionable": 6, "go": 0, "prepared": 0, "filled": 0, "settled": 0
+  },
+  "last_flat": { "decision": "FLAT", "reason": "hard lock · 0 GO", "ts": "…" }
+}
+```
+
+Un snapshot sans ces blocs reste valide. L'âge de `generated_at` est affiché :
+au-delà de 2 h le snapshot est « à surveiller », au-delà de 12 h « périmé ».
+Les mouvements de cash (`track: "OPS"`, ticker `CASH-USDC` / `USDC-TOPUP`, ou
+marché « CASH → USDC » sans ticker) ne sont ni des fills ni du PnL.
+
+### Planche classique — paper Hyperliquid
+
+La planche PF / RK / PX / AN porte un bandeau **Hyperliquid · PAPER** tant que
+`desk.live_armed` est faux. Les stats de trades sont celles du compte simulé.
+`KILL` et `TRADE_PAUSE` y sont visibles. Le passage live (paper → shadow →
+tiny) n'est pas armé par cette page.
+
+Rebuild de la planche (le cron du box écrit `dashboard.html` ; ce dépôt ne
+contient pas le book) :
+
+```bash
+./nabu_dashboard.py build --out dashboard.html
+```
+
+L'onglet World ne dépend pas de ce rebuild : `dashboard.html` charge
+`assets/world-tab.js`, qui fetch `assets/world-live.json`. Après un changement
+de JS, bumper `?v=` dans `nabu_dashboard.py`, `dashboard.html` et
+`CSS_URL` de `world-tab.js` (même jeton).
