@@ -3,7 +3,7 @@
   "use strict";
 
   var SNAPSHOT_URLS = ["assets/world-live.json?v=" + Date.now(), "world-live.json?v=" + Date.now()];
-  var CSS_URL = "assets/world-tab.css?v=world-design2";
+  var CSS_URL = "assets/world-tab.css?v=desk-perf1";
   var WALLET_FALLBACK = "27bcZ8xT8qWzkmdyjKy7mRXKqRAR9KBphZt3BMyjmac3";
   var POLL_MS = 8000;
   var URL_KEYS = ["check_region_url", "geofence_url", "url", "data_url", "link", "href"];
@@ -301,11 +301,20 @@
     for (var s = 0; s < settled.length; s++) {
       if (settled[s].pnl_usd != null) byKey[settled[s].key] = settled[s].pnl_usd;
     }
+    var closesPerTicket = {};
+    for (var c = 0; c < src.length; c++) {
+      if (rowKind(src[c]) !== "close") continue;
+      var ck = rowTicker(src[c]) || rowMarket(src[c]);
+      if (ck) closesPerTicket[ck] = (closesPerTicket[ck] || 0) + 1;
+    }
     var out = [];
     for (var i = 0; i < src.length; i++) {
       if (!src[i] || typeof src[i] !== "object" || Array.isArray(src[i])) continue;
       var f = copyOwn(src[i]);
-      if (actionKind(pick(f, ["action", "type", "event"], "")) === "close" && isBlank(fillPnl(f))) {
+      /* The settled PnL covers every exit of a ticket, so it may only stand in
+         for a close that is the ticket's single exit. */
+      if (rowKind(f) === "close" && isBlank(fillPnl(f))
+          && closesPerTicket[rowTicker(f) || rowMarket(f)] === 1) {
         var hit = byKey[rowTicker(f)];
         if (hit == null) hit = byKey[rowMarket(f)];
         if (hit != null) {
@@ -737,7 +746,12 @@
   }
 
   function rowMarket(row) {
-    return ticketKey(pick(row, ["market", "question", "title"], ""));
+    return ticketKey(ticketName(pick(row, ["market", "question", "title"], "")));
+  }
+
+  /* "SEA Seahawks YES half-exit" and "… full exit" are two exits of one ticket. */
+  function ticketName(market) {
+    return String(market == null ? "" : market).replace(/\s+(half|full|partial)[- ]?exit\b.*$/i, "");
   }
 
   function actionKind(action) {
@@ -747,6 +761,32 @@
     }
     if (/^(open|opened|buy|bought|fill|filled|entry|add)$/.test(a)) return "open";
     return "";
+  }
+
+  /* Top-ups and CASH→USDC sweeps move money without taking a side: never a
+     fill, never a close, never trading PnL. Structured fields decide first so
+     a market titled "…withdraw…" is not mistaken for a cash move. */
+  function isOpsRow(row) {
+    if (!row || typeof row !== "object" || Array.isArray(row)) return false;
+    if (row.ops === true) return true;
+    if (/^(ops|transfer|deposit|withdrawal|conversion)$/i.test(String(row.kind == null ? "" : row.kind))) return true;
+    if (String(pick(row, ["track", "book"], "")).toUpperCase() === "OPS") return true;
+    var ticker = String(pick(row, ["ticker", "market_ticker", "symbol"], ""));
+    if (/^(CASH-USDC|USDC-TOPUP|TOPUP|DEPOSIT|WITHDRAW)/i.test(ticker)) return true;
+    return !ticker && /CASH\s*(→|->)\s*USDC|CASH reclaim|top-?up|deposit|withdraw/i
+      .test(String(pick(row, ["market", "question", "title"], "")));
+  }
+
+  function opsLabel(row) {
+    var txt = String(pick(row, ["market", "question", "title"], "")) + " " + String(pick(row, ["ticker"], ""));
+    if (/top-?up|deposit|apport/i.test(txt)) return "Apport";
+    if (/withdraw|retrait/i.test(txt)) return "Retrait";
+    return "Conversion";
+  }
+
+  function rowKind(row) {
+    if (isOpsRow(row)) return "ops";
+    return actionKind(pick(row, ["action", "type", "event"], ""));
   }
 
   function fillTime(f) {
@@ -780,7 +820,7 @@
        the snapshot itself says the book is empty. Never when we know nothing. */
     idx.hasBook = named === positions.length && (named > 0 || numish(cap.n_open) === 0);
     for (var j = 0; j < fills.length; j++) {
-      if (actionKind(pick(fills[j], ["action", "type", "event"], "")) !== "close") continue;
+      if (rowKind(fills[j]) !== "close") continue;
       var ct = rowTicker(fills[j]);
       var cm = rowMarket(fills[j]);
       var ts = fillTime(fills[j]);
@@ -813,7 +853,7 @@
      that has since been re-opened). Never label such a buy open. */
   function isGhostOpenFill(f, idx) {
     if (!f || !idx) return false;
-    if (actionKind(pick(f, ["action", "type", "event"], "")) !== "open") return false;
+    if (rowKind(f) !== "open") return false;
     var ticker = rowTicker(f);
     var market = rowMarket(f);
     if (!ticker && !market) return false;
@@ -844,7 +884,7 @@
   function countFillKind(rows, kind) {
     var n = 0;
     for (var i = 0; i < (rows || []).length; i++) {
-      if (actionKind(pick(rows[i], ["action", "type", "event"], "")) === kind) n++;
+      if (rowKind(rows[i]) === kind) n++;
     }
     return n;
   }
@@ -860,32 +900,46 @@
 
   /* settled (repo view) + settled_paybox (venue view) merged per ticket. The
      venue view keeps "redeemable":"open" after a CASH→USDC sweep — a cashed
-     marker on either side, or a cashed fill, wins. */
+     marker on either side, or a cashed fill, wins. Partial exits of a ticket
+     add up; the venue view repeats the repo view, so PnL is summed within
+     the first view that carries it. CASH reclaims are not positions. */
   function settledRows(data) {
     data = data || {};
-    var src = asRowList(data.settled).concat(asRowList(data.settled_paybox));
-    var out = [], byKey = {};
+    var src = [];
+    asRowList(data.settled).forEach(function (r) { src.push([r, "repo"]); });
+    asRowList(data.settled_paybox).forEach(function (r) { src.push([r, "venue"]); });
+    var out = [], byKey = {}, pnlView = {}, seenExit = {};
     for (var i = 0; i < src.length; i++) {
-      var row = src[i];
+      var row = src[i][0], view = src[i][1];
+      if (isOpsRow(row)) continue;
       var ticker = pick(row, ["ticker", "market_ticker", "symbol"], "");
       var market = pick(row, ["market", "question", "title"], "");
-      var key = ticketKey(ticker) || ticketKey(market);
+      var key = ticketKey(ticker) || ticketKey(ticketName(market));
       if (!key) continue;
       var cur = byKey[key];
       if (!cur) {
         cur = {
-          key: key, ticker: ticker || "", market: market || "", track: null,
-          result: null, pnl_usd: null, size_usd: null,
+          key: key, ticker: ticker || "", market: ticketName(market), track: null,
+          result: null, pnl_usd: null, size_usd: null, exits: 0,
           settlement_asset: null, redeemable_raw: null, stale_redeemable: false
         };
         byKey[key] = cur;
         out.push(cur);
       }
       if (!cur.ticker && ticker) cur.ticker = ticker;
-      if (!cur.market && market) cur.market = market;
+      if (!cur.market && market) cur.market = ticketName(market);
       if (cur.track == null) cur.track = pick(row, ["track", "book"], null);
       if (cur.result == null) cur.result = pick(row, ["result", "position_result", "outcome"], null);
-      if (cur.pnl_usd == null) cur.pnl_usd = numish(fillPnl(row));
+      var p = numish(fillPnl(row));
+      if (p != null && (pnlView[key] == null || pnlView[key] === view)) {
+        var sig = key + "|" + market + "|" + pick(row, ["size_usd", "size"], "") + "|" + p;
+        if (!seenExit[sig]) {
+          seenExit[sig] = true;
+          pnlView[key] = view;
+          cur.pnl_usd = Math.round(((cur.pnl_usd || 0) + p) * 10000) / 10000;
+          cur.exits += 1;
+        }
+      }
       if (cur.size_usd == null) cur.size_usd = numish(pick(row, ["size_usd", "size"], null));
       if (cur.settlement_asset == null) {
         cur.settlement_asset = pick(row, ["settlement_asset", "asset"], null);
@@ -983,7 +1037,7 @@
     if (realized != null) {
       var seen = 0, any = false;
       for (var c = 0; c < shown.length; c++) {
-        if (actionKind(pick(shown[c], ["action", "type", "event"], "")) !== "close") continue;
+        if (rowKind(shown[c]) !== "close") continue;
         var p = numish(fillPnl(shown[c]));
         if (p != null) { seen += p; any = true; }
       }
@@ -1078,15 +1132,19 @@
       + "<th>Tx</th></tr></thead><tbody>";
     for (var i = 0; i < rows.length; i++) {
       var f = rows[i];
+      var kind = rowKind(f);
       var track = pick(f, ["track", "book"], "—");
       var tx = fillTx(f);
       var raw = fillPnl(f);
-      var pnl = signedMoney(raw);
+      var pnl = kind === "ops" ? { txt: "—", neg: false } : signedMoney(raw);
       /* A close with no realized PnL anywhere is missing data, not a zero and
          not an open row — say so instead of a bare dash. */
-      if (isBlank(raw) && actionKind(pick(f, ["action", "type", "event"], "")) === "close") {
+      if (isBlank(raw) && kind === "close") {
         pnl = { txt: '<span class="nabu-world-pnl-missing">PnL UNVERIFIED</span>', neg: false };
       }
+      var pill = kind === "ops"
+        ? '<span class="nabu-world-pill nabu-world-pill--ops">' + esc(opsLabel(f)) + "</span>"
+        : actionPill(pick(f, ["action", "type", "event"], "—"));
       var txCell = tx
         ? '<a class="nabu-world-tx" href="' + esc(solscanTx(tx)) + '" target="_blank" rel="noopener">'
           + esc(shortTx(tx)) + "</a>"
@@ -1098,7 +1156,7 @@
       }) : timestamp;
       html += "<tr>"
         + '<td class="nabu-world-time" title="' + esc(timestamp) + '">' + esc(when) + "</td>"
-        + "<td>" + actionPill(pick(f, ["action", "type", "event"], "—")) + "</td>"
+        + "<td>" + pill + "</td>"
         + "<td>" + esc(pick(f, ["market", "question", "title", "ticker"], "—")) + "</td>"
         + '<td><span class="nabu-world-track nabu-world-track--' + esc(String(track).toLowerCase()) + '">'
         + esc(track) + "</span></td>"
@@ -1115,8 +1173,10 @@
     var rows = visibleFills(data);
     var opens = countFillKind(rows, "open");
     var closes = countFillKind(rows, "close");
+    var ops = countFillKind(rows, "ops");
     var hidden = ((data && Array.isArray(data.fills)) ? data.fills.length : 0) - rows.length;
     var txt = "Fills / closes récents · " + opens + " open · " + closes + " close";
+    if (ops > 0) txt += " · " + ops + " mouvement" + (ops > 1 ? "s" : "") + " de cash hors trading";
     if (hidden > 0) txt += " · " + hidden + " buy de ticket clos masqué" + (hidden > 1 ? "s" : "");
     return txt;
   }
@@ -1146,6 +1206,7 @@
         + '<div class="nabu-world-pos-meta">'
         + "<span>Résultat<b>" + esc(r.result == null ? "—" : r.result) + "</b></span>"
         + '<span>PnL<b class="' + (pnl.neg ? "nabu-world-neg" : "") + '">' + pnl.txt + "</b></span>"
+        + (r.exits > 1 ? "<span>Sorties<b>" + r.exits + " partielles</b></span>" : "")
         + "<span>Règlement<b>" + esc(r.settlement_asset == null ? "—" : r.settlement_asset) + "</b></span>"
         + "<span>Ticker<b>" + esc(r.ticker || "—") + "</b></span>"
         + "</div>"
@@ -1783,6 +1844,450 @@
     }
   }
 
+  /* ---- Desk performance. Reads snapshot fields; never invents a zero. ---- */
+
+  /* The box pushes world-live.json about hourly while the desk runs. Past
+     these ages every number on the tab is a memory, not a reading. */
+  function snapshotLimits() {
+    return { watch: 2 * 3600, hot: 12 * 3600 };
+  }
+
+  function funnelStages() {
+    return [
+      ["radar", "Radar", "pings du scan · PING ≠ fill"],
+      ["actionable", "Actionnable", "bande mid / spr passée → DEEP_BRIEF"],
+      ["go", "GO", "go_gate.py PASS"],
+      ["prepared", "Préparé", "prepare → geofence → parked"],
+      ["filled", "Fill", "complete_when_parked, preuve on-chain"],
+      ["settled", "Soldé", "réglé ou sorti"]
+    ];
+  }
+
+  function funnelAliases() {
+    return {
+      radar: ["radar", "radar_n", "pings", "scanned"],
+      actionable: ["actionable", "actionable_n", "briefed", "deep_brief"],
+      go: ["go", "go_n", "go_pass"],
+      prepared: ["prepared", "prepared_n", "prepare"],
+      filled: ["filled", "filled_n", "fills"],
+      settled: ["settled", "settled_n", "closed"]
+    };
+  }
+
+  function ruleLabel(key) {
+    var labels = {
+      ban_rich_vs_devig_books: "RICH vs books de-vig",
+      ban_rich: "RICH vs books de-vig",
+      ev_devig_pp_min: "EV de-vig sous la barre",
+      ev_devig: "EV de-vig sous la barre",
+      fav_mid: "mid hors bande favori",
+      fav_mid_band: "mid hors bande favori",
+      spr_max: "spread trop large",
+      spread: "spread trop large",
+      ban_dogs: "underdog banni",
+      info_incomplete: "info incomplète → NEXT",
+      go_requires_info_complete: "info incomplète → NEXT",
+      winner_thesis: "pas de thèse gagnant",
+      go_requires_winner_thesis: "pas de thèse gagnant",
+      web_sources: "sources web insuffisantes",
+      go_requires_web_sources_min: "sources web insuffisantes",
+      named_loss_paths: "chemins de perte non nommés",
+      brief_thin: "brief mince",
+      held_exclude: "ticket déjà détenu (no-add)",
+      correlation_cap: "cap corrélation / événement",
+      track_a_paused: "Track A en pause"
+    };
+    var k = String(key || "");
+    return labels[k] || k.replace(/_/g, " ");
+  }
+
+  function ageText(s) {
+    s = Math.max(0, Number(s) || 0);
+    if (s < 90) return Math.round(s) + NBSP + "s";
+    if (s < 5400) return Math.round(s / 60) + NBSP + "min";
+    if (s < 172800) return (s / 3600).toFixed(s < 36000 ? 1 : 0) + NBSP + "h";
+    return (s / 86400).toFixed(1) + NBSP + "j";
+  }
+
+  function ppText(v) {
+    if (isBlank(v) || !isFinite(Number(v))) return "—";
+    var n = Number(v);
+    var sign = n > 0 ? "+" : (n < 0 ? "\u2212" : "");
+    var abs = Math.abs(n);
+    var body = Math.abs(abs * 10 - Math.round(abs * 10)) < 0.05
+      ? String(Math.round(abs * 10) / 10)
+      : abs.toFixed(2);
+    return sign + body + NBSP + "pp";
+  }
+
+  function snapshotFreshness(data, nowMs) {
+    var lim = snapshotLimits();
+    var iso = pick(data || {}, ["generated_at", "updated_at", "as_of_paybox"], "");
+    var t = Date.parse(String(iso || ""));
+    if (!isFinite(t)) return { age_s: null, status: "unknown" };
+    var now = nowMs == null ? Date.now() : nowMs;
+    var age = Math.max(0, (now - t) / 1000);
+    var status = age >= lim.hot ? "hot" : age >= lim.watch ? "watch" : "ok";
+    return { age_s: age, status: status };
+  }
+
+  function mandateObj(data) {
+    var m = data && data.mandate;
+    return (m && typeof m === "object" && !Array.isArray(m)) ? m : {};
+  }
+
+  function isHardLock(m) {
+    if (!m || typeof m !== "object") return false;
+    if (m.hard_lock === true) return true;
+    if (m.hard_lock === false) return false;
+    if (/_hard\b|hard_lock/i.test(String(m.mandate || ""))) return true;
+    return m.ban_rich_vs_devig_books === true && numish(m.ev_devig_pp_min) === 0;
+  }
+
+  function tri(v) {
+    if (v === true) return true;
+    if (v === false) return false;
+    return null;
+  }
+
+  /* What the desk is allowed to do. Missing mandate → present:false, never a guessed regime. */
+  function mandateView(data) {
+    data = data || {};
+    var m = mandateObj(data);
+    var auto = (data.autonomy && typeof data.autonomy === "object" && !Array.isArray(data.autonomy))
+      ? data.autonomy : {};
+    var name = pick(m, ["mandate", "name"], null);
+    if (isBlank(name)) name = pick(auto, ["mandate"], null);
+    var label = pick(m, ["regime_label"], null);
+    if (isBlank(label)) {
+      var reg = pick(m, ["regime"], null);
+      label = (typeof reg === "string") ? reg : pick(auto, ["regime"], null);
+    }
+    var present = !isBlank(name) || !isBlank(label) || !isBlank(m.hard_lock_reason) || m.hard_lock === true;
+    return {
+      present: !!present,
+      mandate: isBlank(name) ? null : String(name),
+      regime_label: isBlank(label) ? null : String(label),
+      hard_lock: isHardLock(m),
+      hard_lock_reason: pick(m, ["hard_lock_reason"], null),
+      ban_rich: tri(m.ban_rich_vs_devig_books),
+      ev_devig_pp_min: numish(m.ev_devig_pp_min),
+      fav_mid_min: numish(m.fav_mid_min),
+      fav_mid_max: numish(m.fav_mid_max),
+      spr_max: numish(m.spr_max),
+      ban_dogs: tri(m.ban_dogs),
+      ticket_usd: numish(m.ticket_usd) != null ? numish(m.ticket_usd) : numish(data.ticket_usd),
+      ticket_locked: m.ticket_locked === true,
+      track_a_paused: tri(m.track_a_paused),
+      entry_style: pick(m, ["entry_style"], pick(auto, ["entry_style"], null)),
+      scan_goal: pick(m, ["scan_goal"], pick(auto, ["scan_goal"], null)),
+      info_incomplete_is_next: m.info_incomplete_is_next === true || auto.info_incomplete_is_next === true,
+      web_sources_min: numish(m.go_requires_web_sources_min),
+      allow_ev_band_non_sports: tri(m.allow_ev_band_non_sports),
+      soft_ask_pp: numish(pick(m, ["soft_ask_pp", "ev_band_pp"], null)),
+      source: pick(m, ["source"], null),
+      ts: pick(m, ["ts_zh", "ts", "updated_at"], null)
+    };
+  }
+
+  function normalizeBlocker(item) {
+    if (item == null || item === false || item === "") return null;
+    if (typeof item === "string" || typeof item === "number") {
+      return { rule: String(item), label: ruleLabel(item), detail: "" };
+    }
+    if (typeof item !== "object" || Array.isArray(item)) return null;
+    var rule = pick(item, ["rule", "gate", "key", "code", "name"], "");
+    var detail = pick(item, ["detail", "reason", "why", "note", "msg"], "");
+    var label = pick(item, ["label"], "") || ruleLabel(rule || detail);
+    if (isBlank(rule) && isBlank(detail) && isBlank(label)) return null;
+    return {
+      rule: isBlank(rule) ? "" : String(rule),
+      label: isBlank(label) ? "" : String(label),
+      detail: isBlank(detail) ? "" : String(detail)
+    };
+  }
+
+  /* go_gate blockers, from go_gate.blockers / .fails / .last.blockers, else top-level blockers[]. */
+  function goGateBlockers(data) {
+    data = data || {};
+    var gg = data.go_gate;
+    var raw = null;
+    if (Array.isArray(gg)) raw = gg;
+    else if (gg && typeof gg === "object") {
+      raw = gg.blockers || gg.fails || gg.reasons;
+      if (!raw && gg.last && typeof gg.last === "object") raw = gg.last.blockers || gg.last.fails;
+    }
+    if (!raw) raw = data.blockers;
+    var src = Array.isArray(raw) ? raw : [];
+    var out = [];
+    for (var i = 0; i < src.length; i++) {
+      var b = normalizeBlocker(src[i]);
+      if (b) out.push(b);
+    }
+    return out;
+  }
+
+  /* Closest recurring near-miss under the bar. Larger gap (less negative) wins.
+     No rows → null. Never a fabricated SPXPOS. */
+  function bestUnderBar(data) {
+    data = data || {};
+    var gg = (data.go_gate && typeof data.go_gate === "object" && !Array.isArray(data.go_gate))
+      ? data.go_gate : {};
+    var src = data.near_misses || data.under_bar || gg.near_misses || gg.best_under_bar;
+    var rows = [];
+    if (Array.isArray(src)) rows = src;
+    else if (src && typeof src === "object") rows = [src];
+    var best = null, bestGap = null;
+    for (var i = 0; i < rows.length; i++) {
+      var r = rows[i];
+      if (!r || typeof r !== "object" || Array.isArray(r)) continue;
+      var gap = numish(pick(r, ["gap_pp", "ev_devig_pp", "pp", "delta_pp"], null));
+      if (gap == null) continue;
+      if (best == null || gap > bestGap) { best = r; bestGap = gap; }
+    }
+    if (!best) return null;
+    return {
+      ticker: pick(best, ["ticker", "symbol"], null),
+      market: pick(best, ["market", "question", "title"], null),
+      gap_pp: bestGap,
+      side: pick(best, ["side", "outcome"], null),
+      rule: pick(best, ["rule", "blocked_by", "reason"], null),
+      at: pick(best, ["ts", "ts_zh", "evaluated_at", "at"], null)
+    };
+  }
+
+  function funnelCount(funnel, stage) {
+    var keys = (funnelAliases()[stage] || [stage]).concat([stage]);
+    for (var i = 0; i < keys.length; i++) {
+      var v = funnel[keys[i]];
+      if (v && typeof v === "object" && !Array.isArray(v)) {
+        var c = numish(pick(v, ["n", "count"], null));
+        if (c != null) return c;
+      } else if (!isBlank(v) && typeof v !== "object") {
+        var n = numish(v);
+        if (n != null) return n;
+      }
+    }
+    var stages = funnel.stages;
+    if (Array.isArray(stages)) {
+      for (var j = 0; j < stages.length; j++) {
+        var s = stages[j];
+        if (!s || typeof s !== "object") continue;
+        var id = String(pick(s, ["id", "stage", "key", "name"], "")).toLowerCase();
+        if (id === stage || keys.indexOf(id) >= 0) {
+          var cn = numish(pick(s, ["n", "count"], null));
+          if (cn != null) return cn;
+        }
+      }
+    }
+    return null;
+  }
+
+  /* radar → actionable → GO → prepare → fill → settle. Absent funnel stays unverified. */
+  function conversionFunnel(data) {
+    data = data || {};
+    var funnel = (data.funnel && typeof data.funnel === "object" && !Array.isArray(data.funnel))
+      ? data.funnel : {};
+    var spec = funnelStages();
+    var stages = [], any = false;
+    for (var i = 0; i < spec.length; i++) {
+      var n = funnelCount(funnel, spec[i][0]);
+      if (n != null) any = true;
+      stages.push({ id: spec[i][0], label: spec[i][1], hint: spec[i][2], n: n });
+    }
+    return {
+      present: any,
+      window: pick(funnel, ["window", "since", "label"], null),
+      note: pick(funnel, ["note"], null),
+      stages: stages
+    };
+  }
+
+  /* Last autonomy stand-down. A free-text note is not a FLAT reason. */
+  function lastFlat(data) {
+    data = data || {};
+    var auto = (data.autonomy && typeof data.autonomy === "object" && !Array.isArray(data.autonomy))
+      ? data.autonomy : {};
+    var src = null;
+    if (data.last_flat && typeof data.last_flat === "object") src = data.last_flat;
+    else if (auto.last_flat && typeof auto.last_flat === "object") src = auto.last_flat;
+    else if (data.last_decision && typeof data.last_decision === "object") src = data.last_decision;
+    else if (typeof data.last_flat === "string") src = { reason: data.last_flat, decision: "FLAT" };
+    else if (typeof auto.last_flat === "string") src = { reason: auto.last_flat, decision: "FLAT" };
+    if (!src) return null;
+    var decision = String(pick(src, ["decision", "verdict", "action"], "FLAT") || "FLAT").toUpperCase();
+    var reason = pick(src, ["reason", "why", "note", "detail"], null);
+    if (isBlank(reason) && decision !== "GO" && decision !== "FLAT") reason = decision;
+    return {
+      decision: decision || "FLAT",
+      reason: isBlank(reason) ? null : String(reason),
+      at: pick(src, ["ts", "ts_zh", "evaluated_at", "at"], null),
+      ticker: pick(src, ["ticker", "market"], null),
+      cycle_id: pick(src, ["cycle_id", "id"], null)
+    };
+  }
+
+  function openBook(data) {
+    data = data || {};
+    var cap = (data.capacity && typeof data.capacity === "object" && !Array.isArray(data.capacity))
+      ? data.capacity : {};
+    var positions = Array.isArray(data.positions) ? data.positions.length : null;
+    var n = numish(cap.n_open);
+    return {
+      n: n != null ? n : positions,
+      max: numish(pick(cap, ["max_open", "max_tickets"], null)),
+      positions: positions
+    };
+  }
+
+  function onOff(v, onWord, offWord) {
+    if (v === true) return onWord;
+    if (v === false) return offWord;
+    return null;
+  }
+
+  function renderDesk(data) {
+    data = data || {};
+    var m = mandateView(data);
+    var fresh = snapshotFreshness(data);
+    var blockers = goGateBlockers(data);
+    var best = bestUnderBar(data);
+    var funnel = conversionFunnel(data);
+    var flat = lastFlat(data);
+    var book = openBook(data);
+    var cash = data.cashflow || {};
+    var bank = bankrollUsd(data);
+    var realized = numish(cash.realized_pnl_usd);
+    var freshCls = fresh.status === "hot" ? "is-hot" : fresh.status === "watch" ? "is-watch" : "";
+    var freshTxt = fresh.age_s == null
+      ? "Âge du snapshot UNVERIFIED"
+      : "Snapshot " + ageText(fresh.age_s)
+        + (fresh.status === "hot" ? " · périmé" : fresh.status === "watch" ? " · à surveiller" : "");
+    var posture = "FLAT";
+    if (flat && /^GO$/.test(flat.decision) && book.n) posture = "OUVERT";
+    else if (book.n > 0) posture = "OUVERT";
+    var regime = m.present
+      ? esc(m.mandate || "mandat sans nom")
+      : "Mandat UNVERIFIED";
+    var chips = [];
+    if (m.present) {
+      if (m.regime_label) chips.push(m.regime_label);
+      chips.push(m.hard_lock ? "hard lock" : "pas de hard lock");
+      var rich = onOff(m.ban_rich, "ban RICH on", "ban RICH off");
+      if (rich) chips.push(rich);
+      if (m.ev_devig_pp_min != null) chips.push("EV de-vig ≥ " + ppText(m.ev_devig_pp_min));
+      if (m.fav_mid_min != null && m.fav_mid_max != null) {
+        chips.push("mid " + m.fav_mid_min + "–" + m.fav_mid_max);
+      }
+      if (m.spr_max != null) chips.push("spr ≤ " + m.spr_max);
+      var dogs = onOff(m.ban_dogs, "dogs bannis", "dogs admis");
+      if (dogs) chips.push(dogs);
+      if (m.ticket_usd != null) chips.push("ticket " + money(m.ticket_usd) + (m.ticket_locked ? " verrouillé" : ""));
+      var trackA = onOff(m.track_a_paused, "Track A en pause", "Track A actif");
+      if (trackA) chips.push(trackA);
+      if (m.web_sources_min != null) chips.push("web ≥ " + m.web_sources_min);
+      if (m.info_incomplete_is_next) chips.push("info incomplète = NEXT");
+      if (m.allow_ev_band_non_sports === false) {
+        chips.push("soft ask " + (m.soft_ask_pp != null ? ppText(m.soft_ask_pp) + " " : "") + "OFF");
+      } else if (m.allow_ev_band_non_sports === true) {
+        chips.push("soft ask " + (m.soft_ask_pp != null ? ppText(m.soft_ask_pp) + " " : "") + "ON");
+      }
+    }
+    var chipHtml = chips.map(function (c) {
+      return '<li>' + esc(c) + "</li>";
+    }).join("");
+    var openTxt = book.n == null ? "open UNVERIFIED"
+      : String(book.n) + (book.max != null ? " / " + book.max : "");
+    var kpis = '<div class="nabu-world-kpis">'
+      + '<div class="nabu-world-kpi"><span>Ouvert</span><strong>' + esc(openTxt) + "</strong></div>"
+      + '<div class="nabu-world-kpi"><span>Bankroll</span><strong>' + money(bank) + "</strong></div>"
+      + '<div class="nabu-world-kpi"><span>PnL réalisé</span><strong class="'
+      + (realized != null && realized < 0 ? "nabu-world-neg" : "") + '">'
+      + (realized == null ? "—" : signedMoney(realized).txt) + "</strong></div>"
+      + "</div>";
+    var blockHtml;
+    if (!blockers.length) {
+      blockHtml = '<p class="nabu-world-empty">Blockers go_gate UNVERIFIED — le snapshot ne porte pas '
+        + "<code>go_gate.blockers</code>. Aucun refus inventé.</p>";
+    } else {
+      blockHtml = '<ul class="nabu-world-blockers">';
+      for (var i = 0; i < blockers.length; i++) {
+        var b = blockers[i];
+        blockHtml += "<li><b>" + esc(b.label || b.rule || "blocker") + "</b>"
+          + (b.detail ? "<span>" + esc(b.detail) + "</span>" : "") + "</li>";
+      }
+      blockHtml += "</ul>";
+    }
+    var bestHtml;
+    if (!best) {
+      bestHtml = '<p class="nabu-world-empty">Sous la barre UNVERIFIED — pas de <code>near_misses</code> '
+        + "dans ce snapshot.</p>";
+    } else {
+      var who = best.ticker || best.market || "ticket";
+      bestHtml = '<p class="nabu-world-best"><strong>' + esc(who) + "</strong> "
+        + '<span class="nabu-world-best-gap">' + ppText(best.gap_pp) + "</span>"
+        + (best.market && best.ticker ? "<span>" + esc(best.market) + "</span>" : "")
+        + (best.rule ? "<span>" + esc(ruleLabel(best.rule)) + "</span>" : "")
+        + "</p>";
+    }
+    var funHtml;
+    if (!funnel.present) {
+      funHtml = '<p class="nabu-world-empty">Entonnoir UNVERIFIED — la pipeline n\'écrit pas encore '
+        + "<code>funnel</code>. PING ≠ fill : sans compteurs, aucun zéro n'est affiché.</p>";
+    } else {
+      var maxN = 0;
+      funnel.stages.forEach(function (s) { if (s.n != null && s.n > maxN) maxN = s.n; });
+      funHtml = '<ol class="nabu-world-funnel">';
+      for (var f = 0; f < funnel.stages.length; f++) {
+        var st = funnel.stages[f];
+        var w = (st.n == null || maxN <= 0) ? 0 : Math.max(4, Math.round(st.n / maxN * 100));
+        var prev = f > 0 ? funnel.stages[f - 1].n : null;
+        var conv = (prev != null && prev > 0 && st.n != null)
+          ? Math.round(st.n / prev * 100) + NBSP + "%" : "";
+        funHtml += '<li><span class="nabu-world-funnel-k">' + esc(st.label) + "</span>"
+          + '<span class="nabu-world-funnel-bar"><i style="--w:' + w + '%"></i></span>'
+          + '<b>' + (st.n == null ? "—" : String(st.n)) + "</b>"
+          + (conv ? '<span class="nabu-world-funnel-conv">' + conv + "</span>" : "")
+          + "</li>";
+      }
+      funHtml += "</ol>";
+      if (funnel.window || funnel.note) {
+        funHtml += '<p class="nabu-world-note">' + esc(funnel.window || "")
+          + (funnel.window && funnel.note ? " · " : "") + esc(funnel.note || "") + "</p>";
+      }
+    }
+    var flatHtml;
+    if (!flat || isBlank(flat.reason)) {
+      flatHtml = '<p class="nabu-world-empty">Dernier FLAT UNVERIFIED — pas de '
+        + "<code>last_flat.reason</code>. La note d'autonomie n'est pas une raison de stand-down.</p>";
+    } else {
+      flatHtml = '<p class="nabu-world-flat"><b>' + esc(flat.decision || "FLAT") + "</b> "
+        + esc(flat.reason)
+        + (flat.ticker ? " · " + esc(flat.ticker) : "")
+        + (flat.at ? '<span class="nabu-world-mono">' + esc(flat.at) + "</span>" : "")
+        + "</p>";
+    }
+    var lockHtml = (m.present && m.hard_lock_reason)
+      ? '<p class="nabu-world-lock-reason">' + esc(m.hard_lock_reason) + "</p>" : "";
+    var styleHtml = (m.present && (m.entry_style || m.scan_goal))
+      ? '<p class="nabu-world-note">' + esc([m.scan_goal, m.entry_style].filter(Boolean).join(" · "))
+        + (m.source ? " · " + esc(m.source) : "") + "</p>" : "";
+    return '<section class="nabu-world-deskperf" aria-label="Performance du desk World">'
+      + '<div class="nabu-world-desk-head"><h2>Desk World</h2>'
+      + '<span class="nabu-world-fresh ' + freshCls + '">' + esc(freshTxt) + "</span></div>"
+      + '<div class="nabu-world-regime"><span class="nabu-world-posture'
+      + (posture === "FLAT" ? " is-flat" : "") + '">' + posture + "</span>"
+      + "<strong>" + regime + "</strong></div>"
+      + (chipHtml ? '<ul class="nabu-world-rules">' + chipHtml + "</ul>" : "")
+      + kpis
+      + '<h3 class="nabu-world-kicker">Blockers go_gate</h3>' + blockHtml
+      + '<h3 class="nabu-world-kicker">Meilleur sous la barre</h3>' + bestHtml
+      + '<h3 class="nabu-world-kicker">Entonnoir radar → soldé</h3>' + funHtml
+      + '<h3 class="nabu-world-kicker">Dernier FLAT</h3>' + flatHtml
+      + lockHtml + styleHtml
+      + "</section>";
+  }
+
   /* Presentation only: read the same normalized snapshot and financial helpers. */
   function renderOverview(data) {
     var cash = data.cashflow || {};
@@ -1823,6 +2328,9 @@
     if (example) badges += '<span class="nabu-world-badge nabu-world-badge--ex">Exemple</span>';
     if (unverified) badges += '<span class="nabu-world-badge nabu-world-badge--fail">UNVERIFIED</span>';
     if (alertable.length) badges += '<span class="nabu-world-badge nabu-world-badge--hot">Check région</span>';
+    var fresh = snapshotFreshness(snapshot);
+    if (fresh.status === "hot") badges += '<span class="nabu-world-badge nabu-world-badge--fail">Snapshot périmé</span>';
+    else if (fresh.status === "watch") badges += '<span class="nabu-world-badge nabu-world-badge--ex">Snapshot âgé</span>';
     var bank = numish(pick(cash, ["bankroll_usd", "total_usd"], null));
     if (bank == null) bank = numish(snapshot.bankroll_usd);
     if (bank == null) bank = bankrollUsd(snapshot);
@@ -1861,6 +2369,7 @@
       + '<div class="nabu-world-desk"><span>N*ABU</span><span>Trading desk</span></div>'
       + '<div class="nabu-world-badges">' + badges + '</div></header>'
       + warn + renderPending(pending, snapshot)
+      + renderDesk(snapshot)
       + '<section class="nabu-world-hero" aria-label="Vue d’ensemble du portefeuille">'
       + '<img class="nabu-world-hero-art" src="assets/nabu-world.png" alt="N*ABU en veste irisée, devant sa voiture et le globe World" width="1536" height="1280" fetchpriority="high">'
       + '<div class="nabu-world-hero-content"><p class="nabu-world-eyebrow">N*ABU × WORLD</p>'
@@ -2095,7 +2604,16 @@
       worldOpen: worldOpen,
       alertTitle: alertTitle,
       applyAlerts: applyAlerts,
-      refreshAlertChrome: refreshAlertChrome
+      refreshAlertChrome: refreshAlertChrome,
+      mandateView: mandateView,
+      goGateBlockers: goGateBlockers,
+      bestUnderBar: bestUnderBar,
+      conversionFunnel: conversionFunnel,
+      lastFlat: lastFlat,
+      snapshotFreshness: snapshotFreshness,
+      renderDesk: renderDesk,
+      isOpsRow: isOpsRow,
+      rowKind: rowKind
     };
   }
 
