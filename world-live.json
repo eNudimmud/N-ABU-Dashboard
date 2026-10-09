@@ -1,8 +1,8 @@
 {
   "schema_version": 2,
   "example": false,
-  "generated_at": "2026-10-07T09:28:51Z",
-  "generated_at_zh": "2026-10-07T11:28:51+02:00",
+  "generated_at": "2026-10-09T20:41:56Z",
+  "generated_at_zh": "2026-10-09T22:41:56+02:00",
   "source": "paybox plugins use world world_positions \u2014 rebuild_and_push_world_live.py",
   "venue": "world.xyz",
   "wallet": {
@@ -11,69 +11,54 @@
     "label": "PayBox"
   },
   "mode": "LIVE_ONLY",
-  "ticket_usd": 25.0,
-  "bankroll_usd": 122.04,
+  "ticket_usd": 9.1,
+  "bankroll_usd": 91.04,
   "caps": {
     "A": {
       "open_usd": 0.0,
-      "max_usd": 200.0,
-      "pool_usd": 200.0,
-      "bankroll_usd": 122.04,
+      "max_usd": 72.8,
+      "pool_usd": 72.8,
+      "bankroll_usd": 91.04,
       "label_only": true,
       "share_of_pool_pct": 0.0
     },
     "B": {
-      "open_usd": 15.0,
-      "max_usd": 200.0,
-      "pool_usd": 200.0,
-      "bankroll_usd": 122.04,
+      "open_usd": 0.0,
+      "max_usd": 72.8,
+      "pool_usd": 72.8,
+      "bankroll_usd": 91.04,
       "label_only": true,
-      "share_of_pool_pct": 7.5
+      "share_of_pool_pct": 0.0
     },
-    "pool_usd": 200.0,
-    "bankroll_usd": 122.04
+    "pool_usd": 72.8,
+    "bankroll_usd": 91.04
   },
   "capacity": {
-    "n_open": 1,
+    "n_open": 0,
     "max_open": 8,
-    "remaining_tickets": 7,
-    "ticket": 25.0,
-    "max_open_usd": 122.04,
-    "ticket_cap_usd": 200.0,
-    "bankroll_usd": 122.04,
+    "remaining_tickets": 8,
+    "ticket": 9.1,
+    "max_open_usd": 91.04,
+    "ticket_cap_usd": 72.8,
+    "bankroll_usd": 91.04,
     "util_basis": "bankroll_usd",
     "deploy_all_cash_ok": true,
     "A_open": 0.0,
-    "B_open": 15.0
+    "B_open": 0.0
   },
-  "positions": [
-    {
-      "market": "Dallas Cowboys YES",
-      "ticker": "WXNFL-26OCT09TBDAL-DCOW",
-      "track": "B",
-      "side": "YES",
-      "size_usd": 15.0,
-      "mark_usd": 14.7893,
-      "upnl_usd": -0.2107,
-      "mint": "9X5iGwWZm1UjGBi2jxWUQ1e52TfDzrPk3hBk46pwNw61",
-      "held_atomic": "18602818",
-      "held_shares": 18.602818,
-      "status": "open",
-      "position_result": "pending"
-    }
-  ],
+  "positions": [],
   "fills": [
     {
-      "ts": "2026-10-07T11:25:33+02:00",
-      "action": "open",
+      "ts": "2026-10-09T05:30:00+02:00",
+      "action": "close",
       "market": "Dallas Cowboys YES",
       "track": "B",
       "side": "buy_yes",
       "size_usd": 15.0,
-      "pnl_usd": null,
-      "tx": "rifTaTYiJ8kmsN33javQnbZvrK2yz1eRyZg5RrA2AdzYndpha4VnfMRWb3RbLHfkf73shHwg4W3qFZo7KH6Ei7N",
+      "pnl_usd": -15.0,
+      "tx": null,
       "ticker": "WXNFL-26OCT09TBDAL-DCOW",
-      "note": "filled"
+      "note": "settled_lost"
     },
     {
       "ts": "2026-09-27T21:19:29+02:00",
@@ -378,21 +363,11 @@
   ],
   "settled": [
     {
-      "market": "Arsenal YES",
-      "ticker": "WXEPL-26SEP122000ARSESUND-ARSE",
+      "market": "PIT Steelers YES",
+      "ticker": "WXNFL-26SEP13ATLPIT-PSTE",
       "result": "won",
-      "pnl_usd": 2.8454,
+      "pnl_usd": 1.8789,
       "size_usd": 5.0,
-      "track": "A",
-      "redeemable": "cashed",
-      "settlement_asset": "CASH"
-    },
-    {
-      "market": "PHI @ TEN \u2014 PHI Eagles YES",
-      "ticker": "WXNFL-26SEP20PHITEN-PEAG",
-      "result": "won",
-      "pnl_usd": 3.0444,
-      "size_usd": 10.0,
       "track": "B",
       "redeemable": "cashed",
       "settlement_asset": "CASH"
@@ -418,21 +393,41 @@
       "settlement_asset": "CASH"
     },
     {
-      "market": "MIL Brewers YES",
-      "ticker": "WXMLB-26SEP121810CINMIL-MBRE",
+      "market": "Dallas Cowboys YES",
+      "ticker": "WXNFL-26OCT09TBDAL-DCOW",
+      "result": "lost",
+      "pnl_usd": -15.0,
+      "size_usd": 15.0,
+      "track": "B",
+      "redeemable": "cashed",
+      "settlement_asset": null
+    },
+    {
+      "market": "Arsenal YES",
+      "ticker": "WXEPL-26SEP122000ARSESUND-ARSE",
       "result": "won",
-      "pnl_usd": 2.6072,
+      "pnl_usd": 2.8454,
+      "size_usd": 5.0,
+      "track": "A",
+      "redeemable": "cashed",
+      "settlement_asset": "CASH"
+    },
+    {
+      "market": "Barcelona YES",
+      "ticker": "WXLIG-26SEP131615BARCLEVA-BARC",
+      "result": "won",
+      "pnl_usd": 0.7506,
       "size_usd": 5.0,
       "track": "B",
       "redeemable": "cashed",
       "settlement_asset": "CASH"
     },
     {
-      "market": "PIT Steelers YES",
-      "ticker": "WXNFL-26SEP13ATLPIT-PSTE",
+      "market": "PHI @ TEN \u2014 PHI Eagles YES",
+      "ticker": "WXNFL-26SEP20PHITEN-PEAG",
       "result": "won",
-      "pnl_usd": 1.8789,
-      "size_usd": 5.0,
+      "pnl_usd": 3.0444,
+      "size_usd": 10.0,
       "track": "B",
       "redeemable": "cashed",
       "settlement_asset": "CASH"
@@ -468,10 +463,10 @@
       "settlement_asset": "CASH"
     },
     {
-      "market": "Barcelona YES",
-      "ticker": "WXLIG-26SEP131615BARCLEVA-BARC",
+      "market": "JAC Jaguars YES",
+      "ticker": "WXNFL-26SEP13CLEJAC-JJAG",
       "result": "won",
-      "pnl_usd": 0.7506,
+      "pnl_usd": 1.2776,
       "size_usd": 5.0,
       "track": "B",
       "redeemable": "cashed",
@@ -488,22 +483,22 @@
       "settlement_asset": "CASH"
     },
     {
-      "market": "JAC Jaguars YES",
-      "ticker": "WXNFL-26SEP13CLEJAC-JJAG",
+      "market": "PHI Eagles YES",
+      "ticker": "WXNFL-26SEP13WASPHI-PEAG",
       "result": "won",
-      "pnl_usd": 1.2776,
+      "pnl_usd": 2.2771,
       "size_usd": 5.0,
       "track": "B",
       "redeemable": "cashed",
       "settlement_asset": "CASH"
     },
     {
-      "market": "BTC15M YES",
-      "ticker": "WXBTC15M-26SEP130530-15",
+      "market": "MIL Brewers YES",
+      "ticker": "WXMLB-26SEP121810CINMIL-MBRE",
       "result": "won",
-      "pnl_usd": 0.3583,
+      "pnl_usd": 2.6072,
       "size_usd": 5.0,
-      "track": "A",
+      "track": "B",
       "redeemable": "cashed",
       "settlement_asset": "CASH"
     },
@@ -518,12 +513,12 @@
       "settlement_asset": "CASH"
     },
     {
-      "market": "PHI Eagles YES",
-      "ticker": "WXNFL-26SEP13WASPHI-PEAG",
+      "market": "BTC15M YES",
+      "ticker": "WXBTC15M-26SEP130530-15",
       "result": "won",
-      "pnl_usd": 2.2771,
+      "pnl_usd": 0.3583,
       "size_usd": 5.0,
-      "track": "B",
+      "track": "A",
       "redeemable": "cashed",
       "settlement_asset": "CASH"
     },
@@ -618,25 +613,14 @@
   ],
   "settled_paybox": [
     {
-      "market_ticker": "WXEPL-26SEP122000ARSESUND-ARSE",
+      "market_ticker": "WXNFL-26SEP13ATLPIT-PSTE",
       "position_result": "won",
       "redeemable": "cashed",
       "settlement_asset": "CASH",
       "held_amount": null,
       "last_known_amount": null,
       "market_status": "finalized",
-      "redemption_value_usd": 2.8454,
-      "outcome_mint": null
-    },
-    {
-      "market_ticker": "WXNFL-26SEP20PHITEN-PEAG",
-      "position_result": "won",
-      "redeemable": "cashed",
-      "settlement_asset": "CASH",
-      "held_amount": null,
-      "last_known_amount": null,
-      "market_status": "finalized",
-      "redemption_value_usd": 3.0444,
+      "redemption_value_usd": 1.8789,
       "outcome_mint": null
     },
     {
@@ -662,25 +646,47 @@
       "outcome_mint": null
     },
     {
-      "market_ticker": "WXMLB-26SEP121810CINMIL-MBRE",
-      "position_result": "won",
+      "market_ticker": "WXNFL-26OCT09TBDAL-DCOW",
+      "position_result": "lost",
       "redeemable": "cashed",
-      "settlement_asset": "CASH",
+      "settlement_asset": null,
       "held_amount": null,
       "last_known_amount": null,
       "market_status": "finalized",
-      "redemption_value_usd": 2.6072,
+      "redemption_value_usd": -15.0,
       "outcome_mint": null
     },
     {
-      "market_ticker": "WXNFL-26SEP13ATLPIT-PSTE",
+      "market_ticker": "WXEPL-26SEP122000ARSESUND-ARSE",
       "position_result": "won",
       "redeemable": "cashed",
       "settlement_asset": "CASH",
       "held_amount": null,
       "last_known_amount": null,
       "market_status": "finalized",
-      "redemption_value_usd": 1.8789,
+      "redemption_value_usd": 2.8454,
+      "outcome_mint": null
+    },
+    {
+      "market_ticker": "WXLIG-26SEP131615BARCLEVA-BARC",
+      "position_result": "won",
+      "redeemable": "cashed",
+      "settlement_asset": "CASH",
+      "held_amount": null,
+      "last_known_amount": null,
+      "market_status": "finalized",
+      "redemption_value_usd": 0.7506,
+      "outcome_mint": null
+    },
+    {
+      "market_ticker": "WXNFL-26SEP20PHITEN-PEAG",
+      "position_result": "won",
+      "redeemable": "cashed",
+      "settlement_asset": "CASH",
+      "held_amount": null,
+      "last_known_amount": null,
+      "market_status": "finalized",
+      "redemption_value_usd": 3.0444,
       "outcome_mint": null
     },
     {
@@ -717,14 +723,14 @@
       "outcome_mint": null
     },
     {
-      "market_ticker": "WXLIG-26SEP131615BARCLEVA-BARC",
+      "market_ticker": "WXNFL-26SEP13CLEJAC-JJAG",
       "position_result": "won",
       "redeemable": "cashed",
       "settlement_asset": "CASH",
       "held_amount": null,
       "last_known_amount": null,
       "market_status": "finalized",
-      "redemption_value_usd": 0.7506,
+      "redemption_value_usd": 1.2776,
       "outcome_mint": null
     },
     {
@@ -739,25 +745,25 @@
       "outcome_mint": null
     },
     {
-      "market_ticker": "WXNFL-26SEP13CLEJAC-JJAG",
+      "market_ticker": "WXNFL-26SEP13WASPHI-PEAG",
       "position_result": "won",
       "redeemable": "cashed",
       "settlement_asset": "CASH",
       "held_amount": null,
       "last_known_amount": null,
       "market_status": "finalized",
-      "redemption_value_usd": 1.2776,
+      "redemption_value_usd": 2.2771,
       "outcome_mint": null
     },
     {
-      "market_ticker": "WXBTC15M-26SEP130530-15",
+      "market_ticker": "WXMLB-26SEP121810CINMIL-MBRE",
       "position_result": "won",
       "redeemable": "cashed",
       "settlement_asset": "CASH",
       "held_amount": null,
       "last_known_amount": null,
       "market_status": "finalized",
-      "redemption_value_usd": 0.3583,
+      "redemption_value_usd": 2.6072,
       "outcome_mint": null
     },
     {
@@ -772,14 +778,14 @@
       "outcome_mint": null
     },
     {
-      "market_ticker": "WXNFL-26SEP13WASPHI-PEAG",
+      "market_ticker": "WXBTC15M-26SEP130530-15",
       "position_result": "won",
       "redeemable": "cashed",
       "settlement_asset": "CASH",
       "held_amount": null,
       "last_known_amount": null,
       "market_status": "finalized",
-      "redemption_value_usd": 2.2771,
+      "redemption_value_usd": 0.3583,
       "outcome_mint": null
     },
     {
@@ -872,33 +878,35 @@
     }
   ],
   "cashflow": {
-    "usdc": 107.03,
-    "idle_usd": 107.03,
-    "idle_usdc": 107.03,
-    "sol_dust_usd": 0.2206,
+    "usdc": 91.04,
+    "idle_usd": 91.04,
+    "idle_usdc": 91.04,
+    "sol_dust_usd": 0.0,
+    "sol_gas_usd": 1.7815,
     "world_cash_usd": 0.0,
     "cash_usd": 0.0,
-    "deployed_usd": 15.0,
-    "deployed_cost_usd": 15.0,
-    "positions_mark_usd": 14.79,
-    "positions_cost_usd": 15.0,
-    "total_usd": 122.04,
-    "bankroll_usd": 122.04,
-    "realized_pnl_usd": 1.1897,
-    "unrealized_pnl_usd": -0.2107,
+    "deployed_usd": 0.0,
+    "deployed_cost_usd": 0.0,
+    "positions_mark_usd": 0.0,
+    "positions_cost_usd": 0.0,
+    "total_usd": 91.04,
+    "bankroll_usd": 91.04,
+    "realized_pnl_usd": -13.8103,
+    "unrealized_pnl_usd": 0.0,
     "fees_usd": 0.0,
     "volume_usd": 212.61,
     "volume_basis": "market_open_close_ex_cashout",
-    "net_usd": 0.979,
-    "marks_plus_usdc": 121.82,
-    "paybox_total_usd": 122.04,
-    "paybox_wallet_total_usd": 171.55,
-    "equity_components_usd": 122.04,
-    "bankroll_basis": "usdc+marks+sol_dust+world_cash"
+    "net_usd": -13.8103,
+    "marks_plus_usdc": 91.04,
+    "paybox_total_usd": 91.04,
+    "paybox_wallet_total_usd": 169.33,
+    "equity_components_usd": 91.04,
+    "bankroll_basis": "usdc+world_marks+world_cash (SOL gas + PARK/GROK/other wallet tokens excluded)",
+    "realized_n_closes": 24
   },
   "autonomy": {
-    "evaluated_at": "2026-10-07T11:28:51+02:00",
-    "note": "PayBox rebuild \u00b7 open 1/8 \u00b7 CHALK_FLOW \u00b7 ban RICH on \u00b7 floor -1.25pp \u00b7 no fixed EV bar \u00b7 ticket=LOCKED 25 \u2192 $25 \u00b7 WINNER_FIRST_DEEP_WEB_anti_loser",
+    "evaluated_at": "2026-10-09T22:41:56+02:00",
+    "note": "PayBox rebuild \u00b7 open 0/8 \u00b7 CHALK_FLOW \u00b7 ban RICH on \u00b7 STRICT_MIDDLE floor -1.25pp HARD \u00b7 no fixed EV bar \u00b7 ticket=min(25, max(5, 0.10*World_BR)); 25 if World_BR>250 or edge_proven (C1 GO) \u2192 $9.1 \u00b7 WINNER_FIRST_DEEP_WEB_anti_loser",
     "regime": "CHALK_FLOW",
     "mandate": "chalk_flow_deep_hard",
     "ev_devig_pp_min": -1.25,
@@ -910,17 +918,17 @@
   "awaiting_region_check": false,
   "notify": false,
   "utilization": {
-    "open_usd": 15.0,
-    "max_usd": 122.04,
+    "open_usd": 0.0,
+    "max_usd": 91.04,
     "basis": "deployed_cost / bankroll_usd",
-    "ticket_cap_usd": 200.0
+    "ticket_cap_usd": 72.8
   },
   "sub_runway": {
     "target_chf": 1700,
-    "bankroll_usd": 122.04,
-    "realized_pnl_usd": 1.1897
+    "bankroll_usd": 91.04,
+    "realized_pnl_usd": -13.8103
   },
-  "as_of_paybox": "2026-10-07T09:28:55.528334450+00:00",
+  "as_of_paybox": "2026-10-09T20:42:00.935197450+00:00",
   "mandate": {
     "ts_zh": "2026-09-27T21:13:37+02:00",
     "mandate": "chalk_flow_deep_hard",
@@ -934,7 +942,7 @@
     "fav_mid_max": 0.9,
     "spr_max": 0.06,
     "entry_style": "WINNER_FIRST_DEEP_WEB_anti_loser",
-    "ticket_usd": 25.0,
+    "ticket_usd": 9.11,
     "track_a_paused": true,
     "assimilate": true,
     "source": "JD 2026-09-27 \u2014 HARD lock + scan WINNERS_FIRST (web info complete or NEXT)",
@@ -943,14 +951,18 @@
       "Order: (1) who wins + why from live web (2) fill ALL decisive gaps or NEXT (3) anti-loser (4) go_gate price (5) buy",
       "info_incomplete_is_next=true \u2014 missing starter/injury/books/live state = NEXT, never GO",
       "mid/spr band and books-pp alone cannot GO; pipe_demo cannot justify GO or add",
+      "HARD: ban_rich ON; ev_devig_pp_min=-1.25 is a HARD floor (go_gate clamps, never lower); go_gate before prepare/buy; chat cannot waive",
       "PROCESS_FAIL if world_buy without go_gate PASS + info_complete",
-      "HARD: ban_rich ON with soft floor ev_devig_pp_min=-1.25; go_gate before prepare/buy; chat cannot waive",
-      "HELD_EXCLUDE no-add; ticket $25 locked default; JD override this fill $15 DCOW; ban dogs; Track A paused",
-      "UNLOCK 2026-10-07: floor -1.25 unlocks shallow RICH (DCOW/OBEA); deeper RICH still REFUSE"
+      "HELD_EXCLUDE no-add; ticket = 10% World BR (C3 2026-10-09, floor 5 / cap 25); ban dogs; Track A paused",
+      "UNLOCK 2026-10-07: floor -1.25 unlocks shallow RICH (DCOW/OBEA); deeper RICH still REFUSE",
+      "STRICT_MIDDLE 2026-10-08 (JD): gap<0 GO requires ALL of info_complete, winner_thesis + loss_paths>=2, web_sources>=3, books>=2, gap at REAL ask at order time (ask+fair, age<=300s), spr<=0.06, 1 ticket/event (no open/pending on same event). Tag B_FLOOR.",
+      "gap>=0 GO still requires info_complete + winner_thesis + web_sources>=3 (+ p_mine, loss_paths>=2).",
+      "REVIEW: re-evaluate floor after 30 settled B_FLOOR tickets (basis BACKTEST_DEVIG_FLOOR_20261008.md).",
+      "C3 2026-10-09 (JD): ticket 10% World BR, floor $5, cap $25; $25 again only if BR>$250 or C1 edge proven. C1 prediction journal active (pred_journal.py) \u2014 logging only, never a GO by itself."
     ],
-    "ticket_formula": "LOCKED 25",
-    "ticket_note": "JD 2026-09-27 evening: ticket fixed $25 \u2014 do NOT downsize for thin book / prepare 400; fix pipe (no-watch, slip\u2264300) instead",
-    "ticket_locked": true,
+    "ticket_formula": "min(25, max(5, 0.10*World_BR)); 25 if World_BR>250 or edge_proven (C1 GO)",
+    "ticket_note": "JD 2026-10-09 22:10 C3: default ticket = 10% of World bankroll (USDC+World marks), floor $5, cap $25; back to $25 when World BR>$250 or edge proven via C1 prediction journal. Computed live by sizing.ticket_usd_for(); ticket_usd field = value at BR $91.05. Supersedes 2026-09-27 $25 lock.",
+    "ticket_locked": false,
     "held_exclude_no_add": true,
     "correlation_cap_per_event": 1,
     "ts_zh_rules_patch": "2026-09-27T20:57:51+02:00",
@@ -991,9 +1003,191 @@
     "go_requires_winner_thesis": true,
     "go_requires_info_complete": true,
     "go_requires_web_sources_min": 3,
-    "ticket_override_usd_this_fill": 15.0,
-    "ticket_override_note": "JD 2026-10-07: DCOW fill ONLY $15 (not locked $25)",
     "ts_zh_unlock": "2026-10-07T11:20:27+02:00",
-    "unlock_source": "JD 2026-10-07 \u2014 ev_devig_pp_min 0\u2192-1.25 cashflow unlock; DCOW $15"
-  }
+    "unlock_source": "JD 2026-10-07 \u2014 ev_devig_pp_min 0\u2192-1.25 cashflow unlock; DCOW $15",
+    "ev_devig_pp_hard_floor": -1.25,
+    "floor_policy": "STRICT_MIDDLE",
+    "strict_middle": {
+      "applies_when": "ev_devig_pp_est < 0 (and >= ev_devig_pp_hard_floor -1.25); applies to GO and add alike",
+      "requires_info_complete": true,
+      "requires_winner_thesis": true,
+      "requires_named_loss_paths_min": 2,
+      "requires_web_sources_min": 3,
+      "requires_books_min": 2,
+      "requires_gap_at_real_ask": true,
+      "requires_ask_and_fair": true,
+      "gap_recompute_tolerance_pp": 0.1,
+      "ask_max_age_s": 300,
+      "spr_max": 0.06,
+      "one_ticket_per_event": true,
+      "tag": "B_FLOOR"
+    },
+    "review": {
+      "review_after_settled_tickets": 30,
+      "review_scope": "B_FLOOR tickets (gap<0 GOs) settled",
+      "review_basis": "BACKTEST_DEVIG_FLOOR_20261008.md",
+      "review_note": "Re-evaluate STRICT_MIDDLE floor after 30 settled B_FLOOR tickets; backtest 2026-10-08 showed no statistically provable gain or loss for -1.25 vs 0 (sd +/-55-64$), theoretical cost ~0.33-0.40$/25$ ticket."
+    },
+    "ts_zh_strict_middle": "2026-10-08T10:10:00+02:00",
+    "strict_middle_source": "JD 2026-10-08 \u2014 approved STRICT MIDDLE: -1.25 max, gap<0 only with full info (info_complete, thesis+>=2 loss paths, >=3 web, >=2 books, gap at real ask at order time, spr<=0.06, 1 ticket/event); review after 30 settled",
+    "ticket_pct": 0.1,
+    "ticket_floor_usd": 5.0,
+    "ticket_cap_usd": 25.0,
+    "ticket_full_bankroll_usd": 250.0,
+    "edge_proven": false,
+    "c1_prediction_journal": {
+      "approved": "JD 2026-10-09 22:10",
+      "script": "pred_journal.py",
+      "log": "pred_log.jsonl",
+      "report": "PRED_REPORT.md",
+      "target_settled": 50,
+      "gates_c2": true,
+      "note": "Log p_mine vs Kalshi mid vs World ask for every winners-first candidate; no buy implied. C2 (price gate swap) only after GO verdict + JD OK."
+    },
+    "ts_zh_c3": "2026-10-09T22:15:00+02:00"
+  },
+  "routines": [
+    {
+      "id": "world-pipeline",
+      "label": "World pipeline",
+      "schedule": "toutes les 2 h \u00b7 10:49\u201322:49",
+      "last_ts": "2026-10-09T20:55:05+02:00",
+      "last_event": "done",
+      "status": "ok",
+      "result": "GO 0"
+    },
+    {
+      "id": "world-late-game-sweep",
+      "label": "Late-game sweep",
+      "schedule": "toutes les 30 min \u00b7 18:17\u201307:47",
+      "last_ts": "2026-10-09T22:32:12+02:00",
+      "last_event": "done",
+      "status": "ok",
+      "result": "no_qualifier"
+    },
+    {
+      "id": "paid",
+      "label": "Paid open watch",
+      "schedule": "toutes les 2 h",
+      "last_ts": "2026-10-09T22:02:00+02:00",
+      "last_event": "paid done",
+      "status": "ok",
+      "result": null
+    },
+    {
+      "id": "watchdog",
+      "label": "Watchdog",
+      "schedule": "toutes les heures \u00e0 :29 \u00b7 11:29\u201323:29",
+      "last_ts": null,
+      "last_event": null,
+      "status": "no_heartbeat",
+      "result": "pas de heartbeat dans routine_heartbeat.jsonl"
+    }
+  ],
+  "pred_journal": {
+    "present": true,
+    "updated_at": "2026-10-09T22:15:41+02:00",
+    "settled": 0,
+    "target": 50,
+    "logged_predictions": 4,
+    "logged_events": 4,
+    "brier_ours": null,
+    "brier_kalshi": null,
+    "brier_diff_ours_minus_kalshi": null,
+    "brier_diff_se": null,
+    "hit_rate": null,
+    "c2_margin_pp": 3.0,
+    "verdict_c2": "PENDING (0/50 settled games)",
+    "go_rule": "GO only if settled_games>=50 AND Brier(ours)<Brier(Kalshi) by >=1 SE (paired) AND virtual C2 rule (p_mine-ask>=3pp, n>=15) avg return >0 and > 1 SE",
+    "entries": [
+      {
+        "ts": "2026-10-09T22:14:51+02:00",
+        "ticker": "WXNCAAFB-26OCT10TLONOSOO-TLON",
+        "title": "Texas",
+        "event_title": "Texas vs Oklahoma",
+        "p_mine": 0.76,
+        "kalshi_mid": 0.745,
+        "world_ask": 0.755,
+        "edge_vs_world_ask_pp": 0.5,
+        "would_buy_c2": false,
+        "outcome": null
+      },
+      {
+        "ts": "2026-10-09T22:14:53+02:00",
+        "ticker": "WXNCAAFB-26OCT10SAZTOBEA-OBEA",
+        "title": "Oregon St.",
+        "event_title": "San Diego St. vs Oregon St.",
+        "p_mine": 0.875,
+        "kalshi_mid": 0.855,
+        "world_ask": 0.865,
+        "edge_vs_world_ask_pp": 1.0,
+        "would_buy_c2": false,
+        "outcome": null
+      },
+      {
+        "ts": "2026-10-09T22:14:55+02:00",
+        "ticker": "WXNFL-26OCT11HOUTEN-HTEX",
+        "title": "HOU Texans",
+        "event_title": "HOU Texans vs TEN Titans",
+        "p_mine": 0.77,
+        "kalshi_mid": 0.765,
+        "world_ask": 0.775,
+        "edge_vs_world_ask_pp": -0.5,
+        "would_buy_c2": false,
+        "outcome": null
+      },
+      {
+        "ts": "2026-10-09T22:14:56+02:00",
+        "ticker": "WXNFL-26OCT11DETARI-DLIO",
+        "title": "DET Lions",
+        "event_title": "DET Lions vs ARI Cardinals",
+        "p_mine": 0.69,
+        "kalshi_mid": 0.705,
+        "world_ask": 0.715,
+        "edge_vs_world_ask_pp": -2.5,
+        "would_buy_c2": false,
+        "outcome": null
+      }
+    ],
+    "source": "pred_report.json / PRED_REPORT.md / pred_log.jsonl"
+  },
+  "last_scan": {
+    "file": "SCAN_RESULT_2053.md",
+    "ts": "2026-10-09T20:55:05+02:00",
+    "headline": "SCAN_RESULT 2053 ZH 2026-10-09T20:55:05+02:00 \u2014 NEXT, 0 GO (World pipeline scheduled)",
+    "go": 0,
+    "n_researched_with_gap": 3
+  },
+  "last_flat": {
+    "decision": "FLAT",
+    "reason": "Scan World 2053 : 0 GO \u2014 meilleur EPIR -2.3 pp, sous le plancher \u22121,25",
+    "ts": "2026-10-09T20:55:05+02:00"
+  },
+  "near_misses": [
+    {
+      "ticker": "EPIR",
+      "market": "East Carolina vs Rice, Sat 22:00 ZH",
+      "gap_pp": -2.3,
+      "rule": "REFUSE \u00b7 gap -2.3 pp < plancher \u22121,25 pp",
+      "ts": "2026-10-09T20:55:05+02:00",
+      "source": "SCAN_RESULT_2053.md"
+    },
+    {
+      "ticker": "BCOU",
+      "market": "BYU vs Iowa St., Sat 04:15 ZH",
+      "gap_pp": -2.5,
+      "rule": "REFUSE \u00b7 gap -2.5 pp < plancher \u22121,25 pp",
+      "ts": "2026-10-09T20:55:05+02:00",
+      "source": "SCAN_RESULT_2053.md"
+    },
+    {
+      "ticker": "MTIG2",
+      "market": "Memphis vs UAB, Sat 01:00 ZH",
+      "gap_pp": -3.0,
+      "rule": "REFUSE \u00b7 gap -3.0 pp < plancher \u22121,25 pp",
+      "ts": "2026-10-09T20:55:05+02:00",
+      "source": "SCAN_RESULT_2053.md"
+    }
+  ],
+  "realized_note": "PnL r\u00e9alis\u00e9 World = somme des 24 tickets sold\u00e9s (ledger fills.jsonl, doublons SETTLE PEAG-WAS et RMAD compt\u00e9s une fois). Avant Dallas : +1,19 $ sur 23 tickets (l'ancien +4,82 $ / 25 comptait 2 doublons). Dallas \u221215,00 $ (TB 24\u201316) \u2192 total honn\u00eate \u221213,81 $."
 }
