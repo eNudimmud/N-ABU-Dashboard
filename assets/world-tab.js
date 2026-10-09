@@ -2288,6 +2288,97 @@
       + "</section>";
   }
 
+  /* JD 2026-10-09: routines + last scan + prediction journal vs Kalshi. Read-only. */
+  function zhTime(ts) {
+    if (!ts) return "—";
+    var d = new Date(ts);
+    return isFinite(d.getTime()) ? d.toLocaleString("fr-CH", {
+      day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit", timeZone: "Europe/Zurich"
+    }) : String(ts);
+  }
+
+  function renderOps(data) {
+    data = data || {};
+    var html = "";
+    var rts = Array.isArray(data.routines) ? data.routines : [];
+    var scan = (data.last_scan && typeof data.last_scan === "object") ? data.last_scan : null;
+    var nm = Array.isArray(data.near_misses) && data.near_misses.length ? data.near_misses[0] : null;
+    var m = mandateObj(data);
+    if (rts.length || scan) {
+      html += '<section class="nabu-world-panel nabu-world-ops" aria-label="Routines World">'
+        + '<div class="nabu-world-section-head"><h2 class="nabu-world-section-title">Routines &amp; dernier scan</h2>'
+        + '<span class="nabu-world-subtle">Heure de Zurich</span></div>';
+      if (m.floor_policy || m.ev_devig_pp_hard_floor != null) {
+        var tk = numish(data.ticket_usd);
+        html += '<p class="nabu-world-note"><b>Mandat</b> ' + esc(m.floor_policy || "")
+          + " · plancher " + esc(String(m.ev_devig_pp_hard_floor != null ? m.ev_devig_pp_hard_floor : m.ev_devig_pp_min)) + " pp HARD"
+          + " · ticket C3 = " + esc(String(Math.round((numish(m.ticket_pct) || 0.1) * 100))) + " % BR"
+          + (tk != null ? " (" + money(tk) + ")" : "")
+          + " · min " + money(numish(m.ticket_floor_usd) || 5) + " / max " + money(numish(m.ticket_cap_usd) || 25)
+          + " · 1 ticket / match</p>";
+      }
+      if (rts.length) {
+        html += '<ul class="nabu-world-blockers">';
+        for (var i = 0; i < rts.length; i++) {
+          var r = rts[i] || {};
+          var st = r.status === "ok" ? "✓" : (r.status === "no_heartbeat" ? "·" : "⚠");
+          html += "<li><b>" + esc(st + " " + (r.label || r.id || "routine")) + "</b><span>"
+            + esc(r.schedule || "") + " · dernier " + esc(zhTime(r.last_ts))
+            + (r.result != null ? " · " + esc(String(r.result)) : "") + "</span></li>";
+        }
+        html += "</ul>";
+      }
+      if (scan) {
+        html += '<p class="nabu-world-flat"><b>Dernier scan World</b> ' + esc(zhTime(scan.ts))
+          + " · " + esc(String(scan.go || 0)) + " GO"
+          + (nm ? " · meilleur presque-passé <b>" + esc(nm.ticker || "") + "</b> " + esc(nm.market || "")
+            + " " + ppText(numish(nm.gap_pp)) + " (plancher −1,25)" : "") + "</p>";
+      }
+      html += "</section>";
+    }
+    var pj = (data.pred_journal && typeof data.pred_journal === "object") ? data.pred_journal : null;
+    if (pj && pj.present) {
+      var settled = numish(pj.settled) || 0, target = numish(pj.target) || 50;
+      var w = Math.max(2, Math.round(settled / target * 100));
+      var bo = numish(pj.brier_ours), bk = numish(pj.brier_kalshi);
+      html += '<section class="nabu-world-panel nabu-world-pred" aria-label="Journal de prédictions contre Kalshi">'
+        + '<div class="nabu-world-section-head"><h2 class="nabu-world-section-title">Journal prédictions vs Kalshi</h2>'
+        + '<span class="nabu-world-count">' + esc(String(settled)) + " / " + esc(String(target)) + "</span></div>"
+        + '<ol class="nabu-world-funnel"><li><span class="nabu-world-funnel-k">Matchs réglés</span>'
+        + '<span class="nabu-world-funnel-bar"><i style="--w:' + w + '%"></i></span><b>' + esc(String(settled)) + "</b></li></ol>"
+        + '<div class="nabu-world-kpis">'
+        + '<div class="nabu-world-kpi"><span>Prédictions loggées</span><strong>' + esc(String(pj.logged_predictions != null ? pj.logged_predictions : "—")) + "</strong></div>"
+        + '<div class="nabu-world-kpi"><span>Brier nous / Kalshi</span><strong>'
+        + (bo != null && bk != null ? esc(bo.toFixed(3) + " / " + bk.toFixed(3)) : "en attente") + "</strong></div>"
+        + '<div class="nabu-world-kpi"><span>Verdict C2</span><strong>' + esc(String(pj.verdict_c2 || "PENDING").split(" ")[0]) + "</strong></div>"
+        + "</div>";
+      var ents = Array.isArray(pj.entries) ? pj.entries : [];
+      if (ents.length) {
+        html += '<div class="nabu-world-tbl-wrap" role="region" aria-label="Prédictions" tabindex="0"><table class="nabu-world-tbl"><thead><tr>'
+          + '<th>Match</th><th>Côté</th><th class="nabu-world-num">Nous</th><th class="nabu-world-num">Kalshi</th>'
+          + '<th class="nabu-world-num">Ask World</th><th class="nabu-world-num">Écart</th><th>Résultat</th></tr></thead><tbody>';
+        for (var j = ents.length - 1; j >= 0; j--) {
+          var e = ents[j] || {};
+          var pm = numish(e.p_mine), km = numish(e.kalshi_mid), wa = numish(e.world_ask), ed = numish(e.edge_vs_world_ask_pp);
+          html += "<tr><td>" + esc(e.event_title || e.ticker || "—") + "</td><td>" + esc(e.title || "—") + "</td>"
+            + '<td class="nabu-world-num">' + (pm == null ? "—" : pm.toFixed(3)) + "</td>"
+            + '<td class="nabu-world-num">' + (km == null ? "—" : km.toFixed(3)) + "</td>"
+            + '<td class="nabu-world-num">' + (wa == null ? "—" : wa.toFixed(3)) + "</td>"
+            + '<td class="nabu-world-num">' + (ed == null ? "—" : ppText(ed)) + "</td>"
+            + "<td>" + esc(e.outcome == null ? "en cours" : String(e.outcome)) + "</td></tr>";
+        }
+        html += "</tbody></table></div>";
+      }
+      html += '<p class="nabu-world-note">Logging seul, aucun achat. Règle GO : ' + esc(pj.go_rule || "50 matchs réglés et Brier < Kalshi")
+        + (pj.updated_at ? ' · <span class="nabu-world-mono">' + esc(zhTime(pj.updated_at)) + "</span>" : "") + "</p>"
+        + "</section>";
+    }
+    if (data.realized_note) {
+      html += '<p class="nabu-world-note nabu-world-realized-note">' + esc(data.realized_note) + "</p>";
+    }
+    return html;
+  }
+
   /* Presentation only: read the same normalized snapshot and financial helpers. */
   function renderOverview(data) {
     var cash = data.cashflow || {};
@@ -2369,7 +2460,7 @@
       + '<div class="nabu-world-desk"><span>N*ABU</span><span>Trading desk</span></div>'
       + '<div class="nabu-world-badges">' + badges + '</div></header>'
       + warn + renderPending(pending, snapshot)
-      + renderDesk(snapshot)
+      + renderDesk(snapshot) + renderOps(snapshot)
       + '<section class="nabu-world-hero" aria-label="Vue d’ensemble du portefeuille">'
       + '<img class="nabu-world-hero-art" src="assets/nabu-world.png" alt="N*ABU en veste irisée, devant sa voiture et le globe World" width="1536" height="1280" fetchpriority="high">'
       + '<div class="nabu-world-hero-content"><p class="nabu-world-eyebrow">N*ABU × WORLD</p>'
